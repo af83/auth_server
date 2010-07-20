@@ -1,0 +1,11 @@
+Oauth2 server based on nodeJS.
+
+Very partial and incomplete implementation at the moment. 
+Tested with nodeJS 0.1.100.
+
+To get / update the submodules:
+  git submodule update --init --recursive
+
+To run the tests (need nodetk bins on the path):
+  nodetests src/tests
+

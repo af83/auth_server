@@ -1,0 +1,12 @@
+[submodule "vendors/grasshopper"]
+	path = vendors/grasshopper
+	url = git://github.com/tuxychandru/grasshopper.git
+[submodule "vendors/nstore"]
+	path = vendors/nstore
+	url = git://github.com/creationix/nstore.git
+[submodule "vendors/eyes"]
+	path = vendors/eyes
+	url = git://github.com/cloudhead/eyes.js.git
+[submodule "vendors/nodetk"]
+	path = vendors/nodetk
+	url = git://github.com/AF83/nodetk.git
