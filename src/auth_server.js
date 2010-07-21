@@ -55,6 +55,7 @@ var PARAMS = exports.PARAMS = {
   // possible values for response_type param:
   response_types: {'token': 1, 'code': 1, 'code_and_token': 1},
 };
+PARAMS.all = PARAMS.mandatory.concat(PARAMS.optional);
 
 // -------------------------------------------------------
 
@@ -76,7 +77,6 @@ gh.get('/oauth/authorize', function() {
   var error = false;
   PARAMS.mandatory.forEach(function(param) {
     if(!params[param]) error = true;
-    self.model[param] = params[param];
   });
   if(error) return oauth_error(self, 'invalid_request');
   if(!PARAMS.response_types[params.response_type]) 
@@ -90,6 +90,11 @@ gh.get('/oauth/authorize', function() {
     self.renderText('Only code request type supported for now ' +
                     '(schema 1.4.1 in oauth2 spec draft 10).');
   }
+
+  // Fill in the model:
+  PARAMS.all.forEach(function(param) {
+    self.model[param] = params[param];
+  });
 
   CLIENTS.get(params.client_id, function(err, client, meta) {
     if(err) {

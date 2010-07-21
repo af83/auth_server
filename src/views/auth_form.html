@@ -9,8 +9,46 @@
       <li>Client id: <%= client_id %></li>
       <li>Response type: <%= response_type %></li>
       <li>Redirect uri: <%= redirect_uri %></li>
+      <li>Scope: <%= scope %></li>
+      <li>State: <%= state %></li>
     </ul>
     <form action="" method="post">
+      These should be hidden (and could be assymetrically crypted in one field...): 
+      <br />
+
+      client_id:
+      <input type="text" name="client_id" value="<%= client_id %>" />
+      <br />
+
+      response_type:
+      <input type="text" name="response_type" value="<%= response_type %>" />
+      <br />
+
+      redirect_uri:
+      <input type="text" name="redirect_uri" value="<%= redirect_uri %>" />
+      <br />
+
+      scope:
+      <input type="text" name="scope" value="<%= scope %>" />
+      <br />
+
+      state:
+      <input type="text" name="state" value="<%= state %>" />
+      <br />
+        
+      These should be what the user sees:
+      <br />
+
+      <label>Email:
+        <input type="text" name="email" value="pruyssen@af83.com" />
+      </label>
+      <br />
+
+      <label>Password:
+        <input type="password" name="password" value="toto" />
+      </label>
+      <br />
+
       <input type="submit" value="Sign in" />
     </form>
   </body>
