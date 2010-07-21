@@ -11,6 +11,9 @@ var gh = require('grasshopper')
 
 
 exports.server = gh;
+require('renderer').configure({
+  viewsDir: __dirname + '/views'
+});
  
 
 var inspect = eyes.inspector({
@@ -94,7 +97,7 @@ gh.get('/oauth/authorize', function() {
       return oauth_error(self, 'redirect_uri_mismatch');
 
     // Eveything is allright, ask the user to sign in.
-    self.render('views/auth_form');
+    self.render('auth_form');
   });
 });
 
