@@ -41,6 +41,7 @@ var oauth_error = function(self, type) {
   /* Render the error type (invalid_request, invalid_client...) using the 
    * grasshoper instance (self).
    */
+  self.status = 400;
   self.renderText(JSON.stringify({error: {
     type: 'OAuthException',
     message: type + ': ' + ERRORS[type],
@@ -80,6 +81,15 @@ gh.get('/oauth/authorize', function() {
   if(error) return oauth_error(self, 'invalid_request');
   if(!PARAMS.response_types[params.response_type]) 
     oauth_error(self, 'unsupported_response_type');
+
+  // XXX: For now, we only support 'code' response type
+  // which is used in case of a web server (Section 1.4.1 in oauth2 spec draft 10)
+  // TODO: make it more compliant with the norm
+  if(params.response_type != "code") {
+    self.status = 501;
+    self.renderText('Only code request type supported for now ' +
+                    '(schema 1.4.1 in oauth2 spec draft 10).');
+  }
 
   CLIENTS.get(params.client_id, function(err, client, meta) {
     if(err) {

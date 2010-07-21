@@ -24,7 +24,7 @@ var load_clients = function() {
   var clients = nStore(__dirname + '/../../data/clients.db');
 
   clients.save('errornot', { // the client application id
-    // Once the user is identified, where to him/her send back:
+    // Once the user is identified, where to send her/him back:
     redirect_uri: 'http://127.0.0.1:8888/login',
   });
 };

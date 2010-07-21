@@ -69,7 +69,7 @@ var get_error_checker = function(error_code) {
    * Use assert two times.
    */
   return function(statusCode, headers, data) {
-    assert.equal(statusCode, 200); // TODO: 400
+    assert.equal(statusCode, 400);
     var error = JSON.parse(data);
     assert.deepEqual(error, {error: {
       type: 'OAuthException',
@@ -101,7 +101,7 @@ exports.tests = [
   // if the given client id is not in DB, error.
   var qs = querystring.stringify({
     client_id: "toto",
-    response_type: "token",
+    response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   });
   GET(authorize_url +'?'+ qs, get_error_checker('invalid_client'));
@@ -111,7 +111,7 @@ exports.tests = [
   // if the redirect_uri is not the same as registered: error.
   var qs = querystring.stringify({
     client_id: "errornot",
-    response_type: "token",
+    response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login/wrong"
   });
   GET(authorize_url +'?'+ qs, get_error_checker('redirect_uri_mismatch'));
@@ -127,12 +127,37 @@ exports.tests = [
   GET(authorize_url +'?'+ qs, get_error_checker('unsupported_response_type'));
 }],
 
+// -------------------------------------------------------------------------
+// XXX : The two following tests are NOT norm compliant, cf auth_server.js
+['/oauth/authorize: token response_type', 1, function() {
+  var qs = querystring.stringify({
+    client_id: "errornot",
+    response_type: "token",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  });
+  GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
+    assert.equal(statusCode, 501)
+  });
+}],
+
+['/oauth/authorize: code_and_token response_type', 1, function() {
+  var qs = querystring.stringify({
+    client_id: "errornot",
+    response_type: "code_and_token",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  });
+  GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
+    assert.equal(statusCode, 501)
+  });
+}],
+// -------------------------------------------------------------------------
+
 
 ['/oauth/authorize: ok', 1, function() {
   // if the response_type is not an accepted value: error.
   var qs = querystring.stringify({
     client_id: "errornot",
-    response_type: "token",
+    response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   });
   GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
