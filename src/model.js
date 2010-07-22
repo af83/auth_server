@@ -30,7 +30,11 @@ var reload_data = exports.reload_data = function() {
    */
   stores.forEach(function(store) {
     var fpath = data_dir + store + '.db';
-    data[store] = nStore(fpath);
+    if(store == 'issued_codes') data[store] = nStore(fpath, function(doc, meta) {
+      // Grants are only valid one minute
+      return doc.time > Date.now() - 60000; // 1000 * 60 seconds
+    })
+    else data[store] = nStore(fpath);
     data[store].fpath = fpath;
   });
 };

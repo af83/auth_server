@@ -47,6 +47,7 @@ var load_clients = function(callback) {
   data.clients.save('errornot', { // the client application id
     // Once the user is identified, where to send her/him back:
     redirect_uri: 'http://127.0.0.1:8888/login',
+    secret: 'some secret string',
   }, function(err) {
     callback();
   });

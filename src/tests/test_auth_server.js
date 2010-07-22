@@ -13,24 +13,31 @@ var auth_server = require('auth_server')
   , eyes = require('eyes')
   , load_data = require('../scripts/load_data').run
   , web = require('nodetk/web')
+  , model = require('../model')
+  , data = model.data
   ;
 
 
 server.serve(9999)
 var authorize_url = 'http://127.0.0.1:9999/oauth/authorize'
   , login_url = 'http://127.0.0.1:9999/login'
+  , token_url = 'http://127.0.0.1:9999/oauth/token'
   ;
 
-var get_error_checker = function(error_code) {
+var get_error_checker = function(type, error_code) {
   /* Returns a function checking the reply is an error.
    * Use assert two times.
+   *
+   * Arguments:
+   *  - type: 'eua' or 'oat'
+   *  - error_code: 'invalid_request', 'invalid_client'...
    */
   return function(statusCode, headers, data) {
     assert.equal(statusCode, 400);
     var error = JSON.parse(data);
     assert.deepEqual(error, {error: {
       type: 'OAuthException',
-      message: error_code + ': ' + auth_server.ERRORS[error_code]
+      message: error_code + ': ' + auth_server.ERRORS[type][error_code]
     }});
   };
 };
@@ -45,7 +52,7 @@ exports.tests = [
 
 ['/oauth/authorize: no parameter', 2, function() {
   // no params (missing mandatory ones) should give us an error.
-  web.GET(authorize_url, null, get_error_checker('invalid_request'));
+  web.GET(authorize_url, null, get_error_checker('eua', 'invalid_request'));
 }],
 
 
@@ -56,10 +63,10 @@ exports.tests = [
     response_type: "token",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
-  auth_server.PARAMS.mandatory.forEach(function(param) {
+  auth_server.PARAMS.eua.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
-    web.GET(authorize_url, partial_qs, get_error_checker('invalid_request'));
+    web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
   });
 }],
 
@@ -70,7 +77,7 @@ exports.tests = [
     client_id: "toto",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, get_error_checker('invalid_client'));
+  }, get_error_checker('eua', 'invalid_client'));
 }],
 
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
@@ -79,7 +86,7 @@ exports.tests = [
     client_id: "errornot",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login/wrong"
-  }, get_error_checker('redirect_uri_mismatch'));
+  }, get_error_checker('eua', 'redirect_uri_mismatch'));
 }],
 
 ['/oauth/authorize: unsupported_response_type', 2, function() {
@@ -88,7 +95,7 @@ exports.tests = [
     client_id: "errornot",
     response_type: "wrong",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, get_error_checker('unsupported_response_type'));
+  }, get_error_checker('eua', 'unsupported_response_type'));
 }],
 
 // -------------------------------------------------------------------------
@@ -175,4 +182,172 @@ exports.tests = [
 }],
 
 
+// -------------------------------------------------------------------------
+
+
+['/oauth/token: no parameters', 2, function() {
+  web.POST(token_url, {}, get_error_checker('oat', 'invalid_request'));
+}],
+
+
+['/oauth/token: missing mandatory param', 8, function() {
+  // A missing mandatory param should give us an error.
+  var qs = {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }
+  auth_server.PARAMS.oat.mandatory.forEach(function(param) {
+    var partial_qs = extend({}, qs);
+    delete partial_qs[param];
+    web.POST(token_url, partial_qs, get_error_checker('oat', 'invalid_request'));
+  });
+}],
+
+
+['/oauth/token: bad grant_type', 8, function() {
+  ["password", "assertion", "refresh_token", "none"].forEach(function(type) {
+    web.POST(token_url, {
+      grant_type: type,
+      client_id: "errornot",
+      code: "some code",
+      redirect_uri: "http://127.0.0.1:8888/login"
+    }, get_error_checker('oat', 'unsupported_grant_type'));
+  });
+}],
+
+
+['/oauth/token: no client secret', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }, get_error_checker('oat', 'invalid_request'));
+}],
+
+
+['/oauth/token: Two client secrets', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/login",
+    client_secret: "somesecret"
+  }, get_error_checker('oat', 'invalid_request'), {
+    additional_headers: {"Authorization": "Basic somesecret"}
+  });
+}],
+
+
+['/oauth/token: unknown client_id', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "toto",
+    code: "some code",
+    client_secret: "some secret",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }, get_error_checker('oat', 'invalid_client'));
+}],
+
+
+['/oauth/token: bad secret in param', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    client_secret: "some secret",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }, get_error_checker('oat', 'invalid_client'));
+}],
+
+
+['/oauth/token: bad secret in header', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/login",
+  }, get_error_checker('oat', 'invalid_client'), {
+    additional_headers: {"Authorization": "Basic some secret"}
+  });
+}],
+
+
+['/oauth/token: no grant (secrets in param)', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    client_secret: "some secret string",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }, get_error_checker('oat', 'invalid_grant'));
+}],
+
+
+['/oauth/token: no grant (secrets in headers)', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/login"
+  }, get_error_checker('oat', 'invalid_grant'), {
+    additional_headers: {"Authorization": "Basic some secret string"}
+  });
+}],
+
+
+['/oauth/token: bad request_uri', 2, function() {
+  web.POST(token_url, {
+    grant_type: "authorization_code",
+    client_id: "errornot",
+    client_secret: "some secret string",
+    code: "some code",
+    redirect_uri: "http://127.0.0.1:8888/toto"
+  }, get_error_checker('oat', 'invalid_grant'));
+}],
+
+
+['/oauth/token: outdated grant', 2, function() {
+  data.issued_codes.save(null, {
+    client_id: "errornot",
+    time: Date.now() - 60001
+  }, function(err, meta) {
+    web.POST(token_url, {
+      grant_type: "authorization_code",
+      client_id: "errornot",
+      code: meta.key,
+      client_secret: "some secret string",
+      redirect_uri: "http://127.0.0.1:8888/login"
+    }, get_error_checker('oat', 'invalid_grant'));
+  });
+}],
+
+
+['/oauth/token: ok with secret in params', 2, function() {
+  // TODO: broken here: nStore problem?
+  data.issued_codes.save(null, {
+    client_id: "errornot",
+    time: Date.now() - 15000
+  }, function(err, meta) {
+    model.reload_data();
+    web.POST(token_url, {
+      grant_type: "authorization_code",
+      client_id: "errornot",
+      code: meta.key,
+      client_secret: "some secret string",
+      redirect_uri: "http://127.0.0.1:8888/login"
+    }, function(statusCode, headers, data) {
+      console.log(data);
+      assert.equal(statusCode, 200);
+      assert.deepEqual(JSON.parse(data), {
+        access_token: 'secret_token'
+      });
+    });
+  });
+}],
+
+
 ]
+
