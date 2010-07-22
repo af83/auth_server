@@ -11,6 +11,7 @@ var auth_server = require('auth_server')
   , querystring = require('querystring')
   , http = require('http')
   , eyes = require('eyes')
+  , load_data = require('../scripts/load_data').run
   ;
 
 
@@ -84,6 +85,11 @@ var get_error_checker = function(error_code) {
       message: error_code + ': ' + auth_server.ERRORS[error_code]
     }});
   };
+};
+
+
+exports.setup = function(callback) {
+  load_data(callback);
 };
 
 

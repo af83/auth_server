@@ -1,13 +1,13 @@
 
-require.paths.unshift(__dirname + '/../vendors/nstore/lib')
 require.paths.unshift(__dirname + '/../vendors/grasshopper/lib/')
 require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
 
 
 var gh = require('grasshopper')
   , eyes = require('eyes')
-  , nStore = require('nstore')
   , querystring = require('querystring')
+  , model = require('./model')
+  , data = model.data
   ;
 
 
@@ -68,11 +68,6 @@ PARAMS.all = PARAMS.mandatory.concat(PARAMS.optional);
 
 // -------------------------------------------------------
 
-var USERS = nStore(__dirname + '/../data/users.db')
-  , CLIENTS = nStore(__dirname + '/../data/clients.db')
-  , ISSUED_CODES = nStore(__dirname + '/../data/issued_codes.db')
-  ;
-
 gh.get('/', function() {
   this.renderText('Hello !');
 });
@@ -106,7 +101,7 @@ gh.get('/oauth/authorize', function() {
     self.model[param] = params[param];
   });
 
-  CLIENTS.get(params.client_id, function(err, client, meta) {
+  data.clients.get(params.client_id, function(err, client, meta) {
     if(err) {
       // We don't know about the client:
       if(err.errno == 2) return oauth_error(self, 'invalid_client');
@@ -140,7 +135,7 @@ gh.post('/login', function() {
     ;
   if(!params || !params.email || !params.password) 
     return unknown_email_password(self);
-  USERS.get(params.email, function(err, user, meta) {
+  data.users.get(params.email, function(err, user, meta) {
     if(err) {
       // We don't know about the user:
       if(err.errno == 2) return unknown_email_password(self);
@@ -159,7 +154,7 @@ gh.post('/login', function() {
     // Generate some authorization code, and store it in DB
     // We associate with the code: the client_id and the time it was created.
     // Here we rely on nStore to generate a code for us.
-    ISSUED_CODES.save(null, {
+    data.issued_codes.save(null, {
       client_id: params.client_id,
       time: Date.now()
     }, function(err, meta) {
