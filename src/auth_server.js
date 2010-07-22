@@ -80,10 +80,10 @@ gh.get('/oauth/authorize', function() {
     , params = self.params;
   // We check there is no invalid_requet error:
   var error = false;
-  PARAMS.mandatory.forEach(function(param) {
+  params && PARAMS.mandatory.forEach(function(param) {
     if(!params[param]) error = true;
   });
-  if(error) return oauth_error(self, 'invalid_request');
+  if(error || !params) return oauth_error(self, 'invalid_request');
   if(!PARAMS.response_types[params.response_type]) 
     oauth_error(self, 'unsupported_response_type');
 

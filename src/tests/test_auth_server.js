@@ -23,6 +23,7 @@ var REQ = function(type, url, data, callback) {
    *  callback(http_code, headers, data);
    */
   var purl = URL.parse(url);
+  var qs = purl.query || '';
   var client = http.createClient(purl.port || 80, purl.hostname);
   client.addListener('error', function(err) {
     console.log(err.message);
@@ -39,7 +40,11 @@ var REQ = function(type, url, data, callback) {
   if(type == 'POST' || type == 'PUT') {
     headers['content-type'] = 'application/x-www-form-urlencoded';
   }
-  var request = client.request(type, purl.pathname + (purl.search || ''), headers);
+  else if (data) {
+    if(qs) qs += '&';
+    qs += querystring.stringify(data);
+  }
+  var request = client.request(type, purl.pathname +'?'+ qs, headers);
   if((type == 'POST' || type == 'PUT') && data) {
     request.write(querystring.stringify(data), 'utf8');
   }
@@ -56,8 +61,9 @@ var REQ = function(type, url, data, callback) {
   });
 }
 
-var GET = function(url, callback) {
-  return REQ('GET', url, null, callback);
+var GET = function(url, data, callback) {
+  if(data == {}) data = null;
+  return REQ('GET', url, data, callback);
 };
 
 var POST = function(url, data, callback) {
@@ -95,6 +101,12 @@ exports.setup = function(callback) {
 
 exports.tests = [
 
+['/oauth/authorize: no parameter', 2, function() {
+  // no params (missing mandatory ones) should give us an error.
+  GET(authorize_url, null, get_error_checker('invalid_request'));
+}],
+
+
 ['/oauth/authorize: missing mandatory param', 6, function() {
   // A missing mandatory param should give us an error.
   var qs = {
@@ -105,62 +117,56 @@ exports.tests = [
   auth_server.PARAMS.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
-    partial_qs = querystring.stringify(partial_qs);
-    GET(authorize_url +'?'+ partial_qs, get_error_checker('invalid_request'));
+    GET(authorize_url, partial_qs, get_error_checker('invalid_request'));
   });
 }],
 
 
 ['/oauth/authorize: bad client_id', 2, function() {
   // if the given client id is not in DB, error.
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "toto",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
-  });
-  GET(authorize_url +'?'+ qs, get_error_checker('invalid_client'));
+  }, get_error_checker('invalid_client'));
 }],
 
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
   // if the redirect_uri is not the same as registered: error.
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "errornot",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login/wrong"
-  });
-  GET(authorize_url +'?'+ qs, get_error_checker('redirect_uri_mismatch'));
+  }, get_error_checker('redirect_uri_mismatch'));
 }],
 
 ['/oauth/authorize: unsupported_response_type', 2, function() {
   // if the response_type is not an accepted value: error.
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "errornot",
     response_type: "wrong",
     redirect_uri: "http://127.0.0.1:8888/login"
-  });
-  GET(authorize_url +'?'+ qs, get_error_checker('unsupported_response_type'));
+  }, get_error_checker('unsupported_response_type'));
 }],
 
 // -------------------------------------------------------------------------
 // XXX : The two following tests are NOT norm compliant, cf auth_server.js
 ['/oauth/authorize: token response_type', 1, function() {
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "errornot",
     response_type: "token",
     redirect_uri: "http://127.0.0.1:8888/login"
-  });
-  GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
+  }, function(statusCode, headers, data) {
     assert.equal(statusCode, 501)
   });
 }],
 
 ['/oauth/authorize: code_and_token response_type', 1, function() {
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "errornot",
     response_type: "code_and_token",
     redirect_uri: "http://127.0.0.1:8888/login"
-  });
-  GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
+  }, function(statusCode, headers, data) {
     assert.equal(statusCode, 501)
   });
 }],
@@ -169,12 +175,11 @@ exports.tests = [
 
 ['/oauth/authorize: ok', 1, function() {
   // if the response_type is not an accepted value: error.
-  var qs = querystring.stringify({
+  GET(authorize_url, {
     client_id: "errornot",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
-  });
-  GET(authorize_url +'?'+ qs, function(statusCode, headers, data) {
+  }, function(statusCode, headers, data) {
     assert.equal(statusCode, 200);
     // TODO: more checks here? -> check we have a form to log in.
   });
