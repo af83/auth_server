@@ -7,6 +7,7 @@ require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
 var gh = require('grasshopper')
   , eyes = require('eyes')
   , nStore = require('nstore')
+  , querystring = require('querystring')
   ;
 
 
@@ -48,6 +49,14 @@ var oauth_error = function(self, type) {
   }}));
 };
 
+var unknown_error = function(self, error) {
+  /* To call when an unknown error happens (server error).
+   */
+  console.log(err.message);
+  console.log(err.stack);
+  self.renderError(500);
+};
+
 // Parameters we must/can have in an authorize request:
 var PARAMS = exports.PARAMS = {
   mandatory: ['client_id', 'response_type', 'redirect_uri'],
@@ -61,6 +70,7 @@ PARAMS.all = PARAMS.mandatory.concat(PARAMS.optional);
 
 var USERS = nStore(__dirname + '/../data/users.db')
   , CLIENTS = nStore(__dirname + '/../data/clients.db')
+  , ISSUED_CODES = nStore(__dirname + '/../data/issued_codes.db')
   ;
 
 gh.get('/', function() {
@@ -100,11 +110,7 @@ gh.get('/oauth/authorize', function() {
     if(err) {
       // We don't know about the client:
       if(err.errno == 2) return oauth_error(self, 'invalid_client');
-      else {
-        console.log(err.message);
-        console.log(err.stack);
-        self.renderError(500);
-      };
+      else return unknown_error(self, err);
     }
     
     // Check the redirect_uri is the one we know about:
@@ -116,8 +122,55 @@ gh.get('/oauth/authorize', function() {
   });
 });
 
-gh.post('/oauth/authorize', function() {
-  this.renderText('loged in');
+
+var unknown_email_password = function(self) {
+  /* To reply to the user when the authentication process failed
+   * Either because the email or password was not known
+   */
+  self.status = 401;
+  // TODO: represent the auth form with some error
+  self.renderText('Email or password not known');
+};
+
+// XXX: we might want to put a different URL
+// as the POST may have the same behaviour as the GET, according to spec.
+gh.post('/login', function() {
+  var self = this
+    , params = self.params
+    ;
+  if(!params || !params.email || !params.password) 
+    return unknown_email_password(self);
+  USERS.get(params.email, function(err, user, meta) {
+    if(err) {
+      // We don't know about the user:
+      if(err.errno == 2) return unknown_email_password(self);
+      else return unknown_error(self, err);
+    }
+    // TODO: crypt the password
+    if(user.password != params.password) 
+      return unknown_email_password(self);
+
+    // XXX: Do we need to check the parameters the user is giving us back?
+    // (it shouldn't be necessary, since it can always alter the redirect we
+    // are going to make)
+    // But at least check the clientid is the same as we had before
+    // XXX: it might be a good idea to put a token in the signing form.
+
+    // Generate some authorization code, and store it in DB
+    // We associate with the code: the client_id and the time it was created.
+    // Here we rely on nStore to generate a code for us.
+    ISSUED_CODES.save(null, {
+      client_id: params.client_id,
+      time: Date.now()
+    }, function(err, meta) {
+      if (err) return unknown_error(self, err);
+      // Redirect the user with a code and eventually the state
+      var qs = {code: meta.key};
+      if(params.state) qs.state = params.state;
+      qs = querystring.stringify(qs);
+      self.redirect(params.redirect_uri + '?' + qs);
+    });
+  });
 });
 
 

@@ -1,22 +1,23 @@
 
 require.paths.unshift(__dirname + '/..');
 require.paths.unshift(__dirname + '/../../vendors/nodetk/src');
+require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
 
 var auth_server = require('auth_server')
   , server = auth_server.server
   , assert = require('nodetk/testing/custom_assert')
   , extend = require('nodetk/utils').extend
+  , URL = require('url')
   , querystring = require('querystring')
+  , http = require('http')
+  , eyes = require('eyes')
   ;
 
 
 
 //--------------------------------------------------
 
-var URL = require('url')
-  , http = require('http');
-
-var REQ = function(type, url, callback) {
+var REQ = function(type, url, data, callback) {
   /* Make a request to the given URL, and call:
    *  callback(http_code, headers, data);
    */
@@ -34,7 +35,13 @@ var REQ = function(type, url, callback) {
     'Accept-Language': 'fr-fr,fr;q=0.8,en;q=0.5,en-us;q=0.3',
     //'Accept-Encoding': 'gzip,deflate',
   };
-  var request = client.request(type, purl.pathname + purl.search, headers);
+  if(type == 'POST' || type == 'PUT') {
+    headers['content-type'] = 'application/x-www-form-urlencoded';
+  }
+  var request = client.request(type, purl.pathname + (purl.search || ''), headers);
+  if((type == 'POST' || type == 'PUT') && data) {
+    request.write(querystring.stringify(data), 'utf8');
+  }
   request.end();
   var data = '';
   request.on('response', function(response) {
@@ -49,11 +56,11 @@ var REQ = function(type, url, callback) {
 }
 
 var GET = function(url, callback) {
-  return REQ('GET', url, callback);
+  return REQ('GET', url, null, callback);
 };
 
-var POST = function(url, callback) {
-  return REQ('POST', url, callback);
+var POST = function(url, data, callback) {
+  return REQ('POST', url, data, callback);
 };
 // ----------------------------------------------------------
 
@@ -61,8 +68,9 @@ var POST = function(url, callback) {
 
 
 server.serve(9999)
-var authorize_url = 'http://127.0.0.1:9999/oauth/authorize';
-
+var authorize_url = 'http://127.0.0.1:9999/oauth/authorize'
+  , login_url = 'http://127.0.0.1:9999/login'
+  ;
 
 var get_error_checker = function(error_code) {
   /* Returns a function checking the reply is an error.
@@ -165,5 +173,53 @@ exports.tests = [
     // TODO: more checks here? -> check we have a form to log in.
   });
 }],
+
+
+['authentication ok', 4, function() {
+  POST(login_url, {
+    client_id: 'errornot',
+    response_type: 'code',
+    redirect_uri: 'http://127.0.0.1:8888/login',
+    state: 'somestate',
+    email: 'pruyssen@af83.com',
+    password: '1234'
+  }, function(statusCode, headers, data) {
+    assert.equal(statusCode, 302);
+    var location = headers.location.split('?');
+    assert.equal(location[0], 'http://127.0.0.1:8888/login');
+    var qs = querystring.parse(location[1]);
+    assert.ok(qs.code);
+    assert.equal(qs.state, 'somestate');
+  });
+}],
+
+
+['authentication: wrong password', 1, function() {
+  POST(login_url, {
+    client_id: 'errornot',
+    response_type: 'code',
+    redirect_uri: 'http://127.0.0.1:8888/login',
+    state: 'somestate',
+    email: 'pruyssen@af83.com',
+    password: '123456'
+  }, function(statusCode, headers, data) {
+    assert.equal(statusCode, 401);
+  });
+}],
+
+
+['authentication: unknown user', 1, function() {
+  POST(login_url, {
+    client_id: 'errornot',
+    response_type: 'code',
+    redirect_uri: 'http://127.0.0.1:8888/login',
+    state: 'somestate',
+    email: 'toto@af83.com',
+    password: '123456'
+  }, function(statusCode, headers, data) {
+    assert.equal(statusCode, 401);
+  });
+}],
+
 
 ]
