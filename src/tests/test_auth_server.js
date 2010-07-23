@@ -14,7 +14,8 @@ var auth_server = require('auth_server')
   , load_data = require('../scripts/load_data').run
   , web = require('nodetk/web')
   , model = require('../model')
-  , data = model.data
+  , RFactory = model.RFactory
+  //, data = model.data
   ;
 
 
@@ -42,9 +43,33 @@ var get_error_checker = function(type, error_code) {
   };
 };
 
+var get_client_id = function(client_name, callback) {
+  /* Calls callback(client_id), client_id corresponding to the given name.
+   * If no corresponding client found, throw error.
+   */
+  R.Client.index({query: {name: client_name}}, function(clients) {
+    if(clients.length != 1) throw "There should only be one client!";
+    callback(clients[0].id);
+  }, function(err) {
+    console.log(err.message);
+    console.log(err.stack);
+    throw err;
+  });
+};
+
+// available for each test to use:
+var errornot_client_id
+  , R = RFactory()
+  ;
 
 exports.setup = function(callback) {
-  load_data(callback);
+  R.clear_caches();
+  load_data(function() {
+    get_client_id("errornot", function(client_id) {
+      errornot_client_id = client_id;
+      callback();
+    });
+  });
 };
 
 
@@ -59,11 +84,12 @@ exports.tests = [
 ['/oauth/authorize: missing mandatory param', 6, function() {
   // A missing mandatory param should give us an error.
   var qs = {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "token",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
   auth_server.PARAMS.eua.mandatory.forEach(function(param) {
+    console.log(param);
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
@@ -83,7 +109,7 @@ exports.tests = [
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
   // if the redirect_uri is not the same as registered: error.
   web.GET(authorize_url, {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login/wrong"
   }, get_error_checker('eua', 'redirect_uri_mismatch'));
@@ -92,7 +118,7 @@ exports.tests = [
 ['/oauth/authorize: unsupported_response_type', 2, function() {
   // if the response_type is not an accepted value: error.
   web.GET(authorize_url, {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "wrong",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('eua', 'unsupported_response_type'));
@@ -102,7 +128,7 @@ exports.tests = [
 // XXX : The two following tests are NOT norm compliant, cf auth_server.js
 ['/oauth/authorize: token response_type', 1, function() {
   web.GET(authorize_url, {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "token",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, function(statusCode, headers, data) {
@@ -112,7 +138,7 @@ exports.tests = [
 
 ['/oauth/authorize: code_and_token response_type', 1, function() {
   web.GET(authorize_url, {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "code_and_token",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, function(statusCode, headers, data) {
@@ -125,7 +151,7 @@ exports.tests = [
 ['/oauth/authorize: ok', 1, function() {
   // if the response_type is not an accepted value: error.
   web.GET(authorize_url, {
-    client_id: "errornot",
+    client_id: errornot_client_id,
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, function(statusCode, headers, data) {
@@ -194,7 +220,7 @@ exports.tests = [
   // A missing mandatory param should give us an error.
   var qs = {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
@@ -210,7 +236,7 @@ exports.tests = [
   ["password", "assertion", "refresh_token", "none"].forEach(function(type) {
     web.POST(token_url, {
       grant_type: type,
-      client_id: "errornot",
+      client_id: errornot_client_id,
       code: "some code",
       redirect_uri: "http://127.0.0.1:8888/login"
     }, get_error_checker('oat', 'unsupported_grant_type'));
@@ -221,7 +247,7 @@ exports.tests = [
 ['/oauth/token: no client secret', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('oat', 'invalid_request'));
@@ -231,7 +257,7 @@ exports.tests = [
 ['/oauth/token: Two client secrets', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login",
     client_secret: "somesecret"
@@ -255,7 +281,7 @@ exports.tests = [
 ['/oauth/token: bad secret in param', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     client_secret: "some secret",
     redirect_uri: "http://127.0.0.1:8888/login"
@@ -266,7 +292,7 @@ exports.tests = [
 ['/oauth/token: bad secret in header', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login",
   }, get_error_checker('oat', 'invalid_client'), {
@@ -278,7 +304,7 @@ exports.tests = [
 ['/oauth/token: no grant (secrets in param)', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     client_secret: "some secret string",
     redirect_uri: "http://127.0.0.1:8888/login"
@@ -289,7 +315,7 @@ exports.tests = [
 ['/oauth/token: no grant (secrets in headers)', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('oat', 'invalid_grant'), {
@@ -301,7 +327,7 @@ exports.tests = [
 ['/oauth/token: bad request_uri', 2, function() {
   web.POST(token_url, {
     grant_type: "authorization_code",
-    client_id: "errornot",
+    client_id: errornot_client_id,
     client_secret: "some secret string",
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/toto"
@@ -310,14 +336,15 @@ exports.tests = [
 
 
 ['/oauth/token: outdated grant', 2, function() {
-  data.issued_codes.save(null, {
-    client_id: "errornot",
-    time: Date.now() - 60001
-  }, function(err, meta) {
+  var grant = new R.Grant({
+    client_id: errornot_client_id,
+    time: Date.now() - 60100
+  });
+  grant.save(function() {
     web.POST(token_url, {
       grant_type: "authorization_code",
-      client_id: "errornot",
-      code: meta.key,
+      client_id: errornot_client_id,
+      code: grant.id,
       client_secret: "some secret string",
       redirect_uri: "http://127.0.0.1:8888/login"
     }, get_error_checker('oat', 'invalid_grant'));
@@ -326,16 +353,18 @@ exports.tests = [
 
 
 ['/oauth/token: ok with secret in params', 2, function() {
-  // TODO: broken here: nStore problem?
-  data.issued_codes.save(null, {
-    client_id: "errornot",
-    time: Date.now() - 15000
-  }, function(err, meta) {
-    model.reload_data();
+  var grant = new R.Grant({
+    client_id: errornot_client_id,
+    time: parseInt(Date.now() - 15000)
+  });
+  console.log('grant:');
+  eyes.inspect(grant);
+  grant.save(function() {
+    eyes.inspect(grant);
     web.POST(token_url, {
       grant_type: "authorization_code",
-      client_id: "errornot",
-      code: meta.key,
+      client_id: errornot_client_id,
+      code: grant.id,
       client_secret: "some secret string",
       redirect_uri: "http://127.0.0.1:8888/login"
     }, function(statusCode, headers, data) {

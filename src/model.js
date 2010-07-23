@@ -1,45 +1,20 @@
-/* Where are defined the DB collections  + some helpers.
- * Uses nStore, so only key -> values, on disk, append only.
+/* Where is defined the DB connection.
  *
- * We got the following stores:
- *  - users.db
- *  - clients.db
- *  - issued_codes.db
+ * We got the following collections (cf. schema.js):
+ *  - User
+ *  - Client
+ *  - Grant
  *
  */
 
-require.paths.unshift(__dirname + '/../vendors/nstore/lib');
+require.paths.unshift(__dirname + "/../vendors/rest-mongo/src")
+
+var rest_mongo = require("rest-mongo/core"),
+    mongo_backend = require("rest-mongo/mongo_backend"),
+    config = require('./config'),
+    schema = require('./schema').schema
 
 
-var nStore = require('nstore')
-  ;
-
-
-// Where is stored the data:
-var data_dir = exports.data_dir = __dirname + '/../data/';
-
-var stores = ['users', 'clients', 'issued_codes']
-  , data = {}
-  ;
-
-var reload_data = exports.reload_data = function() {
-  /* Recreate the stores from files 
-   * in case they have been changed from the outside.
-   *
-   * This function should be synchronous.
-   */
-  stores.forEach(function(store) {
-    var fpath = data_dir + store + '.db';
-    if(store == 'issued_codes') data[store] = nStore(fpath, function(doc, meta) {
-      // Grants are only valid one minute
-      return doc.time > Date.now() - 60000; // 1000 * 60 seconds
-    })
-    else data[store] = nStore(fpath);
-    data[store].fpath = fpath;
-  });
-};
-reload_data();
-
-exports.data = data;
-
+var backend = mongo_backend.get_backend(config.db)
+exports.RFactory = rest_mongo.getRFactory(schema, backend)
 

@@ -15,8 +15,7 @@ require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
 var gh = require('grasshopper')
   , eyes = require('eyes')
   , querystring = require('querystring')
-  , model = require('./model')
-  , data = model.data
+  , RFactory = require('./model').RFactory
   ;
 
 
@@ -125,7 +124,8 @@ gh.get('/oauth/authorize', function() {
   /* We must serve an authentication form to the end user at browser.
    */
   var self = this
-    , params = self.params;
+    , params = self.params
+    ;
   // We check there is no invalid_requet error:
   var error = false;
   params && PARAMS.eua.mandatory.forEach(function(param) {
@@ -149,19 +149,16 @@ gh.get('/oauth/authorize', function() {
     self.model[param] = params[param];
   });
 
-  data.clients.get(params.client_id, function(err, client, meta) {
-    if(err) {
-      // We don't know about the client:
-      if(err.errno == 2) return oauth_error(self, 'eua', 'invalid_client');
-      else return unknown_error(self, err);
-    }
-    
+  var R = RFactory();
+  R.Client.get({ids: params.client_id}, function(client) {
+    if(!client) return oauth_error(self, 'eua', 'invalid_client');
     // Check the redirect_uri is the one we know about:
     if(client.redirect_uri != params.redirect_uri) 
       return oauth_error(self, 'eua', 'redirect_uri_mismatch');
-
     // Eveything is allright, ask the user to sign in.
     self.render('auth_form');
+  }, function(err) {
+    unknown_error(self, err);
   });
 });
 
@@ -180,15 +177,15 @@ var unknown_email_password = function(self) {
 gh.post('/login', function() {
   var self = this
     , params = self.params
+    , R = RFactory()
     ;
   if(!params || !params.email || !params.password) 
     return unknown_email_password(self);
-  data.users.get(params.email, function(err, user, meta) {
-    if(err) {
-      // We don't know about the user:
-      if(err.errno == 2) return unknown_email_password(self);
-      else return unknown_error(self, err);
-    }
+
+  R.User.index({query: {email: params.email}}, function(users) {
+    if(users.length != 1) return unknown_email_password(self);
+    var user = users[0];
+    
     // TODO: crypt the password
     if(user.password != params.password) 
       return unknown_email_password(self);
@@ -201,18 +198,23 @@ gh.post('/login', function() {
 
     // Generate some authorization code, and store it in DB
     // We associate with the code: the client_id and the time it was created.
-    // Here we rely on nStore to generate a code for us.
-    data.issued_codes.save(null, {
+    
+    // Here we rely on DB to generate a code (grant.id) for us.
+    var grant = new R.Grant({
       client_id: params.client_id,
       time: Date.now()
-    }, function(err, meta) {
-      if (err) return unknown_error(self, err);
-      // Redirect the user with a code and eventually the state
-      var qs = {code: meta.key};
+    });
+    grant.save(function() {
+      var qs = {code: grant.id}; // TODO: make a very random authorization code?
       if(params.state) qs.state = params.state;
       qs = querystring.stringify(qs);
       self.redirect(params.redirect_uri + '?' + qs);
+    }, function(err) {
+      unknown_error(self, err);
     });
+  
+  }, function(err) {
+    unknown_error(self, err);
   });
 });
 
@@ -224,6 +226,7 @@ gh.post('/login', function() {
 gh.post('/oauth/token', function() {
   var self = this
     , params = self.params
+    , R = RFactory()
     ;
 
   // We check there is no invalid_requet error:
@@ -249,12 +252,8 @@ gh.post('/oauth/token', function() {
   }
 
   // Check the client_id exists and does have correct client_secret:
-  data.clients.get(params.client_id, function(err, client, meta) {
-    if(err) {
-      // We don't know about the client:
-      if(err.errno == 2) return oauth_error(self, 'oat', 'invalid_client');
-      else return unknown_error(self, err);
-    }
+  R.Client.get({ids: params.client_id}, function(client) {
+    if(!client) return oauth_error(self, 'oat', 'invalid_client');
     // TODO: encrypt password
     if(client.secret != params.client_secret) 
       return oauth_error(self, 'oat', 'invalid_client');
@@ -267,31 +266,25 @@ gh.post('/oauth/token', function() {
       return oauth_error(self, 'oat', 'invalid_grant');
 
     // check the grant exist, is not deprecated and corresponds to the client:
-    data.issued_codes.get(params.code, function(err, grant, meta) {
-      if(err) {
-        console.log('unknown grant ' + params.code);
-        // We don't know about the grant (or it is expired)
-        if(err.errno == 2) return oauth_error(self, 'oat', 'invalid_grant');
-        else return unknown_error(self, err);
-      }
+    inspect(params.code);
+    R.Grant.get({ids: params.code}, function(grant) {
+      inspect(grant);
+      var minute_ago = Date.now() - 60000;
+      if(!grant || grant.time < minute_ago)
+        return oauth_error(self, 'oat', 'invalid_grant');
       
       // Delete the grant so that it cannot be used anymore:
-      data.issued_codes.remove(params.code, function(err) {
-        if(err) {
-          console.log(err.message);
-          console.log(err.stack);
-        }
-      });
+      grant.delete_(function() {
+        // Generate and send an access_token to the client:
+        self.renderText(JSON.stringify({
+          // TODO: generate a token with assymetric encryption/signature
+          access_token: 'secret_token'
+          // optional: expires_in, refresh_token, scope
+        }));
+      }, function(err) {return unknown_error(self, err)});
 
-      // Generate and send an access_token to the client:
-      self.renderText(JSON.stringify({
-        // TODO: generate a token with assymetric encryption/signature
-        access_token: 'secret_token'
-        // optional: expires_in, refresh_token, scope
-      }));
-
-    });
-  });
+    }, function(err) {return unknown_error(self, err)});
+  }, function(err) {return unknown_error(self, err)});
 });
 
 
