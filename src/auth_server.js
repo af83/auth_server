@@ -20,7 +20,7 @@ var gh = require('grasshopper')
 
 
 exports.server = gh;
-require('renderer').configure({
+gh.configure({
   viewsDir: __dirname + '/views'
 });
  
@@ -124,16 +124,18 @@ gh.get('/oauth/authorize', function() {
   /* We must serve an authentication form to the end user at browser.
    */
   var self = this
-    , params = self.params
+    , params = self.params || []
     ;
   // We check there is no invalid_requet error:
   var error = false;
-  params && PARAMS.eua.mandatory.forEach(function(param) {
+  PARAMS.eua.mandatory.forEach(function(param) {
     if(!params[param]) error = true;
   });
-  if(error || !params) return oauth_error(self, 'eua', 'invalid_request');
+  if(error) {
+    return oauth_error(self, 'eua', 'invalid_request');
+  }
   if(!PARAMS.eua.response_types[params.response_type]) 
-    oauth_error(self, 'eua', 'unsupported_response_type');
+    return oauth_error(self, 'eua', 'unsupported_response_type');
 
   // XXX: For now, we only support 'code' response type
   // which is used in case of a web server (Section 1.4.1 in oauth2 spec draft 10)
@@ -266,9 +268,7 @@ gh.post('/oauth/token', function() {
       return oauth_error(self, 'oat', 'invalid_grant');
 
     // check the grant exist, is not deprecated and corresponds to the client:
-    inspect(params.code);
     R.Grant.get({ids: params.code}, function(grant) {
-      inspect(grant);
       var minute_ago = Date.now() - 60000;
       if(!grant || grant.time < minute_ago)
         return oauth_error(self, 'oat', 'invalid_grant');

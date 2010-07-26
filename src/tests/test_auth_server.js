@@ -1,4 +1,7 @@
 
+// FIXME: it seems there is a race condition happening sometimes in tests
+// this might be due to grasshoper framework...
+
 require.paths.unshift(__dirname + '/..');
 require.paths.unshift(__dirname + '/../../vendors/nodetk/src');
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
@@ -85,11 +88,10 @@ exports.tests = [
   // A missing mandatory param should give us an error.
   var qs = {
     client_id: errornot_client_id,
-    response_type: "token",
+    response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
   auth_server.PARAMS.eua.mandatory.forEach(function(param) {
-    console.log(param);
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
@@ -175,6 +177,7 @@ exports.tests = [
     assert.equal(location[0], 'http://127.0.0.1:8888/login');
     var qs = querystring.parse(location[1]);
     assert.ok(qs.code);
+    // TODO: check the grant is inside the DB.
     assert.equal(qs.state, 'somestate');
   });
 }],
@@ -335,45 +338,54 @@ exports.tests = [
 }],
 
 
-['/oauth/token: outdated grant', 2, function() {
+['/oauth/token: outdated grant', 3, function() {
   var grant = new R.Grant({
     client_id: errornot_client_id,
-    time: Date.now() - 60100
+    time: parseInt(Date.now() - 60100)
   });
   grant.save(function() {
-    web.POST(token_url, {
-      grant_type: "authorization_code",
-      client_id: errornot_client_id,
-      code: grant.id,
-      client_secret: "some secret string",
-      redirect_uri: "http://127.0.0.1:8888/login"
-    }, get_error_checker('oat', 'invalid_grant'));
+    R.clear_caches();
+    setTimeout(function() { // To be sure the other connexion is aware of this.
+      R.Grant.get({ids: grant.id}, function(grant) {
+        assert.ok(grant != null, "The grand has not been saved yet...");
+        // We need to check the grant was actually 
+        web.POST(token_url, {
+          grant_type: "authorization_code",
+          client_id: errornot_client_id,
+          code: grant.id,
+          client_secret: "some secret string",
+          redirect_uri: "http://127.0.0.1:8888/login"
+        }, get_error_checker('oat', 'invalid_grant'));
+      });
+    }, 10);
   });
 }],
 
 
-['/oauth/token: ok with secret in params', 2, function() {
+['/oauth/token: ok with secret in params', 3, function() {
   var grant = new R.Grant({
     client_id: errornot_client_id,
     time: parseInt(Date.now() - 15000)
   });
-  console.log('grant:');
-  eyes.inspect(grant);
   grant.save(function() {
-    eyes.inspect(grant);
-    web.POST(token_url, {
-      grant_type: "authorization_code",
-      client_id: errornot_client_id,
-      code: grant.id,
-      client_secret: "some secret string",
-      redirect_uri: "http://127.0.0.1:8888/login"
-    }, function(statusCode, headers, data) {
-      console.log(data);
-      assert.equal(statusCode, 200);
-      assert.deepEqual(JSON.parse(data), {
-        access_token: 'secret_token'
+    R.clear_caches();
+    setTimeout(function() { // To be sure the other connexion is aware of this.
+      R.Grant.get({ids: grant.id}, function(grant) {
+        assert.ok(grant != null, "The grant has not been saved yet...");
+        web.POST(token_url, {
+          grant_type: "authorization_code",
+          client_id: errornot_client_id,
+          code: grant.id,
+          client_secret: "some secret string",
+          redirect_uri: "http://127.0.0.1:8888/login"
+        }, function(statusCode, headers, data) {
+          assert.equal(statusCode, 200);
+          assert.deepEqual(JSON.parse(data), {
+            access_token: 'secret_token'
+          });
+        });
       });
-    });
+    }, 10);
   });
 }],
 
