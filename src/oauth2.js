@@ -1,39 +1,19 @@
-/* This implements a OAuth2 server, as specified at:
+/* This implements a OAuth2 server methods, as specified at:
  *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10
  *
- *  Only features the "web server" schema: 
- *    http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.4.1
+ * Only features the "web server" schema: 
+ *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.4.1
  *
  * Terminaology:
  *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.2
  *
  */
-require.paths.unshift(__dirname + '/../vendors/grasshopper/lib/')
-require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
-require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 
-
-var gh = require('grasshopper')
-  , eyes = require('eyes')
-  , querystring = require('querystring')
+var querystring = require('querystring')
 
   , RFactory = require('./model').RFactory
-  , authorizations = require('./controllers/authorizations')
-  , users = require('./controllers/users')
-  , clients = require('./controllers/clients')
   ;
 
-
-exports.server = gh;
-gh.configure({
-  viewsDir: __dirname + '/views',
-  staticsDir: __dirname + "/static"
-});
- 
-
-var inspect = eyes.inspector({
-  maxLength: null
-});
 
 // -------------------------------------------------------
 
@@ -134,14 +114,12 @@ PARAMS.eua.all = PARAMS.eua.mandatory.concat(PARAMS.eua.optional);
 
 // -------------------------------------------------------
 
-gh.get('/', function() {
-  this.render('app');
-  this.renderText('Hello on auth_server!');
-});
-
-
-gh.get('/oauth/authorize', function() {
-  /* We must serve an authentication form to the end user at browser.
+exports.authorize = function() {
+  /* OAuth2 Authorize endp-point.
+   * Serve an authentication form to the end user at browser.
+   *
+   * Arguments:
+   *  - this: grasshoper instance.
    */
   var self = this
     , params = self.params || []
@@ -182,7 +160,7 @@ gh.get('/oauth/authorize', function() {
   }, function(err) {
     unknown_error(self, err);
   });
-});
+};
 
 
 var unknown_email_password = function(self) {
@@ -194,9 +172,13 @@ var unknown_email_password = function(self) {
   self.renderText('Email or password not known');
 };
 
-// XXX: we might want to put a different URL
-// as the POST may have the same behaviour as the GET, according to spec.
-gh.post('/login', function() {
+exports.login = function() {
+  /* Handle login credentials given by user + redirect him/her if ok.
+   *
+   * Argumuments:
+   *  - this: grasshoper instance.
+   *
+   */
   var self = this
     , params = self.params
     , R = RFactory()
@@ -238,14 +220,17 @@ gh.post('/login', function() {
   }, function(err) {
     unknown_error(self, err);
   });
-});
+};
 
 
 
-// Token endpoint
-// We check the authorization_code and uri_redirect match, and the client secret
-// then issue a token.
-gh.post('/oauth/token', function() {
+exports.token = function() {
+  /* OAuth2 token endpoint.
+   * Check the authorization_code, uri_redirect and client secret, issue a token.
+   *
+   * Arguments:
+   *  - this: grasshoper instance.
+   */
   var self = this
     , params = self.params
     , R = RFactory()
@@ -305,31 +290,5 @@ gh.post('/oauth/token', function() {
 
     }, function(err) {return unknown_error(self, err)});
   }, function(err) {return unknown_error(self, err)});
-});
-
-gh.get('/authorizations', function(args) {
-  var params = this.params || {}
-    , client_ids = (params.clients)? params.clients.split(',') : []
-    , user_ids = (params.user_ids)? params.users.split(',') : []
-    , contexts = (params.contexts)? params.contexts.split(',') : []
-  inspect(client_ids, user_ids, contexts);
-  authorizations.get_authorizations(this, client_ids, user_ids, contexts);
-});
-
-gh.get('/clients/{client_id}/contexts', clients.get_client_contexts);
-
-
-gh.get('/users', users.get_users);
-gh.get('/clients', clients.get_clients);
-gh.get('/clients/{client_id}', clients.get_client);
-gh.post('/clients/{client_id}', clients.update_client);
-
-gh.get('/users/{user_id}/profile', function(user_id) {
-  /* To get the profile information of the user.
-   */
-});
-
-
-if(process.argv[1] == __filename)
-  gh.serve(8080);
+};
 

@@ -2,23 +2,23 @@
 // FIXME: it seems there is a race condition happening sometimes in tests
 // this might be due to grasshoper framework...
 
-require.paths.unshift(__dirname + '/..');
 require.paths.unshift(__dirname + '/../../vendors/nodetk/src');
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
 
-var auth_server = require('auth_server')
-  , server = auth_server.server
+var http = require('http')
+  , querystring = require('querystring')
+  , URL = require('url')
+
   , assert = require('nodetk/testing/custom_assert')
   , extend = require('nodetk/utils').extend
-  , URL = require('url')
-  , querystring = require('querystring')
-  , http = require('http')
-  , eyes = require('eyes')
-  , load_data = require('../scripts/load_data').run
   , web = require('nodetk/web')
+  , eyes = require('eyes')
+
+  , oauth2 = require('../oauth2')
+  , load_data = require('../scripts/load_data').run
   , model = require('../model')
   , RFactory = model.RFactory
-  //, data = model.data
+  , server = require('../server').server
   ;
 
 
@@ -41,7 +41,7 @@ var get_error_checker = function(type, error_code) {
     var error = JSON.parse(data);
     assert.deepEqual(error, {error: {
       type: 'OAuthException',
-      message: error_code + ': ' + auth_server.ERRORS[type][error_code]
+      message: error_code + ': ' + oauth2.ERRORS[type][error_code]
     }});
   };
 };
@@ -91,7 +91,7 @@ exports.tests = [
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
-  auth_server.PARAMS.eua.mandatory.forEach(function(param) {
+  oauth2.PARAMS.eua.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
@@ -127,7 +127,7 @@ exports.tests = [
 }],
 
 // -------------------------------------------------------------------------
-// XXX : The two following tests are NOT norm compliant, cf auth_server.js
+// XXX : The two following tests are NOT norm compliant, cf ../oauth2.js
 ['/oauth/authorize: token response_type', 1, function() {
   web.GET(authorize_url, {
     client_id: errornot_client_id,
@@ -227,7 +227,7 @@ exports.tests = [
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
-  auth_server.PARAMS.oat.mandatory.forEach(function(param) {
+  oauth2.PARAMS.oat.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.POST(token_url, partial_qs, get_error_checker('oat', 'invalid_request'));
