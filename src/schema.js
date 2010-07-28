@@ -10,6 +10,7 @@ exports.schema = {
       type: "object",
 
       properties: {
+        id: {type: "string"},
         name: {type: "string"},
         secret: {type: "string"},
         redirect_uri: {type: "string"}
@@ -24,8 +25,9 @@ exports.schema = {
       type: "object",
 
       properties: {
+        id: {type: "string"},
         password: {type: "string"},
-        email: {type: "string"}
+        email: {type: "string"},
       }
     }
   },
@@ -42,6 +44,23 @@ exports.schema = {
       properties: {
         client_id: {type: "string"},
         time: {type: "integer"} // timestamp
+      }
+    }
+  },
+
+  Authorization: {
+    schema: {
+      id: "Authorization",
+      description: "Represents an end-user list of roles, " +
+                  " given an application (client) and a context.",
+      type: "object",
+
+      properties: {
+        id: {type: 'string'},
+        user: {"$ref": "User"},
+        client: {'$ref': 'Client'},
+        context: {'type': 'string'},
+        roles: {type: 'array', items: {type: "string"}}
       }
     }
   }

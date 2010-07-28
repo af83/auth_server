@@ -1,0 +1,48 @@
+
+ul li {
+  list-style-image: none;
+  cursor: auto;
+}
+
+ul.tree > li.folded {
+  list-style-image: url(/img/plus.png);
+}
+
+ul.tree > li.folded .content {
+  display: none;
+}
+
+ul.tree > li.unfolded {
+  list-style-image: url(/img/minus.png);  
+}
+
+ul.tree .name:hover {
+  cursor: pointer;
+}
+
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  border: solid 2px black;
+}
+
+.content table th {
+  border: solid 2px black;
+}
+
+.content table td {
+  border: solid 1px black; 
+}
+
+
+#filters_selector {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+}
+
+.text input {
+  width: 98%;
+}
+

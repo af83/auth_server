@@ -10,18 +10,24 @@
  */
 require.paths.unshift(__dirname + '/../vendors/grasshopper/lib/')
 require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
+require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 
 
 var gh = require('grasshopper')
   , eyes = require('eyes')
   , querystring = require('querystring')
+
   , RFactory = require('./model').RFactory
+  , authorizations = require('./controllers/authorizations')
+  , users = require('./controllers/users')
+  , clients = require('./controllers/clients')
   ;
 
 
 exports.server = gh;
 gh.configure({
-  viewsDir: __dirname + '/views'
+  viewsDir: __dirname + '/views',
+  staticsDir: __dirname + "/static"
 });
  
 
@@ -71,6 +77,19 @@ var ERRORS = exports.ERRORS = {
     invalid_scope: 'The requested scope is invalid, unknown, malformed, ' +
                    'or exceeds the previously granted scope.'
   },
+
+  apr: { // ap = Accessing a protected resource
+    // http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2.1
+    invalid_request:
+         "The request is missing a required parameter, includes an " +
+         "unsupported parameter or parameter value, repeats the same " +
+         "parameter, uses more than one method for including an access " +
+         "token, or is otherwise malformed.",
+    invalid_token: "The access token provided is invalid.",
+    expired_token: "The access token provided has expired.",
+    insufficient_scope: "The request requires higher privileges than " +
+                        "provided by the access token.",
+  },
 };
 
 var oauth_error = function(self, type, id) {
@@ -116,7 +135,8 @@ PARAMS.eua.all = PARAMS.eua.mandatory.concat(PARAMS.eua.optional);
 // -------------------------------------------------------
 
 gh.get('/', function() {
-  this.renderText('Hello !');
+  this.render('app');
+  this.renderText('Hello on auth_server!');
 });
 
 
@@ -243,7 +263,7 @@ gh.post('/oauth/token', function() {
     return oauth_error(self, 'oat', 'unsupported_grant_type');
 
   // Check the client_secret is given once (and only once),
-  // eith by HTTP basic auth, or by client_secret parameter:
+  // either by HTTP basic auth, or by client_secret parameter:
   var secret = self.request.headers['authorization'];
   if(secret) {
     if(params.client_secret) return oauth_error(self, 'oat', 'invalid_request');
@@ -285,6 +305,28 @@ gh.post('/oauth/token', function() {
 
     }, function(err) {return unknown_error(self, err)});
   }, function(err) {return unknown_error(self, err)});
+});
+
+gh.get('/authorizations', function(args) {
+  var params = this.params || {}
+    , client_ids = (params.clients)? params.clients.split(',') : []
+    , user_ids = (params.user_ids)? params.users.split(',') : []
+    , contexts = (params.contexts)? params.contexts.split(',') : []
+  inspect(client_ids, user_ids, contexts);
+  authorizations.get_authorizations(this, client_ids, user_ids, contexts);
+});
+
+gh.get('/clients/{client_id}/contexts', clients.get_client_contexts);
+
+
+gh.get('/users', users.get_users);
+gh.get('/clients', clients.get_clients);
+gh.get('/clients/{client_id}', clients.get_client);
+gh.post('/clients/{client_id}', clients.update_client);
+
+gh.get('/users/{user_id}/profile', function(user_id) {
+  /* To get the profile information of the user.
+   */
 });
 
 
