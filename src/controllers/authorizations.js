@@ -2,7 +2,7 @@
  */
 
 var eyes = require('eyes')
-  , RFactory = require('./model').RFactory
+  , RFactory = require('../model').RFactory
   ;
 
 
