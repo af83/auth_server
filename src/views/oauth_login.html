@@ -1,39 +1,30 @@
 <html>
   <head>
-    <title>Template Sample</title>
+    <title>Login</title>
   </head>
   <body>
     <h1>Welcome!</h1>
-    <p>You are about to sign in using auth_server:</p>
-    <ul>
-      <li>Client id: <%= client_id %></li>
-      <li>Response type: <%= response_type %></li>
-      <li>Redirect uri: <%= redirect_uri %></li>
-      <li>Scope: <%= scope %></li>
-      <li>State: <%= state %></li>
-    </ul>
+    <p>You are about to signin to <strong><%= client_name %></strong>
+       using auth_server:</p>
     <form action="/login" method="post">
       These should be hidden (and could be assymetrically crypted in one field...): 
       <br />
 
-      client_id:
+      client_id & name:
       <input type="text" name="client_id" value="<%= client_id %>" />
-      <br />
-
-      response_type:
-      <input type="text" name="response_type" value="<%= response_type %>" />
+      <input type="text" name="client_name" value="<%= client_name %>" />
       <br />
 
       redirect_uri:
       <input type="text" name="redirect_uri" value="<%= redirect_uri %>" />
       <br />
 
-      scope:
-      <input type="text" name="scope" value="<%= scope %>" />
-      <br />
-
       state:
       <input type="text" name="state" value="<%= state %>" />
+      <br />
+
+      signature:
+      <input type="text" name="signature" value="<%= signature %>" />
       <br />
         
       These should be what the user sees:

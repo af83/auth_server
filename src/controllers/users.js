@@ -21,3 +21,8 @@ exports.get_users = function() {
     })));
   });
 };
+
+exports.get_clients = function() {
+  /* /users/id/clients
+   */
+};

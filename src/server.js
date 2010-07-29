@@ -13,6 +13,7 @@ var gh = require('grasshopper')
   , eyes = require('eyes')
 
   , oauth2 = require('./oauth2')
+  , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
@@ -35,14 +36,20 @@ var inspect = eyes.inspector({
 
 gh.get('/', function() {
   this.render('app');
-  this.renderText('Hello on auth_server!');
+});
+
+gh.get('/login', function() {
+  authentication.login(this);
+});
+gh.post('/login', function() {
+  authentication.process_login(this);
 });
 
 gh.get('/oauth/authorize', oauth2.authorize);
 
 // XXX: we might want to put a different URL
 // as the POST may have the same behaviour as the GET, according to spec.
-gh.post('/login', oauth2.login);
+//gh.post('/login', oauth2.login);
 
 gh.post('/oauth/token', oauth2.token);
 

@@ -170,7 +170,8 @@ exports.tests = [
     redirect_uri: 'http://127.0.0.1:8888/login',
     state: 'somestate',
     email: 'pruyssen@af83.com',
-    password: '1234'
+    password: '1234',
+    signature: 'some signature',
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 302);
     var location = headers.location.split('?');
@@ -190,7 +191,8 @@ exports.tests = [
     redirect_uri: 'http://127.0.0.1:8888/login',
     state: 'somestate',
     email: 'pruyssen@af83.com',
-    password: '123456'
+    password: '123456',
+    signature: 'some signature',
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });
@@ -204,7 +206,8 @@ exports.tests = [
     redirect_uri: 'http://127.0.0.1:8888/login',
     state: 'somestate',
     email: 'toto@af83.com',
-    password: '123456'
+    password: '123456',
+    signature: 'some signature',
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });

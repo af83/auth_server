@@ -11,6 +11,7 @@
 
 var querystring = require('querystring')
 
+  , authentication = require('./authentication')
   , RFactory = require('./model').RFactory
   ;
 
@@ -87,7 +88,7 @@ var oauth_error = function(self, type, id) {
   }}));
 };
 
-var unknown_error = function(self, error) {
+var unknown_error = function(self, err) {
   /* To call when an unknown error happens (server error).
    */
   console.log(err.message);
@@ -144,11 +145,6 @@ exports.authorize = function() {
                     '(schema 1.4.1 in oauth2 spec draft 10).');
   }
 
-  // Fill in the model:
-  PARAMS.eua.all.forEach(function(param) {
-    self.model[param] = params[param];
-  });
-
   var R = RFactory();
   R.Client.get({ids: params.client_id}, function(client) {
     if(!client) return oauth_error(self, 'eua', 'invalid_client');
@@ -156,67 +152,32 @@ exports.authorize = function() {
     if(client.redirect_uri != params.redirect_uri) 
       return oauth_error(self, 'eua', 'redirect_uri_mismatch');
     // Eveything is allright, ask the user to sign in.
-    self.render('auth_form');
+    authentication.login(self, {
+      client_id: client.id,
+      client_name: client.name,
+      redirect_uri: params.redirect_uri,
+      state: params.state
+    });
   }, function(err) {
     unknown_error(self, err);
   });
 };
 
 
-var unknown_email_password = function(self) {
-  /* To reply to the user when the authentication process failed
-   * Either because the email or password was not known
+exports.send_grant = function(self, R, user, client_data) {
+  /* Create a grant and send it to the user.
    */
-  self.status = 401;
-  // TODO: represent the auth form with some error
-  self.renderText('Email or password not known');
-};
-
-exports.login = function() {
-  /* Handle login credentials given by user + redirect him/her if ok.
-   *
-   * Argumuments:
-   *  - this: grasshoper instance.
-   *
-   */
-  var self = this
-    , params = self.params
-    , R = RFactory()
-    ;
-  if(!params || !params.email || !params.password) 
-    return unknown_email_password(self);
-
-  R.User.index({query: {email: params.email}}, function(users) {
-    if(users.length != 1) return unknown_email_password(self);
-    var user = users[0];
-    
-    // TODO: crypt the password
-    if(user.password != params.password) 
-      return unknown_email_password(self);
-
-    // XXX: Do we need to check the parameters the user is giving us back?
-    // (it shouldn't be necessary, since it can always alter the redirect we
-    // are going to make)
-    // But at least check the clientid is the same as we had before
-    // XXX: it might be a good idea to put a token in the signing form.
-
-    // Generate some authorization code, and store it in DB
-    // We associate with the code: the client_id and the time it was created.
-    
-    // Here we rely on DB to generate a code (grant.id) for us.
-    var grant = new R.Grant({
-      client_id: params.client_id,
-      time: Date.now()
-    });
-    grant.save(function() {
-      var qs = {code: grant.id}; // TODO: make a very random authorization code?
-      if(params.state) qs.state = params.state;
-      qs = querystring.stringify(qs);
-      self.redirect(params.redirect_uri + '?' + qs);
-    }, function(err) {
-      unknown_error(self, err);
-    });
-  
+  // Here we rely on DB to generate a code (grant.id) for us.
+  var grant = new R.Grant({
+    client_id: client_data.client_id,
+    time: Date.now()
+    // XXX: shouldn't we put the user_id in grant as well?
+  });
+  grant.save(function() {
+    var qs = {code: grant.id}; // TODO: make a very random authorization code?
+    if(client_data.state) qs.state = client_data.state;
+    qs = querystring.stringify(qs);
+    self.redirect(client_data.redirect_uri + '?' + qs);
   }, function(err) {
     unknown_error(self, err);
   });
