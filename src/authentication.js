@@ -33,6 +33,7 @@ exports.auth_server_login = function(self, next) {
    * auth_server.
    *
    * Arguments:
+   *  - self: grasshopper instance.
    *  - next: an url to redirect to once the process is complete.
    */
   var data = {
@@ -45,6 +46,31 @@ exports.auth_server_login = function(self, next) {
             querystring.stringify(data);
   self.redirect(url);
 };
+
+var auth_process_login = exports.auth_process_login = function(self) {
+  /* Check the grant given by user to login in authserver is a good one.
+   *
+   * Arguments:
+   *  - self: grasshopper instance.
+   */
+  var params = self.params || {}
+    , R = RFactory()
+    , code = params.code
+    ;
+  if(!code) return self.renderError(400);
+  // Since we are text_server, we do not use the oauth2 api, but directly
+  // request the grant checking function:
+  oauth2.valid_grant(R, {code: code, client_id: SELF_CLIENT_ID}, function(token) {
+    if(!token) return self.renderError(400);
+    self.renderText('Logged in Text server');
+  }, function(err) {
+    self.renderError(500);
+  });
+};
+
+
+// -------------------------------------------------------------
+
 
 var login = exports.login = function(self, client_data) {
   /* Renders the login page.
@@ -120,11 +146,8 @@ exports.process_login = function(self) {
     
     // TODO: crypt the password
     if(user.password != params.password) return fail_login(self, client_data);
-
-    if(client_data) return oauth2.send_grant(self, R, user, client_data);
-    var base_url = 'http://';
-    // TODO: absolute URL for redirect!
-    self.redirect(self.params.next || '/');
+    
+    oauth2.send_grant(self, R, user, client_data);
   }, function(err) {
     unknown_error(self, err);
   });

@@ -48,7 +48,7 @@ gh.get(config.server.login_url, function() {
   authentication.auth_server_login(this); //, '/toto');
 });
 gh.get(config.server.process_login_url, function() {
-  this.renderText('Logged in Text server');
+  authentication.auth_process_login(this);
 });
 // ---------------------------------------------------------
 

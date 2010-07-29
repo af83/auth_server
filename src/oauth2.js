@@ -4,7 +4,7 @@
  * Only features the "web server" schema: 
  *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.4.1
  *
- * Terminaology:
+ * Terminology:
  *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.2
  *
  */
@@ -184,6 +184,41 @@ exports.send_grant = function(self, R, user, client_data) {
 };
 
 
+var valid_grant = exports.valid_grant = function(R, data, callback, fallback) {
+  /* Valid the grant, call callback(token|null) or fallback(err).
+   * If valid, the grant is invalidated and cannot be used anymore.
+   *
+   * To be valid, a grant must exist, not be deprecated and have the right
+   * associated client.
+   *
+   * Arguments:
+   *  - R: rest-mongo instance
+   *  - data:
+   *   - code: grant code given by client.
+   *   - client_id: the client id giving the grant
+   *  - callback: to be called with a token if the grant was valid, 
+   *    or null otherwise.
+   *  - fallback: to be called in case of error (an invalid grant is not 
+   *    an error).
+   *
+   */
+  R.Grant.get({ids: data.code}, function(grant) {
+    var minute_ago = Date.now() - 60000;
+    if(!grant || grant.time < minute_ago || 
+       grant.client_id != data.client_id) return callback(null);
+    // Delete the grant so that it cannot be used anymore:
+    grant.delete_(function() {
+      // Generate and send an access_token to the client:
+      var token = {
+        // TODO: generate a token with assymetric encryption/signature
+        access_token: 'secret_token'
+        // optional: expires_in, refresh_token, scope
+      };
+      callback(token);
+    }, fallback);
+  });
+};
+
 
 exports.token = function() {
   /* OAuth2 token endpoint.
@@ -233,23 +268,12 @@ exports.token = function() {
     if(client.redirect_uri != params.redirect_uri)
       return oauth_error(self, 'oat', 'invalid_grant');
 
-    // check the grant exist, is not deprecated and corresponds to the client:
-    R.Grant.get({ids: params.code}, function(grant) {
-      var minute_ago = Date.now() - 60000;
-      if(!grant || grant.time < minute_ago)
-        return oauth_error(self, 'oat', 'invalid_grant');
-      
-      // Delete the grant so that it cannot be used anymore:
-      grant.delete_(function() {
-        // Generate and send an access_token to the client:
-        self.renderText(JSON.stringify({
-          // TODO: generate a token with assymetric encryption/signature
-          access_token: 'secret_token'
-          // optional: expires_in, refresh_token, scope
-        }));
-      }, function(err) {return unknown_error(self, err)});
-
-    }, function(err) {return unknown_error(self, err)});
+    valid_grant(R, {code: params.code, client_id: client.id}, function(token) {
+      if(!token) return oauth_error(self, 'oat', 'invalid_grant');
+      self.renderText(JSON.stringify(token));
+    }, function(err) {
+      unknown_error(self, err);
+    });
   }, function(err) {return unknown_error(self, err)});
 };
 
