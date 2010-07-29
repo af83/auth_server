@@ -35,7 +35,6 @@ exports.auth_server_login = function(self, next) {
    * Arguments:
    *  - next: an url to redirect to once the process is complete.
    */
-  console.log(JSON.stringify(config.auth_server));
   var data = {
     client_id: SELF_CLIENT_ID,
     redirect_uri: config.auth_server.redirect_uri,
