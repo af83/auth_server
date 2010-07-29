@@ -12,6 +12,7 @@ require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 var gh = require('grasshopper')
   , eyes = require('eyes')
 
+  , config = require('./config')
   , oauth2 = require('./oauth2')
   , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
@@ -38,20 +39,33 @@ gh.get('/', function() {
   this.render('app');
 });
 
-gh.get('/login', function() {
-  authentication.login(this);
+// ---------------------------------------------------------
+// This is specific to auth server logic:
+// A typical end-user logging in a client using auth_server
+// should not have to access these urls:
+gh.get(config.server.login_url, function() {
+  //authentication.login(this);
+  authentication.auth_server_login(this); //, '/toto');
 });
-gh.post('/login', function() {
+gh.get(config.server.process_login_url, function() {
+  this.renderText('Logged in Text server');
+});
+// ---------------------------------------------------------
+
+
+// ---------------------------------------------------------
+// This is specific to the oauth2 implementation:
+
+// The end-user access these:
+gh.get(config.oauth2.authorize_url, oauth2.authorize);
+gh.post(config.oauth2.authorize_url, oauth2.authorize);
+
+gh.post(config.oauth2.process_login_url, function() {
   authentication.process_login(this);
 });
 
-gh.get('/oauth/authorize', oauth2.authorize);
-
-// XXX: we might want to put a different URL
-// as the POST may have the same behaviour as the GET, according to spec.
-//gh.post('/login', oauth2.login);
-
-gh.post('/oauth/token', oauth2.token);
+// The client access these:
+gh.post(config.oauth2.token_url, oauth2.token);
 
 gh.get('/authorizations', function(args) {
   var params = this.params || {}
@@ -76,6 +90,9 @@ gh.get('/users/{user_id}/profile', function(user_id) {
 });
 
 
-if(process.argv[1] == __filename)
-  gh.serve(8080);
+if(process.argv[1] == __filename) {
+  authentication.init_client_id(function() {
+    gh.serve(8080);
+  });
+}
 

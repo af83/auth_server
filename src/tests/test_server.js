@@ -14,6 +14,7 @@ var http = require('http')
   , web = require('nodetk/web')
   , eyes = require('eyes')
 
+  , config = require('../config')
   , oauth2 = require('../oauth2')
   , load_data = require('../scripts/load_data').run
   , model = require('../model')
@@ -23,9 +24,9 @@ var http = require('http')
 
 
 server.serve(9999)
-var authorize_url = 'http://127.0.0.1:9999/oauth/authorize'
-  , login_url = 'http://127.0.0.1:9999/login'
-  , token_url = 'http://127.0.0.1:9999/oauth/token'
+var authorize_url = 'http://127.0.0.1:9999' + config.oauth2.authorize_url 
+  , login_url = 'http://127.0.0.1:9999' + config.oauth2.process_login_url
+  , token_url = 'http://127.0.0.1:9999' + config.oauth2.token_url
   ;
 
 var get_error_checker = function(type, error_code) {

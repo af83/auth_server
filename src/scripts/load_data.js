@@ -11,6 +11,7 @@ var model = require('../model')
   , fs = require('fs')
   , eyes = require('eyes')
   , R = model.RFactory()
+  , config = require('../config')
 
   // indexes:
   , email2user = {}
@@ -55,21 +56,25 @@ var load_users = function(callback) {
 var load_clients = function(callback) {
   /* Load the client applications in store.
    */
-  var client = new R.Client({
-    name: "errornot",
-    redirect_uri: 'http://127.0.0.1:8888/login',
-    secret: 'some secret string',
-  });
-  var client2 = new R.Client({
-    name: "Text server",
-    redirect_uri: 'http://127.0.0.1:5000/oauth2/process',
-    secret: 'some secret string'
-  });
-  var clients = [client, client2];
-  clients.forEach(function(client) {
+  var clients = [
+    // name, redirect_uri
+    [config.auth_server.name, config.auth_server.redirect_uri],
+    ["errornot", 'http://127.0.0.1:8888/login'],
+    ["Text server", 'http://127.0.0.1:5000/oauth2/process'],
+  ];
+  clients = clients.map(function(t) {
+    var client = new R.Client({
+      name: t[0],
+      redirect_uri: t[1],
+      secret: 'some secret string'
+    });
     name2client[client.name] = client;
+    return client;
   });
-  R.save(clients, callback, function(err) {
+  R.save(clients, function() {
+    config.auth_server.client_id = name2client[config.auth_server.name].id;
+    callback()
+  }, function(err) {
     throw err;
   });
 };

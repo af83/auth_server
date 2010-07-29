@@ -1,36 +1,71 @@
 
-var oauth2 = require('./oauth2')
+var querystring = require('querystring')
+
+  , oauth2 = require('./oauth2')
   , RFactory = require('./model').RFactory
+  , config = require('./config')
+  , SELF_CLIENT_ID = config.auth_server.client_id
   ;
+
+
+exports.init_client_id = function(callback) {
+  /* Lookup in DB and set config.auth_server.client_id 
+   *
+   * Arguments:
+   *  - callback: to be called once it's done.
+   *
+   */
+  var R = RFactory()
+    , name = config.auth_server.name;
+  R.Client.index({query: {name: name}}, function(clients) {
+    if(clients.length != 1) throw new Error('There must only be one ' + name);
+    SELF_CLIENT_ID = clients[0].id;
+    callback();
+  });
+};
 
 
 var client_data_attrs = ['client_name', 'client_id', 'redirect_uri', 'state'];
 
+
+exports.auth_server_login = function(self, next) {
+  /* Redirects the user to auth_server page it can login to auth_server using
+   * auth_server.
+   *
+   * Arguments:
+   *  - next: an url to redirect to once the process is complete.
+   */
+  console.log(JSON.stringify(config.auth_server));
+  var data = {
+    client_id: SELF_CLIENT_ID,
+    redirect_uri: config.auth_server.redirect_uri,
+    response_type: 'code'
+  };
+  if(next) data.state = JSON.stringify({next: next});
+  var url = config.server.base_url + config.oauth2.authorize_url + '?' +
+            querystring.stringify(data);
+  self.redirect(url);
+};
 
 var login = exports.login = function(self, client_data) {
   /* Renders the login page.
    *
    * Arguments:
    *  - self: grasshoper instance.
-   *  - client_data: if null, the user has not be sent here by a oauth2 client.
-   *    If not null, contains following data:
-   *      - client_id
-   *      - client_name
-   *      - redirect_uri
-   *      - state
+   *  - client_data, contains:
+   *    - client_id
+   *    - client_name
+   *    - redirect_uri
+   *    - state
    *
    */
   var params = self.params || {};
-  if(!client_data) {
-    // TODO next must be an absolute url! and must belong to this site!
-    self.model.next = params.next || '';
-    return self.render('login');
-  }
-
   client_data_attrs.forEach(function(attr) {
     self.model[attr] = client_data[attr];
   });
   self.model.signature = sign_data(client_data);
+  self.model.action = config.oauth2.process_login_url;
+  self.model.server_name = config.auth_server.name;
   self.render('oauth_login');
 }
 
