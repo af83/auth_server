@@ -62,6 +62,10 @@ var auth_process_login = exports.auth_process_login = function(self) {
   // request the grant checking function:
   oauth2.valid_grant(R, {code: code, client_id: SELF_CLIENT_ID}, function(token) {
     if(!token) return self.renderError(400);
+    if(params.state) try {
+      var next = JSON.parse(params.state).next;
+      if(next) return self.redirect(next);
+    } catch (e) {}
     self.renderText('Logged in Text server');
   }, function(err) {
     self.renderError(500);
@@ -69,11 +73,22 @@ var auth_process_login = exports.auth_process_login = function(self) {
 };
 
 
+var logout = exports.logout = function(self) {
+  /* Logout the eventual logged in user.
+   */
+  // TODO: this doesn't remove the cookie, FIXME!
+  self.endSession(function() {
+    self.redirect('/');
+  });
+};
+
 // -------------------------------------------------------------
 
 
 var login = exports.login = function(self, client_data) {
   /* Renders the login page.
+   * If user is already logged in, ask him if he wants to login in
+   * the client application.
    *
    * Arguments:
    *  - self: grasshoper instance.
@@ -84,15 +99,30 @@ var login = exports.login = function(self, client_data) {
    *    - state
    *
    */
-  var params = self.params || {};
+  var params = self.params || {}
+    , R = RFactory()
+    ;
   client_data_attrs.forEach(function(attr) {
-    self.model[attr] = client_data[attr];
+    // XXX: should we encore all the state in a more secure way?
+    // XXX: we whould be very prudent not to permit any code injection here.
+    var val = client_data[attr];
+    if(val) self.model[attr] = val.replace(/"/gmi, '&quot;');
+    else self.model[attr] = "";
   });
   self.model.signature = sign_data(client_data);
-  self.model.action = config.oauth2.process_login_url;
   self.model.server_name = config.auth_server.name;
-  self.render('oauth_login');
-}
+  self.getSessionValue('user', function(err, user) {
+    if(err) return self.renderError(500);
+    if(user) { // The user is already logged in
+      // TODO: for a client first time, ask the user
+      oauth2.send_grant(self, R, user.id, client_data);
+    }
+    else { // The user is not logged in
+      self.model.action = config.oauth2.process_login_url;
+      self.render('oauth_login');
+    }
+  });
+};
 
 var sign_data = function(data) {
   /* Returns signature corresponding to the data
@@ -146,8 +176,11 @@ exports.process_login = function(self) {
     
     // TODO: crypt the password
     if(user.password != params.password) return fail_login(self, client_data);
-    
-    oauth2.send_grant(self, R, user, client_data);
+
+    // The user is logged in, let's remember:
+    self.setSessionValue('user', {email: user.email, id: user.id}, function() {
+      oauth2.send_grant(self, R, user.id, client_data);
+    });
   }, function(err) {
     unknown_error(self, err);
   });

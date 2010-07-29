@@ -36,7 +36,12 @@ var inspect = eyes.inspector({
 // ---------------------------------------------------------
 
 gh.get('/', function() {
-  this.render('app');
+  var self = this;
+  self.getSessionValue('user', function(err, user) {
+    if(err) return renderError(500);
+    if(!user) return authentication.auth_server_login(self, '/');
+    self.render('app');
+  });
 });
 
 // ---------------------------------------------------------
@@ -44,11 +49,13 @@ gh.get('/', function() {
 // A typical end-user logging in a client using auth_server
 // should not have to access these urls:
 gh.get(config.server.login_url, function() {
-  //authentication.login(this);
   authentication.auth_server_login(this); //, '/toto');
 });
 gh.get(config.server.process_login_url, function() {
   authentication.auth_process_login(this);
+});
+gh.get(config.server.logout_url, function() {
+  authentication.logout(this);
 });
 // ---------------------------------------------------------
 
