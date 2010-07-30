@@ -164,14 +164,20 @@ exports.authorize = function() {
 };
 
 
-exports.send_grant = function(self, R, user, client_data) {
+exports.send_grant = function(self, R, user_id, client_data) {
   /* Create a grant and send it to the user.
+   *
+   * Arguments:
+   *  - self: grasshopper instance
+   *  - R: rest-mongo instance
+   *  - user_id: id of the user
+   *  - client_data
    */
   // Here we rely on DB to generate a code (grant.id) for us.
   var grant = new R.Grant({
     client_id: client_data.client_id,
-    time: Date.now()
-    // XXX: shouldn't we put the user_id in grant as well?
+    time: Date.now(),
+    user_id: user_id,
   });
   grant.save(function() {
     var qs = {code: grant.id}; // TODO: make a very random authorization code?
@@ -211,7 +217,8 @@ var valid_grant = exports.valid_grant = function(R, data, callback, fallback) {
       // Generate and send an access_token to the client:
       var token = {
         // TODO: generate a token with assymetric encryption/signature
-        access_token: 'secret_token'
+        // so that it cannot be forged.
+        access_token: grant.user_id
         // optional: expires_in, refresh_token, scope
       };
       callback(token);

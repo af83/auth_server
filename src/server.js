@@ -74,12 +74,16 @@ gh.post(config.oauth2.process_login_url, function() {
 // The client access these:
 gh.post(config.oauth2.token_url, oauth2.token);
 
+
+
+// ---------------------------------------------------------
+// Auth server specific API:
+
 gh.get('/authorizations', function(args) {
   var params = this.params || {}
     , client_ids = (params.clients)? params.clients.split(',') : []
     , user_ids = (params.user_ids)? params.users.split(',') : []
     , contexts = (params.contexts)? params.contexts.split(',') : []
-  inspect(client_ids, user_ids, contexts);
   authorizations.get_authorizations(this, client_ids, user_ids, contexts);
 });
 

@@ -369,6 +369,7 @@ exports.tests = [
 ['/oauth/token: ok with secret in params', 3, function() {
   var grant = new R.Grant({
     client_id: errornot_client_id,
+    user_id: 'some_user_id',
     time: parseInt(Date.now() - 15000)
   });
   grant.save(function() {
@@ -384,9 +385,8 @@ exports.tests = [
           redirect_uri: "http://127.0.0.1:8888/login"
         }, function(statusCode, headers, data) {
           assert.equal(statusCode, 200);
-          assert.deepEqual(JSON.parse(data), {
-            access_token: 'secret_token'
-          });
+          token = JSON.parse(data);
+          assert.equal(token.access_token, 'some_user_id');
         });
       });
     }, 10);

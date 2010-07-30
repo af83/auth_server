@@ -93,7 +93,8 @@ $.sammy(function() {
     });
     $.getJSON(url, function(authorizations) {
       $('#content .auths').append(authorizations.map(function(auth) {
-        return '<li>'+JSON.stringify(auth)+'</li>';
+        return '<li>'+auth.email+': '+auth.roles.join(', ')+'.</li>';
+        //return '<li>'+JSON.stringify(auth)+'</li>';
       }).join(''));
     });
   });

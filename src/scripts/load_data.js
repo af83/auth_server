@@ -93,7 +93,7 @@ var load_authorizations = function(callback) {
   ];
   auths = auths.map(function(auth) {
     return new R.Authorization({
-      user: email2user[auth[0]],
+      email: auth[0],
       client: name2client[auth[1]],
       context: auth[2],
       roles: auth[3]

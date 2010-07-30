@@ -43,6 +43,7 @@ exports.schema = {
 
       properties: {
         client_id: {type: "string"},
+        user_id: {type: "string"},
         time: {type: "integer"} // timestamp
       }
     }
@@ -57,7 +58,9 @@ exports.schema = {
 
       properties: {
         id: {type: 'string'},
-        user: {"$ref": "User"},
+        // We just store the email, as we want to be able to give authorization
+        // to users not registered yet.
+        email: {type: 'string'},
         client: {'$ref': 'Client'},
         context: {'type': 'string'},
         roles: {type: 'array', items: {type: "string"}}

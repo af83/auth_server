@@ -36,6 +36,7 @@ exports.get_authorizations = function(self, client_ids, user_ids, contexts) {
     , query = {}
     ;
   if(client_ids.length > 0) query['client.id'] = {'$in': client_ids};
+  // TODO replace user_ids by user_emails ?
   if(user_ids.length > 0) query['user.id'] = {'$in': user_ids};
   if(contexts.length > 0) query['context'] = {'$in': contexts};
 
