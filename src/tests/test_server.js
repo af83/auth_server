@@ -24,9 +24,10 @@ var http = require('http')
 
 
 server.serve(9999)
-var authorize_url = 'http://127.0.0.1:9999' + config.oauth2.authorize_url 
-  , login_url = 'http://127.0.0.1:9999' + config.oauth2.process_login_url
-  , token_url = 'http://127.0.0.1:9999' + config.oauth2.token_url
+var base_url = 'http://127.0.0.1:9999'
+  , authorize_url = base_url + config.oauth2.authorize_url 
+  , login_url = base_url + config.oauth2.process_login_url
+  , token_url = base_url + config.oauth2.token_url
   ;
 
 var get_error_checker = function(type, error_code) {
@@ -386,10 +387,57 @@ exports.tests = [
         }, function(statusCode, headers, data) {
           assert.equal(statusCode, 200);
           token = JSON.parse(data);
-          assert.equal(token.access_token, 'some_user_id');
+          assert.equal(token.access_token, 'some_user_id,'+errornot_client_id);
         });
       });
     }, 10);
+  });
+}],
+
+// -------------------------------------------------------------------------
+
+['/clients/{client_id}/users/{user_id}: no token', 2, function(args) {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0];
+    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, 
+            {}, function(statusCode, headers, data) {
+      assert.equal(statusCode, 400);
+    });
+  });
+}],
+
+['/clients/{client_id}/users/{user_id}: invalid token', 2, function(args) {
+  // Get info of one user
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0];
+    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
+      token: 'some wrong token'
+    }, function(statusCode, headers, data) {
+      assert.equal(statusCode, 400);
+    });
+  });
+}],
+
+['/clients/{client_id}/users/{user_id}: ok', 3, function(args) {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0];
+    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
+      token: oauth2.create_access_token(user.id, errornot_client_id)
+    }, function(statusCode, headers, data) {
+      assert.equal(statusCode, 200);
+      assert.deepEqual(JSON.parse(data), {
+        id: user.id,
+        email: user.email,
+        authorizations: {
+          auth_server: ["user","admin"],
+          text_server: ["user","admin"],
+          errornot: ["user","admin"]
+        }
+      });
+    });
   });
 }],
 

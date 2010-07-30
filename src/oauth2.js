@@ -216,14 +216,35 @@ var valid_grant = exports.valid_grant = function(R, data, callback, fallback) {
     grant.delete_(function() {
       // Generate and send an access_token to the client:
       var token = {
-        // TODO: generate a token with assymetric encryption/signature
-        // so that it cannot be forged.
-        access_token: grant.user_id
+        access_token: create_access_token(grant.user_id, grant.client_id)
         // optional: expires_in, refresh_token, scope
       };
       callback(token);
     }, fallback);
   });
+};
+
+var create_access_token = exports.create_access_token = function(user_id, client_id) {
+  /* Returns access token corresponding to given params
+   */
+  // TODO: generate a token with assymetric encryption/signature
+  // so that it cannot be forged.
+  return user_id + ',' + client_id;
+};
+
+exports.token_info = function(token) {
+  /* Returns the information associated with a token, or null if token is bad.
+   */
+  // TODO
+  try {
+    var token_parts = token.split(',');
+    return {
+      user_id: token_parts[0],
+      client_id: token_parts[1],
+    }
+  } catch(e) {
+    return null;
+  }
 };
 
 

@@ -18,6 +18,7 @@ var gh = require('grasshopper')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
+  , RFactory = require('./model').RFactory
   ;
 
 
@@ -79,6 +80,41 @@ gh.post(config.oauth2.token_url, oauth2.token);
 // ---------------------------------------------------------
 // Auth server specific API:
 
+gh.get('/clients/{client_id}/users/{user_id}', function(args) {
+  /* Returns basic information about a user + its authorizations
+   * for the client.
+   */
+  var self = this
+    , params = self.params || {}
+    , client_id = args.client_id
+    , user_id = args.user_id
+    , token_info = oauth2.token_info(params.token)
+    ;
+  if(!token_info ||
+     token_info.user_id != user_id ||
+     token_info.client_id != client_id) return self.renderError(400);
+
+  var R = RFactory()
+    , info = {id: user_id, authorizations: {}}
+    ;
+  R.User.get({ids: user_id}, function(user) {
+    info.email = user.email;
+    R.Authorization.index({query: {
+      'client.id': client_id,
+      'email': user.email
+    }}, function(authorizations) {
+      authorizations.forEach(function(auth) {
+        info.authorizations[auth.context] = auth.roles;
+      });
+      self.renderText(JSON.stringify(info));
+    }, function() {self.renderError(500)});
+  }, function() {self.renderError(500)});
+});
+
+
+// ---------------------------------------------------------
+// Only for auth_server GUI:
+
 gh.get('/authorizations', function(args) {
   var params = this.params || {}
     , client_ids = (params.clients)? params.clients.split(',') : []
@@ -88,7 +124,6 @@ gh.get('/authorizations', function(args) {
 });
 
 gh.get('/clients/{client_id}/contexts', clients.get_client_contexts);
-
 
 gh.get('/users', users.get_users);
 gh.get('/clients', clients.get_clients);
