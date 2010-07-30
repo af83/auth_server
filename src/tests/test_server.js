@@ -396,23 +396,22 @@ exports.tests = [
 
 // -------------------------------------------------------------------------
 
-['/clients/{client_id}/users/{user_id}: no token', 2, function(args) {
+['/auth: no token', 2, function(args) {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0];
-    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, 
-            {}, function(statusCode, headers, data) {
+    web.GET(base_url + '/auth', {}, function(statusCode, headers, data) {
       assert.equal(statusCode, 400);
     });
   });
 }],
 
-['/clients/{client_id}/users/{user_id}: invalid token', 2, function(args) {
+['/auth: invalid token', 2, function(args) {
   // Get info of one user
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0];
-    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
+    web.GET(base_url + '/auth', {
       oauth_token: 'some wrong token'
     }, function(statusCode, headers, data) {
       assert.equal(statusCode, 400);
@@ -420,11 +419,11 @@ exports.tests = [
   });
 }],
 
-['/clients/{client_id}/users/{user_id}: ok', 3, function(args) {
+['/auth: ok', 3, function(args) {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0];
-    web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
+    web.GET(base_url + '/auth', {
       oauth_token: oauth2.create_access_token(user.id, errornot_client_id)
     }, function(statusCode, headers, data) {
       assert.equal(statusCode, 200);

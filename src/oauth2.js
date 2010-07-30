@@ -238,10 +238,12 @@ exports.token_info = function(token) {
   // TODO
   try {
     var token_parts = token.split(',');
-    return {
+    var info = {
       user_id: token_parts[0],
       client_id: token_parts[1],
-    }
+    };
+    if(!info.user_id || !info.client_id) return null;
+    return info;
   } catch(e) {
     return null;
   }

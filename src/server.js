@@ -80,25 +80,23 @@ gh.post(config.oauth2.token_url, oauth2.token);
 // ---------------------------------------------------------
 // Auth server specific API:
 
-gh.get('/clients/{client_id}/users/{user_id}', function(args) {
-  /* Returns basic information about a user + its authorizations
-   * for the client.
+gh.get('/auth', function(args) {
+  /* Returns basic information about a user + its authorizations (roles)
+   * for the client (user_id and client_id in given oauth_token).
    */
   var self = this
     , params = self.params || {}
-    , client_id = args.client_id
-    , user_id = args.user_id
     // TODO: support getting the token from headers
     , token_info = oauth2.token_info(params.oauth_token)
     ;
-  if(!token_info ||
-     token_info.user_id != user_id ||
-     token_info.client_id != client_id) return self.renderError(400);
-
+  if(!token_info) return self.renderError(400);
   var R = RFactory()
+    , user_id = token_info.user_id
+    , client_id = token_info.client_id
     , info = {id: user_id, authorizations: {}}
     ;
   R.User.get({ids: user_id}, function(user) {
+    if(!user) return self.renderError(404); // The user doesn't exist anymore.
     info.email = user.email;
     R.Authorization.index({query: {
       'client.id': client_id,
