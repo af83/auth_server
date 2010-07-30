@@ -88,7 +88,8 @@ gh.get('/clients/{client_id}/users/{user_id}', function(args) {
     , params = self.params || {}
     , client_id = args.client_id
     , user_id = args.user_id
-    , token_info = oauth2.token_info(params.token)
+    // TODO: support getting the token from headers
+    , token_info = oauth2.token_info(params.oauth_token)
     ;
   if(!token_info ||
      token_info.user_id != user_id ||

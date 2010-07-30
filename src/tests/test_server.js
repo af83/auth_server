@@ -413,7 +413,7 @@ exports.tests = [
     assert.equal(users.length, 1);
     var user = users[0];
     web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
-      token: 'some wrong token'
+      oauth_token: 'some wrong token'
     }, function(statusCode, headers, data) {
       assert.equal(statusCode, 400);
     });
@@ -425,7 +425,7 @@ exports.tests = [
     assert.equal(users.length, 1);
     var user = users[0];
     web.GET(base_url + '/clients/' + errornot_client_id + '/users/' + user.id, {
-      token: oauth2.create_access_token(user.id, errornot_client_id)
+      oauth_token: oauth2.create_access_token(user.id, errornot_client_id)
     }, function(statusCode, headers, data) {
       assert.equal(statusCode, 200);
       assert.deepEqual(JSON.parse(data), {
