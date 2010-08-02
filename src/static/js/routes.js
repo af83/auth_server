@@ -39,6 +39,7 @@ $.sammy(function() {
     $.getJSON('/clients/' + client_id, function(client) {
       $('#overview').html('<h1>' + client.name + '</h1>');
       $('#content form fieldset').html(
+        '<label>Client ID: ' + client.id + '</label><br />' +
         '<label>Client name:' +
          '<input name="name" class="field" value="'+client.name+'" />' +
         '</label><br />' +

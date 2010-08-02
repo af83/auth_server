@@ -83,17 +83,25 @@ body {
   padding: 0;
 }
 
-#nav li a {
+#nav li a,
+#wrapper a.signout {
   color: #111;
   text-decoration: none;
   padding: 7px 9px;
   background: #fff;
 }
 
-#nav li a:hover {
+#nav li a:hover,
+#wrapper a.signout:hover {
   color: #fff;
   text-decoration: none;
   background: #111;
+}
+
+#wrapper a.signout {
+  position: absolute;
+  top: 15px;
+  right: 15px;
 }
 
 #footer ul {
