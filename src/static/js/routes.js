@@ -75,6 +75,9 @@ $.sammy(function() {
   });
 
   this.get('#/c/:client_id/:context', function(env) {
+    /* Displays a list of authorizations (email -> roles) given a client and context.
+     *
+     */
     before();
     var self = this
       , params = env.params
@@ -82,7 +85,6 @@ $.sammy(function() {
       , client_id = params.client_id
       ;
     $('#overview').html('');
-    $('#content').html('<h2>Authorizations:</h2><ul class="auths"></ul>');
     $.getJSON('/clients/' + client_id, function(client) {
       $('#overview').html(
         '<h1>'+client.name+' > '+context+'</h1>'
@@ -93,10 +95,9 @@ $.sammy(function() {
       contexts: context
     });
     $.getJSON(url, function(authorizations) {
-      $('#content .auths').append(authorizations.map(function(auth) {
-        return '<li>'+auth.email+': '+auth.roles.join(', ')+'.</li>';
-        //return '<li>'+JSON.stringify(auth)+'</li>';
-      }).join(''));
+      $('#content').html(Mustache.to_html(TEMPLATES.authorizations, {
+        authorizations: authorizations
+      }));
     });
   });
 

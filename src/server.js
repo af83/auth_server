@@ -12,13 +12,18 @@ require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 var gh = require('grasshopper')
   , eyes = require('eyes')
 
+  , CLB = require('nodetk/orchestration/callbacks')
+
   , config = require('./config')
   , oauth2 = require('./oauth2')
   , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
+  , ms_templates = require('./lib/ms_templates')
   , RFactory = require('./model').RFactory
+
+  , MS_TEMPLATES = null // JS client side mustache templates.
   ;
 
 
@@ -41,6 +46,7 @@ gh.get('/', function() {
   self.getSessionValue('user', function(err, user) {
     if(err) return renderError(500);
     if(!user) return authentication.auth_server_login(self, '/');
+    self.model['ms_templates'] = MS_TEMPLATES;
     self.render('app');
   });
 });
@@ -136,8 +142,13 @@ gh.get('/users/{user_id}/profile', function(user_id) {
 
 
 if(process.argv[1] == __filename) {
-  authentication.init_client_id(function() {
+  var waiter = CLB.get_waiter(2, function() {
     gh.serve(8080);
+  });
+  authentication.init_client_id(waiter);
+  ms_templates.generate_templates(function(templates) {
+    MS_TEMPLATES = templates;
+    waiter();
   });
 }
 
