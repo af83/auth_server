@@ -31,32 +31,26 @@ $.sammy(function() {
     before();
     var client_id = env.params.client_id;
     $('#overview').html('');
-    $('#content').html(
-      '<form action="/clients/'+client_id+'" method="post" >' +
-      '<fieldset></fieldset></form>' +
-      '<h2>Contexts:</h2><ul class="contexts"></ul>'
-    );
-    $.getJSON('/clients/' + client_id, function(client) {
-      $('#overview').html('<h1>' + client.name + '</h1>');
-      $('#content form fieldset').html(
-        '<label>Client ID: ' + client.id + '</label><br />' +
-        '<label>Client name:' +
-         '<input name="name" class="field" value="'+client.name+'" />' +
-        '</label><br />' +
-        '<label>Client secret:' +
-         '<input name="secret" class="field" value="'+client.secret+'" />' +
-        '</label><br />' +
-        '<label>Redirect URI:' +
-         '<input name="redirect_uri" class="field" value="'+client.redirect_uri+'" />' +
-        '</label><br />' +
-        '<input class="field" value="Update" type="submit" />' 
-      );
+    $('#content').html('');
+    var client, contexts;
+    var waiter = callbacks.get_waiter(2, function() {
+      var data = {
+        client: client,
+        contexts: contexts.map(function(context) {return {
+          name: context,
+          href: '#/c/' + client.id + '/' + context
+        }})
+      };
+      $('#content').html(Mustache.to_html(TEMPLATES.client_show, data));
     });
-    $.getJSON('/clients/' + env.params.client_id + '/contexts', function(contexts) {
-      var list = $('#content .contexts');
-      contexts.forEach(function(context) {
-        list.append('<li><a href="#/c/'+client_id+'/'+context+'">'+context+'</a></li>');
-      });
+    $.getJSON('/clients/' + client_id, function(client_) {
+      $('#overview').html('<h1>' + client_.name + '</h1>');
+      client = client_;
+      waiter();
+    });
+    $.getJSON('/clients/' + env.params.client_id + '/contexts', function(contexts_) {
+      contexts = contexts_;
+      waiter();
     });
   });
 
