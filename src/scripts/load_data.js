@@ -60,7 +60,7 @@ var load_clients = function(callback) {
     // name, redirect_uri
     [config.auth_server.name, config.auth_server.redirect_uri],
     ["errornot", 'http://127.0.0.1:8888/login'],
-    ["Text server", 'http://127.0.0.1:5000/oauth2/process'],
+    ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
@@ -88,8 +88,8 @@ var load_authorizations = function(callback) {
     ['pruyssen@af83.com', 'errornot', 'errornot', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'text_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'Text server', 'auth_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'Text server', 'text_server', ['user', 'admin']],
+    ['pruyssen@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
+    ['pruyssen@af83.com', 'text_server', 'text_server', ['user', 'admin']],
   ];
   auths = auths.map(function(auth) {
     return new R.Authorization({
