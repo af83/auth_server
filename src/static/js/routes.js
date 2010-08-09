@@ -17,13 +17,11 @@ $.sammy(function() {
   this.get('#/c', function() {
     // Display a list of clients for the user to choose.
     before();
+    $('#overview').html('<h1>Clients</h1>');
     $.getJSON('/clients', function(clients) {
-      $('#overview').html('<h1>Clients</h1>');
-      $('#content').html('<ul></ul>');
-      clients.forEach(function(client) {
-        $('#content ul').append('<li><a href="#/c/' + client.id + 
-                                '">' + client.name + '</a></li>');
-      });
+      $('#content').html(Mustache.to_html(TEMPLATES.clients_index, {
+        clients: clients
+      }));
     });
   });
 
