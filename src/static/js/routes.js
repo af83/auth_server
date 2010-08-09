@@ -99,11 +99,13 @@ $.sammy(function() {
     before();
     // TODO: handle permissions, no everyone should be able to see list of all users.
     $('#overview').html('<h1>Users</h1>');
-    $('#content').html('<ul></ul>');
+    $('#content').html(Mustache.to_html(TEMPLATES.users_index, {
+      users: users
+    }));
     $.getJSON('/users', function(users) {
-      users.forEach(function(user) {
-        $('#content ul').append('<li>'+ user.email +'</li>')
-      });
+      $('#content').html(Mustache.to_html(TEMPLATES.users_index, {
+        users: users
+      }));
     });
   });
 
