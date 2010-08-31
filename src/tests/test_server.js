@@ -2,7 +2,6 @@
 // FIXME: it seems there is a race condition happening sometimes in tests
 // this might be due to grasshoper framework...
 
-require.paths.unshift(__dirname + '/../../vendors/nodetk/src');
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
 
 var http = require('http')
@@ -23,7 +22,6 @@ var http = require('http')
   ;
 
 
-server.serve(9999)
 var base_url = 'http://127.0.0.1:9999'
   , authorize_url = base_url + config.oauth2.authorize_url 
   , login_url = base_url + config.oauth2.process_login_url
@@ -66,6 +64,17 @@ var get_client_id = function(client_name, callback) {
 var errornot_client_id
   , R = RFactory()
   ;
+
+
+exports.module_init = function(callback) {
+  server.serve(9999);
+  setTimeout(callback, 100); // FIXME: For now, let's wait the server is op with timer
+};
+
+exports.module_close = function(callback) {
+  server.stop();
+  callback();
+};
 
 exports.setup = function(callback) {
   R.clear_caches();

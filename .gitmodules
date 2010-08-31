@@ -10,3 +10,6 @@
 [submodule "vendors/rest-mongo"]
 	path = vendors/rest-mongo
 	url = git://github.com/AF83/rest-mongo.git
+[submodule "vendors/node-formidable"]
+	path = vendors/node-formidable
+	url = git://github.com/felixge/node-formidable.git
