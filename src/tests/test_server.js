@@ -67,8 +67,7 @@ var errornot_client_id
 
 
 exports.module_init = function(callback) {
-  server.serve(9999);
-  setTimeout(callback, 100); // FIXME: For now, let's wait the server is op with timer
+  server.serve(9999, callback);
 };
 
 exports.module_close = function(callback) {
