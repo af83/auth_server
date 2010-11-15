@@ -21,7 +21,6 @@ var gh = require('grasshopper')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
-  , ms_templates = require('./lib/ms_templates')
   , RFactory = require('./model').RFactory
 
   , app_model = {} // containing data to render app '/'
@@ -143,10 +142,9 @@ gh.get('/users/{user_id}/profile', function(user_id) {
 
 
 if(process.argv[1] == __filename) {
-  var waiter = CLB.get_waiter(2, function() {
+  var waiter = CLB.get_waiter(1, function() {
     gh.serve(8080);
   });
   authentication.init_client_id(waiter);
-  ms_templates.generate_refresh_templates(app_model, waiter, waiter.fall);
 }
 

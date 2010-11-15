@@ -103,11 +103,10 @@ var login = exports.login = function(self, client_data) {
     , R = RFactory()
     ;
   client_data_attrs.forEach(function(attr) {
-    // XXX: should we encore all the state in a more secure way?
+    // XXX: should we encode all the state in a more secure way?
     // XXX: we whould be very prudent not to permit any code injection here.
     var val = client_data[attr];
-    if(val) self.model[attr] = val.replace(/"/gmi, '&quot;');
-    else self.model[attr] = "";
+    self.model[attr] = val || "";
   });
   self.model.signature = sign_data(client_data);
   self.model.server_name = config.auth_server.name;

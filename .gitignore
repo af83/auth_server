@@ -1,1 +1,4 @@
 data/*
+src/static/js/ms_templates/i18n/*
+src/static/js/templates_*.js
+

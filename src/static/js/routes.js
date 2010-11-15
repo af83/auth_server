@@ -19,9 +19,7 @@ $.sammy(function() {
     before();
     $('#overview').html('<h1>Clients</h1>');
     $.getJSON('/clients', function(clients) {
-      $('#content').html(Mustache.to_html(TEMPLATES.clients_index, {
-        clients: clients
-      }));
+      $('#content').renders('clients_index', {clients: clients});
     });
   });
 
@@ -39,7 +37,7 @@ $.sammy(function() {
           href: '#/c/' + client.id + '/' + context
         }})
       };
-      $('#content').html(Mustache.to_html(TEMPLATES.client_show, data));
+      $('#content').renders('client_show', data);
     });
     $.getJSON('/clients/' + client_id, function(client_) {
       $('#overview').html('<h1>' + client_.name + '</h1>');
@@ -87,9 +85,7 @@ $.sammy(function() {
       contexts: context
     });
     $.getJSON(url, function(authorizations) {
-      $('#content').html(Mustache.to_html(TEMPLATES.authorizations, {
-        authorizations: authorizations
-      }));
+      $('#content').renders('authorizations', {authorizations: authorizations});
     });
   });
 
@@ -99,13 +95,9 @@ $.sammy(function() {
     before();
     // TODO: handle permissions, no everyone should be able to see list of all users.
     $('#overview').html('<h1>Users</h1>');
-    $('#content').html(Mustache.to_html(TEMPLATES.users_index, {
-      users: users
-    }));
+    $('#content').renders('users_index', {users: users});
     $.getJSON('/users', function(users) {
-      $('#content').html(Mustache.to_html(TEMPLATES.users_index, {
-        users: users
-      }));
+      $('#content').renders('users_index', {users: users});
     });
   });
 
