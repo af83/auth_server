@@ -57,30 +57,30 @@ var dispatcher = dispatch({
       user = req.session = {user: {id: 1, email: 'admin@authserver'}};
     }
     if(!user) {
-      // TODO: req, res, next?
-      return authentication.auth_server_login(self, '/');
+      return authentication.auth_server_login(req, res, '/');
     }
     res.writeHead(200, {'Content-Type': 'text/html'});
     var body = ms_templates.render('app');
     res.end(body);
   }
 
-});
+  // ---------------------------------------------------------
+  // This is specific to auth server logic:
+  // A typical end-user logging in a client using auth_server
+  // should not have to access these urls:
+, config.server.login_url: function(req, res, next) {
+    authentication.auth_server_login(res, res); //, '/toto');
+  }
+, config.server.process_login_url: function(req, res, next) {
+    authentication.auth_process_login(req, res);
+  }
+, config.server.logout_url: function(req, res, next) {
+    authentication.logout(req, res);
+  }
+  // ---------------------------------------------------------
 
-// ---------------------------------------------------------
-// This is specific to auth server logic:
-// A typical end-user logging in a client using auth_server
-// should not have to access these urls:
-gh.get(config.server.login_url, function() {
-  authentication.auth_server_login(this); //, '/toto');
+
 });
-gh.get(config.server.process_login_url, function() {
-  authentication.auth_process_login(this);
-});
-gh.get(config.server.logout_url, function() {
-  authentication.logout(this);
-});
-// ---------------------------------------------------------
 
 
 // ---------------------------------------------------------
@@ -160,7 +160,7 @@ gh.get('/users/{user_id}/profile', function(user_id) {
 var serve = function() {
   server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
-  , sessions({secret: '123abc'})
+  , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , dispatcher
   );
   server.listen(8080)

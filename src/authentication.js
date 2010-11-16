@@ -1,5 +1,6 @@
 
 var querystring = require('querystring')
+  , URL = require('url')
 
   , oauth2 = require('./oauth2')
   , RFactory = require('./model').RFactory
@@ -28,58 +29,75 @@ exports.init_client_id = function(callback) {
 var client_data_attrs = ['client_name', 'client_id', 'redirect_uri', 'state'];
 
 
-exports.auth_server_login = function(self, next) {
+exports.auth_server_login = function(req, res, next_url) {
   /* Redirects the user to auth_server page it can login to auth_server using
    * auth_server.
    *
    * Arguments:
-   *  - self: grasshopper instance.
-   *  - next: an url to redirect to once the process is complete.
+   *  - req
+   *  - res
+   *  - next_url: an url to redirect to once the process is complete.
    */
   var data = {
     client_id: SELF_CLIENT_ID,
     redirect_uri: config.auth_server.redirect_uri,
     response_type: 'code'
   };
-  if(next) data.state = JSON.stringify({next: next});
+  if(next_url) data.state = JSON.stringify({next: next_url});
   var url = config.server.base_url + config.oauth2.authorize_url + '?' +
             querystring.stringify(data);
-  self.redirect(url);
+  res.writeHead(302, {'Location': url});
+  res.end();
 };
 
-var auth_process_login = exports.auth_process_login = function(self) {
+var auth_process_login = exports.auth_process_login = function(req, res) {
   /* Check the grant given by user to login in authserver is a good one.
    *
    * Arguments:
-   *  - self: grasshopper instance.
+   *  - req
+   *  - res
    */
-  var params = self.params || {}
+  var params = URL.parse(req.url, true).query || {}
     , R = RFactory()
     , code = params.code
     ;
-  if(!code) return self.renderError(400);
+
+  if(!code) {
+    res.writeHead(400, {'Content-Type': 'text/html'});
+    res.end('The "code" parameter is missing.');
+    return;
+  }
   // Since we are text_server, we do not use the oauth2 api, but directly
   // request the grant checking function:
   oauth2.valid_grant(R, {code: code, client_id: SELF_CLIENT_ID}, function(token) {
-    if(!token) return self.renderError(400);
+    if(!token) {
+      res.writeHead(400, {'Content-Type': 'text/html'});
+      res.end('Invalid grant.');
+      return;
+    }
     if(params.state) try {
       var next = JSON.parse(params.state).next;
-      if(next) return self.redirect(next);
+      if(next) {
+        res.writeHead(302, {'Location': url});
+        res.end();
+        return;
+      }
     } catch (e) {}
-    self.renderText('Logged in Text server');
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.end('Logged in Text server');
   }, function(err) {
-    self.renderError(500);
+    res.writeHead(500, {'Content-Type': 'text/html'});
+    res.end('An error has occured: ' + err);
   });
 };
 
 
-var logout = exports.logout = function(self) {
+var logout = exports.logout = function(req, res) {
   /* Logout the eventual logged in user.
    */
-  // TODO: this doesn't remove the cookie, FIXME!
-  self.endSession(function() {
-    self.redirect('/');
-  });
+  req.session = {};
+  res.writeHead(302, {'Location': '/'});
+  res.end();
 };
 
 // -------------------------------------------------------------
