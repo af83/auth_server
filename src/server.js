@@ -9,8 +9,15 @@ require.paths.unshift(__dirname + '/../vendors/grasshopper/grasshopper/lib/')
 require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
 require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 
+require.paths.unshift(__dirname + '/../vendors/connect/lib')
+require.paths.unshift(__dirname + '/../vendors/dispatch/lib')
+require.paths.unshift(__dirname + '/../vendors/cookie-sessions/lib')
+require.paths.unshift(__dirname + '/../vendors/mustache/lib')
 
 var gh = require('grasshopper')
+  , connect = require('connect')
+  , sessions = require('cookie-sessions')
+  , dispatch = require('dispatch')
   , eyes = require('eyes')
 
   , CLB = require('nodetk/orchestration/callbacks')
@@ -22,6 +29,7 @@ var gh = require('grasshopper')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
   , RFactory = require('./model').RFactory
+  , ms_templates = require('./lib/ms_templates')
 
   , app_model = {} // containing data to render app '/'
   ;
@@ -41,19 +49,22 @@ var inspect = eyes.inspector({
 
 // ---------------------------------------------------------
 
-gh.get('/', function() {
-  var self = this;
-  if (config.server.skip_auth_app) {
-    self.model = app_model;
-    return self.render('app');
+var dispatcher = dispatch({
+
+  '/': function(req, res, next) {
+    var user = req.session.user;
+    if(!user && config.server.skip_auth_app) {
+      user = req.session = {user: {id: 1, email: 'admin@authserver'}};
+    }
+    if(!user) {
+      // TODO: req, res, next?
+      return authentication.auth_server_login(self, '/');
+    }
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    var body = ms_templates.render('app');
+    res.end(body);
   }
 
-  self.getSessionValue('user', function(err, user) {
-    if(err) return renderError(500);
-    if(!user) return authentication.auth_server_login(self, '/');
-    self.model = app_model;
-    self.render('app');
-  });
 });
 
 // ---------------------------------------------------------
@@ -146,10 +157,23 @@ gh.get('/users/{user_id}/profile', function(user_id) {
 });
 
 
+var serve = function() {
+  server = connect.createServer(
+    connect.staticProvider({root: __dirname + '/static', cache: false})
+  , sessions({secret: '123abc'})
+  , dispatcher
+  );
+  server.listen(8080)
+  console.log('Server listning on http://localhost:8080')
+}
+
+
 if(process.argv[1] == __filename) {
-  var waiter = CLB.get_waiter(1, function() {
-    gh.serve(8080);
+  var waiter = CLB.get_waiter(2, function() {
+    //gh.serve(8080);
+    serve();
   });
   authentication.init_client_id(waiter);
+  ms_templates.generate_refresh_templates(app_model, waiter, waiter.fall);
 }
 

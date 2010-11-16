@@ -16,3 +16,15 @@
 [submodule "vendors/jquery.mustache"]
 	path = vendors/jquery.mustache
 	url = git://github.com/AF83/jquery.mustache.git
+[submodule "vendors/connect"]
+	path = vendors/connect
+	url = git://github.com/senchalabs/connect.git
+[submodule "vendors/dispatch"]
+	path = vendors/dispatch
+	url = git://github.com/caolan/dispatch.git
+[submodule "vendors/mustache"]
+	path = vendors/mustache
+	url = git://github.com/janl/mustache.js.git
+[submodule "vendors/cookie-sessions"]
+	path = vendors/cookie-sessions
+	url = git://github.com/caolan/cookie-sessions.git
