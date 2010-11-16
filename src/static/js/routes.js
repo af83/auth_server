@@ -1,22 +1,12 @@
 
 $.sammy(function() {
   
-  var before_change; // if set, to be ran before every change of url hash
-  var before = function() {
-    if(before_change) {
-      before_change();
-      before_change = null;
-    }
-  };
-
   this.get('', function() {
-    before();
     this.redirect('#/c');
   });
  
   this.get('#/c', function() {
     // Display a list of clients for the user to choose.
-    before();
     $('#overview').html('<h1>Clients</h1>');
     $.getJSON('/clients', function(clients) {
       $('#content').renders('clients_index', {clients: clients});
@@ -24,7 +14,6 @@ $.sammy(function() {
   });
 
   this.get('#/c/:client_id', function(env) {
-    before();
     var client_id = env.params.client_id;
     $('#overview').html('');
     $('#content').html('');
@@ -68,7 +57,6 @@ $.sammy(function() {
     /* Displays a list of authorizations (email -> roles) given a client and context.
      *
      */
-    before();
     var self = this
       , params = env.params
       , context = params.context
@@ -92,12 +80,23 @@ $.sammy(function() {
   this.get('#/u', function() {
     /* Displays list of users.
      */
-    before();
     // TODO: handle permissions, no everyone should be able to see list of all users.
     $('#overview').html('<h1>Users</h1>');
     $('#content').renders('users_index', {users: users});
     $.getJSON('/users', function(users) {
       $('#content').renders('users_index', {users: users});
+    });
+  });
+
+
+  this.get('#/a', function() {
+    /* Displays list of all authorizations. */
+    $('#overview').html('<h1>Authorizations</h1>');
+    $('#content').renders('waiting');
+    $.getJSON('/authorizations', function(authorizations){
+      $('#content').renders('authorizations_index', {
+        authorizations: authorizations  
+      });
     });
   });
 

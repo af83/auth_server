@@ -43,6 +43,11 @@ var inspect = eyes.inspector({
 
 gh.get('/', function() {
   var self = this;
+  if (config.server.skip_auth_app) {
+    self.model = app_model;
+    return self.render('app');
+  }
+
   self.getSessionValue('user', function(err, user) {
     if(err) return renderError(500);
     if(!user) return authentication.auth_server_login(self, '/');

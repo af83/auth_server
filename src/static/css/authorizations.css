@@ -1,0 +1,35 @@
+
+table.auths {
+  border-collapse: collapse;
+}
+
+table.auths col {
+  width: 300px;
+}
+
+table.auths tbody tr:hover {
+  background-color: #EEEEEE;
+}
+
+table.auths tr {
+  border: 1px solid black;
+  height: 3ex;
+}
+
+table.auths td {
+  padding-left: 10px;
+}
+
+table.auths span.role {
+  border: 1px solid #DEBEAC;
+  margin-left: 5px;
+  background-color: #DEFEAC;
+  -moz-border-radius:5px;
+  padding-left: 1px;
+  padding-right: 1px;
+}
+
+table.auths span.role:hover {
+  border-color: red;
+}
+

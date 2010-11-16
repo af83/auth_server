@@ -15,7 +15,10 @@ var server = exports.server = {
   base_url: "http://localhost:8080",
   login_url: '/login',
   logout_url: '/logout',
-  process_login_url: '/login/process'
+  process_login_url: '/login/process',
+  // Skip user login to access web app:
+  // Must be set to false in prod env.
+  skip_auth_app: true
 };
 
 exports.auth_server = {
