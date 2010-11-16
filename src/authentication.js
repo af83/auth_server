@@ -4,6 +4,7 @@ var querystring = require('querystring')
 
   , oauth2 = require('./oauth2')
   , RFactory = require('./model').RFactory
+  , ms_templates = require('./lib/ms_templates')
   , config = require('./config')
   , SELF_CLIENT_ID = config.auth_server.client_id
   ;
@@ -103,42 +104,43 @@ var logout = exports.logout = function(req, res) {
 // -------------------------------------------------------------
 
 
-var login = exports.login = function(self, client_data) {
+var login = exports.login = function(req, res, client_data, code_status) {
   /* Renders the login page.
    * If user is already logged in, ask him if he wants to login in
    * the client application.
    *
    * Arguments:
-   *  - self: grasshoper instance.
+   *  - req
+   *  - res
    *  - client_data, contains:
    *    - client_id
    *    - client_name
    *    - redirect_uri
    *    - state
+   *  - code_status: int, http code to put on http response (default: 200).
    *
    */
-  var params = self.params || {}
-    , R = RFactory()
-    ;
+  var R = RFactory();
+  var data = {};
   client_data_attrs.forEach(function(attr) {
     // XXX: should we encode all the state in a more secure way?
     // XXX: we whould be very prudent not to permit any code injection here.
     var val = client_data[attr];
-    self.model[attr] = val || "";
+    data[attr] = val || "";
   });
-  self.model.signature = sign_data(client_data);
-  self.model.server_name = config.auth_server.name;
-  self.getSessionValue('user', function(err, user) {
-    if(err) return self.renderError(500);
-    if(user) { // The user is already logged in
-      // TODO: for a client first time, ask the user
-      oauth2.send_grant(self, R, user.id, client_data);
-    }
-    else { // The user is not logged in
-      self.model.action = config.oauth2.process_login_url;
-      self.render('oauth_login');
-    }
-  });
+  data.signature = sign_data(client_data);
+  data.server_name = config.auth_server.name;
+  user = req.session.user;
+  if(user) { // The user is already logged in
+    // TODO: for a client first time, ask the user
+    oauth2.send_grant(req, res, R, user.id, client_data);
+  }
+  else { // The user is not logged in
+    data.action = config.oauth2.process_login_url;
+    var body = ms_templates.render('oauth_login', data);
+    res.writeHead(code_status || 200, {'Content-Type': 'text/html'});
+    res.end(body)
+  }
 };
 
 var sign_data = function(data) {
@@ -148,58 +150,68 @@ var sign_data = function(data) {
   return "Big signature";
 };
 
-var extract_client_data = function(self) {
+var extract_client_data = function(fields) {
   /* Returns client_data contained in the request, or null if data corrupted.
+   *
+   * Arguments:
+   *  - fields: form data
+   *
    */
   var data = {}
-    , params = self.params || {}
-    , signature = params.signature
-    ;
+    , signature = fields.signature;
   if(!signature) return null;
   client_data_attrs.forEach(function(attr) {
-    data[attr] = params[attr];
+    data[attr] = fields[attr];
   });
   // TODO: check signature against data
   return data;
 }
 
-var fail_login = function(self, client_data) {
+var fail_login = function(req, res, client_data) {
   /* Reask the user to login.
    */
   // TODO: msg to tell the login / password are wrong.
-  self.status = 401;
-  login(self, client_data);
+  login(req, res, client_data, 401);
 }
 
-exports.process_login = function(self) {
+
+exports.process_login = function(req, res, next) {
   /* Handles the login credentials given by client.
    * If not authorized, then rerender the login page.
    * If authorized, send the user back to client or the page it came from (or "/").
    *
+   * POST to config.oauth2.process_login_url
+   *
    * Arguments:
-   *  - self: grasshoper instance.
+   *  - req
+   *  - res
    *
    */
-  var params = self.params || {}
-    , R = RFactory()
-    , client_data = extract_client_data(self)
-    ;
-  if(!params.email || !params.password)
-    return fail_login(self, client_data);
+  if(req.method != 'POST' || !req.form) return next();
+  req.form.complete(function(err, fields, files) {
+    client_data = extract_client_data(fields);
+    if(!client_data) {
+      res.writeHead(400, {'Content-Type': 'text/html'});
+      res.end('Invalid data.');
+    }
+    if(!fields.email || !fields.password) 
+      return fail_login(req, res, client_data);
+    var R = RFactory();
+    R.User.index({query: {email: fields.email}}, function(users) {
+      if(users.length != 1) return fail_login(req, res, client_data);
+      var user = users[0];
+      
+      // TODO: crypt the password
+      if(user.password != fields.password) 
+        return fail_login(req, res, client_data);
 
-  R.User.index({query: {email: params.email}}, function(users) {
-    if(users.length != 1) return fail_login(self, client_data);
-    var user = users[0];
-    
-    // TODO: crypt the password
-    if(user.password != params.password) return fail_login(self, client_data);
-
-    // The user is logged in, let's remember:
-    self.setSessionValue('user', {email: user.email, id: user.id}, function() {
-      oauth2.send_grant(self, R, user.id, client_data);
+      // The user is logged in, let's remember:
+      req.session.user = {email: user.email, id: user.id};
+      oauth2.send_grant(req, res, R, user.id, client_data);
+    }, function(err) {
+      res.writeHead(500, {'Content-Type': 'text/html'});
+      res.end('Unknown error: ' + err);
     });
-  }, function(err) {
-    unknown_error(self, err);
   });
 };
 

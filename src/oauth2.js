@@ -10,6 +10,7 @@
  */
 
 var querystring = require('querystring')
+  , URL = require('url')
 
   , authentication = require('./authentication')
   , RFactory = require('./model').RFactory
@@ -73,27 +74,28 @@ var ERRORS = exports.ERRORS = {
   },
 };
 
-var oauth_error = function(self, type, id) {
+var oauth_error = function(res, type, id) {
   /* Render a particula error.
    *
    * Arguments:
-   *  - self: grasshoper instance to render to.
+   *  - res
    *  - type: the class of the error ('eua' or 'oat').
    *  - id: the id of the error (invalid_request, invalid_client...).
    */
-  self.status = 400;
-  self.renderText(JSON.stringify({error: {
+  res.writeHead(400, {'Content-Type': 'text/html'});
+  res.end(JSON.stringify({error: {
     type: 'OAuthException',
     message: id + ': ' + ERRORS[type][id],
   }}));
 };
 
-var unknown_error = function(self, err) {
+var unknown_error = function(res, err) {
   /* To call when an unknown error happens (server error).
    */
   console.log(err.message);
   console.log(err.stack);
-  self.renderError(500);
+  res.writeHead(500, {'Content-Type': 'text/html'});
+  res.end('Unknown error: ' + err.message);
 };
 
 // Parameters we must/can have in different kinds of requests:
@@ -115,60 +117,83 @@ PARAMS.eua.all = PARAMS.eua.mandatory.concat(PARAMS.eua.optional);
 
 // -------------------------------------------------------
 
-exports.authorize = function() {
-  /* OAuth2 Authorize endp-point.
+var authorize = function(params, req, res) {
+  /* OAuth2 Authorize function.
    * Serve an authentication form to the end user at browser.
    *
+   *  This function should only be called by oauth2.authorize
+   *
    * Arguments:
-   *  - this: grasshoper instance.
+   *  - params: 
+   *  - req
+   *  - res
+   *
    */
-  var self = this
-    , params = self.params || []
-    ;
   // We check there is no invalid_requet error:
   var error = false;
   PARAMS.eua.mandatory.forEach(function(param) {
     if(!params[param]) error = true;
   });
-  if(error) {
-    return oauth_error(self, 'eua', 'invalid_request');
-  }
+  if(error) return oauth_error(res, 'eua', 'invalid_request');
   if(!PARAMS.eua.response_types[params.response_type]) 
-    return oauth_error(self, 'eua', 'unsupported_response_type');
+    return oauth_error(res, 'eua', 'unsupported_response_type');
 
   // XXX: For now, we only support 'code' response type
   // which is used in case of a web server (Section 1.4.1 in oauth2 spec draft 10)
   // TODO: make it more compliant with the norm
   if(params.response_type != "code") {
-    self.status = 501;
-    self.renderText('Only code request type supported for now ' +
-                    '(schema 1.4.1 in oauth2 spec draft 10).');
+    res.writeHead(501, {'Content-Type': 'text/html'});
+    res.end('Only code request type supported for now ' +
+            '(schema 1.4.1 in oauth2 spec draft 10).');
   }
 
   var R = RFactory();
   R.Client.get({ids: params.client_id}, function(client) {
-    if(!client) return oauth_error(self, 'eua', 'invalid_client');
+    if(!client) return oauth_error(res, 'eua', 'invalid_client');
     // Check the redirect_uri is the one we know about:
     if(client.redirect_uri != params.redirect_uri) 
-      return oauth_error(self, 'eua', 'redirect_uri_mismatch');
+      return oauth_error(res, 'eua', 'redirect_uri_mismatch');
     // Eveything is allright, ask the user to sign in.
-    authentication.login(self, {
+    authentication.login(req, res, {
       client_id: client.id,
       client_name: client.name,
       redirect_uri: params.redirect_uri,
       state: params.state
     });
   }, function(err) {
-    unknown_error(self, err);
+    unknown_error(res, err);
   });
+}
+
+exports.authorize = function(req, res) {
+  /* OAuth2 Authorize end-point.
+   * Serve an authentication form to the end user at browser.
+   *
+   *  GET or POST on config.oauth2.authorize_url
+   *
+   * Arguments:
+   *  - req
+   *  - res
+   *
+   */
+  var params = URL.parse(req.url, true).query;
+  if(params) return authorize(params, req, res);
+  else {
+    if(!req.form) return oauth_error(res, 'eua', 'invalid_request');
+    req.form.complete(function(err, fields, files) {
+      if(err) return oauth_error(res, 'eua', 'invalid_request');
+      authorize(fields, req, res);
+    });
+  }
 };
 
 
-exports.send_grant = function(self, R, user_id, client_data) {
+exports.send_grant = function(req, res, R, user_id, client_data) {
   /* Create a grant and send it to the user.
    *
    * Arguments:
-   *  - self: grasshopper instance
+   *  - req
+   *  - res
    *  - R: rest-mongo instance
    *  - user_id: id of the user
    *  - client_data
@@ -183,9 +208,10 @@ exports.send_grant = function(self, R, user_id, client_data) {
     var qs = {code: grant.id}; // TODO: make a very random authorization code?
     if(client_data.state) qs.state = client_data.state;
     qs = querystring.stringify(qs);
-    self.redirect(client_data.redirect_uri + '?' + qs);
+    res.writeHead(302, {'Location': client_data.redirect_uri + '?' + qs})
+    res.end();
   }, function(err) {
-    unknown_error(self, err);
+    unknown_error(res, err);
   });
 };
 
@@ -250,60 +276,64 @@ exports.token_info = function(token) {
 };
 
 
-exports.token = function() {
+exports.token = function(req, res) {
   /* OAuth2 token endpoint.
    * Check the authorization_code, uri_redirect and client secret, issue a token.
    *
+   * POST to config.oauth2.token_url
+   *
    * Arguments:
-   *  - this: grasshoper instance.
+   *  - req
+   *  - res
+   *
    */
-  var self = this
-    , params = self.params
-    , R = RFactory()
-    ;
+  if(!req.form) return oauth_error(res, 'oat', 'invalid_request');
+  req.form.complete(function(err, params, files) {
+    if(err) return oauth_error(res, 'oat', 'invalid_request');
+    var R = RFactory();
 
-  // We check there is no invalid_requet error:
-  var error = false;
-  params && PARAMS.oat.mandatory.forEach(function(param) {
-    if(!params[param]) error = true;
-  });
-  if(error || !params) return oauth_error(self, 'oat', 'invalid_request');
-
-  // We do only support 'authorization_code' as grant_type:
-  if(params.grant_type != 'authorization_code')
-    return oauth_error(self, 'oat', 'unsupported_grant_type');
-
-  // Check the client_secret is given once (and only once),
-  // either by HTTP basic auth, or by client_secret parameter:
-  var secret = self.request.headers['authorization'];
-  if(secret) {
-    if(params.client_secret) return oauth_error(self, 'oat', 'invalid_request');
-    params.client_secret = secret.slice(6); // remove the leading 'Basic'
-  }
-  else if(!params.client_secret) {
-    return oauth_error(self, 'oat', 'invalid_request');
-  }
-
-  // Check the client_id exists and does have correct client_secret:
-  R.Client.get({ids: params.client_id}, function(client) {
-    if(!client) return oauth_error(self, 'oat', 'invalid_client');
-    // TODO: encrypt password
-    if(client.secret != params.client_secret) 
-      return oauth_error(self, 'oat', 'invalid_client');
-
-    // Check the redirect_uri:
-    // XXX: in cases we decide the redirect_uri is not binded to the client,
-    // but can vary, this should be associated with the grant (and store
-    // in issued_codes).
-    if(client.redirect_uri != params.redirect_uri)
-      return oauth_error(self, 'oat', 'invalid_grant');
-
-    valid_grant(R, {code: params.code, client_id: client.id}, function(token) {
-      if(!token) return oauth_error(self, 'oat', 'invalid_grant');
-      self.renderText(JSON.stringify(token));
-    }, function(err) {
-      unknown_error(self, err);
+    // We check there is no invalid_requet error:
+    var error = false;
+    params && PARAMS.oat.mandatory.forEach(function(param) {
+      if(!params[param]) error = true;
     });
-  }, function(err) {return unknown_error(self, err)});
+    if(error) return oauth_error(res, 'oat', 'invalid_request');
+
+    // We do only support 'authorization_code' as grant_type:
+    if(params.grant_type != 'authorization_code')
+      return oauth_error(res, 'oat', 'unsupported_grant_type');
+
+    // Check the client_secret is given once (and only once),
+    // either by HTTP basic auth, or by client_secret parameter:
+    var secret = req.headers['authorization'];
+    if(secret) {
+      if(params.client_secret) return oauth_error(res, 'oat', 'invalid_request');
+      params.client_secret = secret.slice(6); // remove the leading 'Basic'
+    }
+    else if(!params.client_secret) {
+      return oauth_error(res, 'oat', 'invalid_request');
+    }
+
+    // Check the client_id exists and does have correct client_secret:
+    R.Client.get({ids: params.client_id}, function(client) {
+      if(!client) return oauth_error(res, 'oat', 'invalid_client');
+      // TODO: encrypt password
+      if(client.secret != params.client_secret) 
+        return oauth_error(res, 'oat', 'invalid_client');
+
+      // Check the redirect_uri:
+      // XXX: in cases we decide the redirect_uri is not binded to the client,
+      // but can vary, this should be associated with the grant (and store
+      // in issued_codes).
+      if(client.redirect_uri != params.redirect_uri)
+        return oauth_error(res, 'oat', 'invalid_grant');
+
+      valid_grant(R, {code: params.code, client_id: client.id}, function(token) {
+        if(!token) return oauth_error(res, 'oat', 'invalid_grant');
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.end(JSON.stringify(token));
+      }, function(err) { unknown_error(res, err) });
+    }, function(err) { unknown_error(res, err) });
+  });
 };
 

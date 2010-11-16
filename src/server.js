@@ -4,20 +4,27 @@
  * see oauth2.js.
  *
  */
-require.paths.unshift(__dirname + '/../vendors/node-formidable/lib/')
-require.paths.unshift(__dirname + '/../vendors/grasshopper/grasshopper/lib/')
-require.paths.unshift(__dirname + '/../vendors/eyes/lib/')
-require.paths.unshift(__dirname + '/../vendors/nodetk/src')
 
-require.paths.unshift(__dirname + '/../vendors/connect/lib')
-require.paths.unshift(__dirname + '/../vendors/dispatch/lib')
-require.paths.unshift(__dirname + '/../vendors/cookie-sessions/lib')
-require.paths.unshift(__dirname + '/../vendors/mustache/lib')
+// Add location of submodules to path:
+[ 'node-formidable/lib'
+, 'eyes/lib'
+, 'nodetk/src'
+, 'connect/lib'
+, 'dispatch/lib'
+, 'cookie-sessions/lib'
+, 'connect-form/lib'
+, 'mustache/lib'
+].forEach(function(submodule) {
+  require.paths.unshift(__dirname + '/../vendors/' + submodule);
+});
 
-var gh = require('grasshopper')
-  , connect = require('connect')
+
+var connect = require('connect')
   , sessions = require('cookie-sessions')
   , dispatch = require('dispatch')
+  , connect_form = require('connect-form')
+  , URL = require('url')
+
   , eyes = require('eyes')
 
   , CLB = require('nodetk/orchestration/callbacks')
@@ -35,13 +42,6 @@ var gh = require('grasshopper')
   ;
 
 
-exports.server = gh;
-gh.configure({
-  viewsDir: __dirname + '/views',
-  staticsDir: __dirname + "/static"
-});
- 
-
 var inspect = eyes.inspector({
   maxLength: null
 });
@@ -49,9 +49,11 @@ var inspect = eyes.inspector({
 
 // ---------------------------------------------------------
 
-var dispatcher = dispatch({
+var dispatcher = {
 
+  // Serve the JS web application:
   '/': function(req, res, next) {
+    if(req.method != 'GET') return next();
     var user = req.session.user;
     if(!user && config.server.skip_auth_app) {
       user = req.session = {user: {id: 1, email: 'admin@authserver'}};
@@ -63,62 +65,66 @@ var dispatcher = dispatch({
     var body = ms_templates.render('app');
     res.end(body);
   }
-
-  // ---------------------------------------------------------
-  // This is specific to auth server logic:
-  // A typical end-user logging in a client using auth_server
-  // should not have to access these urls:
-, config.server.login_url: function(req, res, next) {
-    authentication.auth_server_login(res, res); //, '/toto');
-  }
-, config.server.process_login_url: function(req, res, next) {
-    authentication.auth_process_login(req, res);
-  }
-, config.server.logout_url: function(req, res, next) {
-    authentication.logout(req, res);
-  }
-  // ---------------------------------------------------------
-
-
-});
+};
 
 
 // ---------------------------------------------------------
+// This is specific to auth server logic:
+// A typical end-user logging in a client using auth_server
+// should not have to access these urls:
+dispatcher[config.server.login_url] = function(req, res, next) {
+  if(req.method != 'GET') return next();
+  authentication.auth_server_login(res, res); //, '/toto');
+};
+dispatcher[config.server.process_login_url] = function(req, res, next) {
+  if(req.method != 'GET') return next();
+  authentication.auth_process_login(req, res);
+};
+dispatcher[config.server.logout_url] = function(req, res, next) {
+  if(req.method != 'GET') return next();
+  authentication.logout(req, res);
+};
+// ---------------------------------------------------------
+
+// ---------------------------------------------------------
 // This is specific to the oauth2 implementation:
-
 // The end-user access these:
-gh.get(config.oauth2.authorize_url, oauth2.authorize);
-gh.post(config.oauth2.authorize_url, oauth2.authorize);
-
-gh.post(config.oauth2.process_login_url, function() {
-  authentication.process_login(this);
-});
-
+dispatcher[config.oauth2.authorize_url] = oauth2.authorize; // GET or POST
+dispatcher[config.oauth2.process_login_url] = authentication.process_login; // POST
 // The client access these:
-gh.post(config.oauth2.token_url, oauth2.token);
+dispatcher[config.oauth2.token_url] = oauth2.token; // POST
+// ---------------------------------------------------------
 
 
 
 // ---------------------------------------------------------
 // Auth server specific API:
 
-gh.get('/auth', function(args) {
+dispatcher['/auth'] = function(req, res, next) {
   /* Returns basic information about a user + its authorizations (roles)
    * for the client (user_id and client_id in given oauth_token).
    */
-  var self = this
-    , params = self.params || {}
+  if(req.method != 'GET') return next();
+  var params = URL.parse(req.url, true).query
     // TODO: support getting the token from headers
     , token_info = oauth2.token_info(params.oauth_token)
     ;
-  if(!token_info) return self.renderError(400);
+  if(!token_info) {
+    res.writeHead(400, {'Content-Type': 'text/html'});
+    res.end('Invalid token.');
+    return;
+  }
   var R = RFactory()
     , user_id = token_info.user_id
     , client_id = token_info.client_id
     , info = {id: user_id, authorizations: {}}
     ;
   R.User.get({ids: user_id}, function(user) {
-    if(!user) return self.renderError(404); // The user doesn't exist anymore.
+    if(!user) { // The user doesn't exist anymore.
+      res.writeHead('404', {});
+      res.end();
+      return;
+    }
     info.email = user.email;
     R.Authorization.index({query: {
       'client.id': client_id,
@@ -127,53 +133,57 @@ gh.get('/auth', function(args) {
       authorizations.forEach(function(auth) {
         info.authorizations[auth.context] = auth.roles;
       });
-      self.renderText(JSON.stringify(info));
-    }, function() {self.renderError(500)});
-  }, function() {self.renderError(500)});
-});
+      res.writeHead(200, {"Content-Type": "text/html"});
+      res.end(JSON.stringify(info));
+    }, function() {res.writeHead(500, {}); res.end()});
+  }, function() {res.writeHead(500, {}); res.end()});
+};
 
 
 // ---------------------------------------------------------
 // Only for auth_server GUI:
 
-gh.get('/authorizations', function(args) {
-  var params = this.params || {}
-    , client_ids = (params.clients)? params.clients.split(',') : []
-    , user_ids = (params.user_ids)? params.users.split(',') : []
-    , contexts = (params.contexts)? params.contexts.split(',') : []
-  authorizations.get_authorizations(this, client_ids, user_ids, contexts);
-});
+// TODO: DEPRECETED
+//gh.get('/authorizations', function(args) {
+//  var params = this.params || {}
+//    , client_ids = (params.clients)? params.clients.split(',') : []
+//    , user_ids = (params.user_ids)? params.users.split(',') : []
+//    , contexts = (params.contexts)? params.contexts.split(',') : []
+//  authorizations.get_authorizations(this, client_ids, user_ids, contexts);
+//});
+//
+//gh.get('/clients/{client_id}/contexts', clients.get_client_contexts);
+//
+//gh.get('/users', users.get_users);
+//gh.get('/clients', clients.get_clients);
+//gh.get('/clients/{client_id}', clients.get_client);
+//gh.post('/clients/{client_id}', clients.update_client);
+//
+//gh.get('/users/{user_id}/profile', function(user_id) {
+//  /* To get the profile information of the user.
+//   */
+//});
 
-gh.get('/clients/{client_id}/contexts', clients.get_client_contexts);
 
-gh.get('/users', users.get_users);
-gh.get('/clients', clients.get_clients);
-gh.get('/clients/{client_id}', clients.get_client);
-gh.post('/clients/{client_id}', clients.update_client);
-
-gh.get('/users/{user_id}/profile', function(user_id) {
-  /* To get the profile information of the user.
-   */
-});
-
-
-var serve = function() {
-  server = connect.createServer(
+var server = exports.server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
+  , connect_form({keepExtensions: true})
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
-  , dispatcher
+  , dispatch(dispatcher)
   );
-  server.listen(8080)
-  console.log('Server listning on http://localhost:8080')
+
+var serve = exports.serve = function(port, callback) {
+  var waiter = CLB.get_waiter(2, function() {
+    server.listen(port, callback);
+  });
+  authentication.init_client_id(waiter);
+  ms_templates.generate_refresh_templates(app_model, waiter, waiter.fall);
 }
 
 
 if(process.argv[1] == __filename) {
-  var waiter = CLB.get_waiter(2, function() {
-    //gh.serve(8080);
-    serve();
+  serve(8080, function() {
+    console.log('Server listning on http://localhost:8080');
   });
-  authentication.init_client_id(waiter);
-  ms_templates.generate_refresh_templates(app_model, waiter, waiter.fall);
 }
 

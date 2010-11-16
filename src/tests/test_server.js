@@ -1,7 +1,4 @@
 
-// FIXME: it seems there is a race condition happening sometimes in tests
-// this might be due to grasshoper framework...
-
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
 
 var http = require('http')
@@ -13,12 +10,12 @@ var http = require('http')
   , web = require('nodetk/web')
   , eyes = require('eyes')
 
+  , server = require('../server')
   , config = require('../config')
   , oauth2 = require('../oauth2')
   , load_data = require('../scripts/load_data').run
   , model = require('../model')
   , RFactory = model.RFactory
-  , server = require('../server').server
   ;
 
 
@@ -71,7 +68,7 @@ exports.module_init = function(callback) {
 };
 
 exports.module_close = function(callback) {
-  server.stop();
+  server.server.close();
   callback();
 };
 

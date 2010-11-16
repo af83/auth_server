@@ -1,6 +1,3 @@
-[submodule "vendors/grasshopper"]
-	path = vendors/grasshopper
-	url = git://github.com/tuxychandru/grasshopper.git
 [submodule "vendors/eyes"]
 	path = vendors/eyes
 	url = git://github.com/cloudhead/eyes.js.git
@@ -28,3 +25,9 @@
 [submodule "vendors/cookie-sessions"]
 	path = vendors/cookie-sessions
 	url = git://github.com/caolan/cookie-sessions.git
+[submodule "connect-form"]
+	path = connect-form
+	url = git://github.com/visionmedia/connect-form.git
+[submodule "vendors/connect-form"]
+	path = vendors/connect-form
+	url = git://github.com/visionmedia/connect-form.git
