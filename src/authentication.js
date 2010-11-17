@@ -136,7 +136,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
   user = req.session.user;
   if(user) { // The user is already logged in
     // TODO: for a client first time, ask the user
-    oauth2.send_grant(req, res, R, user.id, client_data);
+    oauth2.send_grant(res, R, user.id, client_data);
   }
   else { // The user is not logged in
     data.action = config.oauth2.process_login_url;
@@ -210,7 +210,7 @@ exports.process_login = function(req, res, next) {
 
       // The user is logged in, let's remember:
       req.session.user = {email: user.email, id: user.id};
-      oauth2.send_grant(req, res, R, user.id, client_data);
+      oauth2.send_grant(res, R, user.id, client_data);
     }, function(err) {
       res.writeHead(500, {'Content-Type': 'text/html'});
       res.end('Unknown error: ' + err);

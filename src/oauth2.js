@@ -188,7 +188,7 @@ exports.authorize = function(req, res) {
 };
 
 
-exports.send_grant = function(req, res, R, user_id, client_data) {
+exports.send_grant = function(res, R, user_id, client_data) {
   /* Create a grant and send it to the user.
    *
    * Arguments:
