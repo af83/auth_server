@@ -9,6 +9,7 @@
 [ 'node-formidable/lib'
 , 'eyes/lib'
 , 'nodetk/src'
+, 'rest-mongo/src'
 , 'connect/lib'
 , 'dispatch/lib'
 , 'cookie-sessions/lib'
@@ -28,6 +29,7 @@ var connect = require('connect')
   , eyes = require('eyes')
 
   , CLB = require('nodetk/orchestration/callbacks')
+  , rest_server = require('rest-mongo/http_rest/server')  
 
   , config = require('./config')
   , oauth2 = require('./oauth2')
@@ -36,6 +38,7 @@ var connect = require('connect')
   , users = require('./controllers/users')
   , clients = require('./controllers/clients')
   , RFactory = require('./model').RFactory
+  , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
 
   , app_model = {} // containing data to render app '/'
@@ -167,6 +170,8 @@ dispatcher['/auth'] = function(req, res, next) {
 
 var server = exports.server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
+  // To serve objects directly (based on schema):
+  , rest_server.connector(RFactory, schema)
   , connect_form({keepExtensions: true})
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , dispatch(dispatcher)

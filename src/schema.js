@@ -19,6 +19,7 @@ exports.schema = {
   },
 
   User: {
+    resource: '/users',
     schema: {
       id: "User",
       description: "A human resource owner.",
@@ -50,6 +51,7 @@ exports.schema = {
   },
 
   Authorization: {
+    resource: '/authorizations',
     schema: {
       id: "Authorization",
       description: "Represents an end-user list of roles, " +
