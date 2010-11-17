@@ -11,7 +11,7 @@ exports.oauth2_server = {
   token_url: '/oauth/token'
 };
 
-exports.oauth2_client = {
+var oauth2_client = exports.oauth2_client = {
   process_login_url: '/login/process'
 }
 
@@ -28,6 +28,6 @@ exports.auth_server = {
   // Define the client_id depending on DB:
   client_id: undefined,
   name: 'Auth server',
-  redirect_uri: server.base_url + server.process_login_url
+  redirect_uri: server.base_url + oauth2_client.process_login_url
 };
 

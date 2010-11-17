@@ -81,10 +81,6 @@ dispatcher[config.server.login_url] = function(req, res, next) {
   if(req.method != 'GET') return next();
   authentication.auth_server_login(res, res); //, '/toto');
 };
-//dispatcher[config.server.process_login_url] = function(req, res, next) {
-//  if(req.method != 'GET') return next();
-//  authentication.auth_process_login(req, res);
-//};
 dispatcher[config.server.logout_url] = function(req, res, next) {
   if(req.method != 'GET') return next();
   authentication.logout(req, res);
