@@ -8,7 +8,7 @@ var fs = require('fs')
 
 
 // We are stored the mustache templates:
-var MS_TEMPLATES_DIR = path.normalize(__dirname + '/../static/js/ms_templates');
+var MS_TEMPLATES_DIR = path.normalize(__dirname + '/../ms_templates');
 var TEMPLATES = null;
 
 
