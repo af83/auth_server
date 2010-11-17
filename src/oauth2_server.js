@@ -1,11 +1,13 @@
-var URL = require('url');
-
 var oauth2 = require('./oauth2');
 var authentication = require('./authentication');
+var tools = require('./tools');
 
 
 exports.connector = function(config) {
   /* Returns Oauth2 server connect middleware.
+   *
+   * This middleware will intercept requests aiming at OAuth2 server
+   * and treat them.
    *
    * Arguments:
    *  - config, hash containing:
@@ -18,16 +20,11 @@ exports.connector = function(config) {
    *      user and get a token.
    *
    */
-  var dispatcher = {GET: {}, POST: {}};
-  dispatcher.GET[config.authorize_url] = 
-    dispatcher.POST[config.authorize_url] = oauth2.authorize;
-  dispatcher.POST[config.process_login_url] = authentication.process_login;
-  dispatcher.POST[config.token_url] = oauth2.token;
-  return function(req, res, next) {
-    var url = URL.parse(req.url);
-    var method = dispatcher[req.method][url.pathname];
-    if(method) method(req, res);
-    else next();
-  }
+  var routes = {GET: {}, POST: {}};
+  routes.GET[config.authorize_url] = 
+    routes.POST[config.authorize_url] = oauth2.authorize;
+  routes.POST[config.process_login_url] = authentication.process_login;
+  routes.POST[config.token_url] = oauth2.token;
+  return tools.get_connector_from_routes(routes);
 };
 

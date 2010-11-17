@@ -44,7 +44,7 @@ exports.auth_server_login = function(req, res, next_url) {
     response_type: 'code'
   };
   if(next_url) data.state = JSON.stringify({next: next_url});
-  var url = config.server.base_url + config.oauth2.authorize_url + '?' +
+  var url = config.server.base_url + config.oauth2_server.authorize_url + '?' +
             querystring.stringify(data);
   res.writeHead(302, {'Location': url});
   res.end();
@@ -139,7 +139,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
     oauth2.send_grant(res, R, user.id, client_data);
   }
   else { // The user is not logged in
-    data.action = config.oauth2.process_login_url;
+    data.action = config.oauth2_server.process_login_url;
     var body = ms_templates.render('oauth_login', data);
     res.writeHead(code_status || 200, {'Content-Type': 'text/html'});
     res.end(body)

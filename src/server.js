@@ -34,6 +34,7 @@ var connect = require('connect')
   , config = require('./config')
   , oauth2 = require('./oauth2')
   , oauth2_server = require('./oauth2_server')
+  , oauth2_client = require('./oauth2_client')
   , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
@@ -80,10 +81,10 @@ dispatcher[config.server.login_url] = function(req, res, next) {
   if(req.method != 'GET') return next();
   authentication.auth_server_login(res, res); //, '/toto');
 };
-dispatcher[config.server.process_login_url] = function(req, res, next) {
-  if(req.method != 'GET') return next();
-  authentication.auth_process_login(req, res);
-};
+//dispatcher[config.server.process_login_url] = function(req, res, next) {
+//  if(req.method != 'GET') return next();
+//  authentication.auth_process_login(req, res);
+//};
 dispatcher[config.server.logout_url] = function(req, res, next) {
   if(req.method != 'GET') return next();
   authentication.logout(req, res);
@@ -182,7 +183,8 @@ var server = exports.server = connect.createServer(
   , rest_server.connector(RFactory, schema)
   , connect_form({keepExtensions: true})
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
-  , oauth2_server.connector(config.oauth2)
+  , oauth2_server.connector(config.oauth2_server)
+  , oauth2_client.connector(config.oauth2_client)
   , dispatch(dispatcher)
   );
 

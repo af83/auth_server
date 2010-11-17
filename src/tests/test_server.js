@@ -20,9 +20,9 @@ var http = require('http')
 
 
 var base_url = 'http://127.0.0.1:9999'
-  , authorize_url = base_url + config.oauth2.authorize_url 
-  , login_url = base_url + config.oauth2.process_login_url
-  , token_url = base_url + config.oauth2.token_url
+  , authorize_url = base_url + config.oauth2_server.authorize_url 
+  , login_url = base_url + config.oauth2_server.process_login_url
+  , token_url = base_url + config.oauth2_server.token_url
   ;
 
 var get_error_checker = function(type, error_code) {
