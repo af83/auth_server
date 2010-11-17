@@ -178,7 +178,7 @@ var fail_login = function(req, res, client_data) {
 }
 
 
-exports.process_login = function(req, res, next) {
+exports.process_login = function(req, res) {
   /* Handles the login credentials given by client.
    * If not authorized, then rerender the login page.
    * If authorized, send the user back to client or the page it came from (or "/").
@@ -190,7 +190,10 @@ exports.process_login = function(req, res, next) {
    *  - res
    *
    */
-  if(req.method != 'POST' || !req.form) return next();
+  if(!req.form) {
+    res.writeHead(400, {'Content-Type': 'text/html'});
+    res.end('Invalid data.');
+  }
   req.form.complete(function(err, fields, files) {
     client_data = extract_client_data(fields);
     if(!client_data) {

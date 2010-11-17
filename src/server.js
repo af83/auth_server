@@ -33,6 +33,7 @@ var connect = require('connect')
 
   , config = require('./config')
   , oauth2 = require('./oauth2')
+  , oauth2_server = require('./oauth2_server')
   , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
@@ -88,16 +89,6 @@ dispatcher[config.server.logout_url] = function(req, res, next) {
   authentication.logout(req, res);
 };
 // ---------------------------------------------------------
-
-// ---------------------------------------------------------
-// This is specific to the oauth2 implementation:
-// The end-user access these:
-dispatcher[config.oauth2.authorize_url] = oauth2.authorize; // GET or POST
-dispatcher[config.oauth2.process_login_url] = authentication.process_login; // POST
-// The client access these:
-dispatcher[config.oauth2.token_url] = oauth2.token; // POST
-// ---------------------------------------------------------
-
 
 
 // ---------------------------------------------------------
@@ -191,6 +182,7 @@ var server = exports.server = connect.createServer(
   , rest_server.connector(RFactory, schema)
   , connect_form({keepExtensions: true})
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
+  , oauth2_server.connector(config.oauth2)
   , dispatch(dispatcher)
   );
 
