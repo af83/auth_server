@@ -400,6 +400,7 @@ exports.tests = [
 }],
 
 // -------------------------------------------------------------------------
+// Resource server stuff:
 
 ['/auth: no token', 2, function(args) {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
@@ -413,26 +414,32 @@ exports.tests = [
 
 ['/auth: invalid token', 2, function(args) {
   // Get info of one user
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0];
     web.GET(base_url + '/auth', {
       oauth_token: 'some wrong token'
-    }, function(statusCode, headers, data) {
+    }, function(statusCode, headers, body) {
       assert.equal(statusCode, 400);
+      assert.equal(body, 'Invalid oauth_token.');
     });
-  });
 }],
 
-['/auth: ok', 3, function(args) {
+['/auth: double token (header and url parameters)', 2, function(args) {
+  var headers = {'Authorization': 'OAuth toto'}
+    , params = {oauth_token: 'toto'}
+    ;
+  web.GET(base_url + '/auth', params, function(statusCode, headers, body) {
+    assert.equal(statusCode, 400);
+    assert.equal(body, 'oauth_token can only be given using one method.');
+  }, {additional_headers: headers});
+}],
+
+['/auth: ok, token in url parameters or headers', 5, function(args) {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
-    var user = users[0];
-    web.GET(base_url + '/auth', {
-      oauth_token: oauth2.create_access_token(user.id, errornot_client_id)
-    }, function(statusCode, headers, data) {
-      assert.equal(statusCode, 200);
-      assert.deepEqual(JSON.parse(data), {
+    var user = users[0]
+      , oauth_token = oauth2.create_access_token(user.id, errornot_client_id)
+      ;
+    var check_answer = function(statusCode, headers, data) {
+      var expected_data = {
         id: user.id,
         email: user.email,
         authorizations: {
@@ -440,7 +447,13 @@ exports.tests = [
           text_server: ["user","admin"],
           errornot: ["user","admin"]
         }
-      });
+      }
+      assert.equal(statusCode, 200);
+      assert.deepEqual(JSON.parse(data), expected_data);
+    };
+    web.GET(base_url + '/auth', {oauth_token: oauth_token}, check_answer);
+    web.GET(base_url + '/auth', {}, check_answer, {
+      additional_headers: {'Authorization': 'OAuth '+oauth_token}
     });
   });
 }],

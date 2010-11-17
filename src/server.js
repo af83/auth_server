@@ -101,20 +101,37 @@ dispatcher[config.oauth2.token_url] = oauth2.token; // POST
 
 
 // ---------------------------------------------------------
-// Auth server specific API:
+// Auth server specific API (resource server):
 
 dispatcher['/auth'] = function(req, res, next) {
   /* Returns basic information about a user + its authorizations (roles)
    * for the client (user_id and client_id in given oauth_token).
+   *
+   * TODO: The reply need some work to be compliant.
+   * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
+   *
    */
   if(req.method != 'GET') return next();
   var params = URL.parse(req.url, true).query
-    // TODO: support getting the token from headers
-    , token_info = oauth2.token_info(params.oauth_token)
+    , oauth_token = params.oauth_token
     ;
+  if(req.headers.authorization) {
+    // XXX: support for getting oauth_token from header might not be complete
+    // http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.1.1
+    var match = req.headers.authorization.match(/OAuth\s+(.*)/);
+    if(match) {
+      if(oauth_token) {
+        res.writeHead(400, {'Content-Type': 'text/html'});
+        res.end('oauth_token can only be given using one method.');
+        return;
+      }
+      oauth_token = match[1];
+    }
+  }
+  var token_info = oauth2.token_info(oauth_token);
   if(!token_info) {
     res.writeHead(400, {'Content-Type': 'text/html'});
-    res.end('Invalid token.');
+    res.end('Invalid oauth_token.');
     return;
   }
   var R = RFactory()
