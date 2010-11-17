@@ -18,7 +18,7 @@ var server = exports.server = {
   process_login_url: '/login/process',
   // Skip user login to access web app:
   // Must be set to false in prod env.
-  skip_auth_app: true
+  skip_auth_app: false
 };
 
 exports.auth_server = {

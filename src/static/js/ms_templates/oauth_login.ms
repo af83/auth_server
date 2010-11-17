@@ -4,8 +4,8 @@
   </head>
   <body>
     <h1>Welcome!</h1>
-    <p>You are about to signin to <strong><%= client_name %></strong>
-      using <strong><%= server_name %></strong>:</p>
+    <p>You are about to signin to <strong>{{client_name}}</strong>
+      using <strong>{{server_name}}</strong>:</p>
     <form action="{{action}}" method="post">
       These should be hidden (and could be assymetrically crypted in one field...): 
       <br />
@@ -35,7 +35,7 @@
       </label>
       <br />
 
-      <label>Password:
+      <label>Password (1234):
         <input type="password" name="password" value="1234" />
       </label>
       <br />

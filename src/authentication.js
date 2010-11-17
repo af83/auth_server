@@ -9,7 +9,6 @@ var querystring = require('querystring')
   , SELF_CLIENT_ID = config.auth_server.client_id
   ;
 
-
 exports.init_client_id = function(callback) {
   /* Lookup in DB and set config.auth_server.client_id 
    *
@@ -79,11 +78,15 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
     if(params.state) try {
       var next = JSON.parse(params.state).next;
       if(next) {
-        res.writeHead(302, {'Location': url});
+        res.writeHead(302, {'Location': next});
         res.end();
         return;
       }
-    } catch (e) {}
+    } catch (e) {
+      res.writeHead(500, {'Content-Type': 'text/html'});
+      res.end('An error has occured: ' + err.message);
+      return
+    }
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end('Logged in Text server');
   }, function(err) {
