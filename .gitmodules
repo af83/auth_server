@@ -16,9 +16,6 @@
 [submodule "vendors/connect"]
 	path = vendors/connect
 	url = git://github.com/senchalabs/connect.git
-[submodule "vendors/dispatch"]
-	path = vendors/dispatch
-	url = git://github.com/caolan/dispatch.git
 [submodule "vendors/mustache"]
 	path = vendors/mustache
 	url = git://github.com/janl/mustache.js.git
