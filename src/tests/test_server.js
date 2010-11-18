@@ -180,7 +180,7 @@ exports.tests = [
     password: '1234',
     signature: 'some signature',
   }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 302);
+    assert.equal(statusCode, 303);
     var location = headers.location.split('?');
     assert.equal(location[0], 'http://127.0.0.1:8888/login');
     var qs = querystring.parse(location[1]);

@@ -14,6 +14,7 @@ var querystring = require('querystring')
 
   , authentication = require('./authentication')
   , RFactory = require('./model').RFactory
+  , tools = require('./tools')
   ;
 
 
@@ -208,8 +209,7 @@ exports.send_grant = function(res, R, user_id, client_data) {
     var qs = {code: grant.id}; // TODO: make a very random authorization code?
     if(client_data.state) qs.state = client_data.state;
     qs = querystring.stringify(qs);
-    res.writeHead(302, {'Location': client_data.redirect_uri + '?' + qs})
-    res.end();
+    tools.redirect(res, client_data.redirect_uri + '?' + qs);
   }, function(err) {
     unknown_error(res, err);
   });

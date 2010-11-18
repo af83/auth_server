@@ -3,6 +3,7 @@ var querystring = require('querystring')
   , URL = require('url')
 
   , oauth2 = require('./oauth2')
+  , tools = require('./tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
   , config = require('./config')
@@ -46,8 +47,7 @@ exports.auth_server_login = function(req, res, next_url) {
   if(next_url) data.state = JSON.stringify({next: next_url});
   var url = config.server.base_url + config.oauth2_server.authorize_url + '?' +
             querystring.stringify(data);
-  res.writeHead(302, {'Location': url});
-  res.end();
+  tools.redirect(res, url);
 };
 
 var auth_process_login = exports.auth_process_login = function(req, res) {
@@ -77,11 +77,7 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
     }
     if(params.state) try {
       var next = JSON.parse(params.state).next;
-      if(next) {
-        res.writeHead(302, {'Location': next});
-        res.end();
-        return;
-      }
+      if(next) return tools.redirect(res, next);
     } catch (e) {
       res.writeHead(500, {'Content-Type': 'text/html'});
       res.end('An error has occured: ' + err.message);
@@ -100,8 +96,7 @@ var logout = exports.logout = function(req, res) {
   /* Logout the eventual logged in user.
    */
   req.session = {};
-  res.writeHead(302, {'Location': '/'});
-  res.end();
+  tools.redirect(res, '/');
 };
 
 // -------------------------------------------------------------

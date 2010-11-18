@@ -24,3 +24,17 @@ exports.get_connector_from_routes = function(routes) {
     else next();
   };
 }
+
+
+exports.redirect = function(res, url) {
+  /* Send redirection HTTP reply to result.
+   *
+   * Arguments:
+   *  - res: nodejs result object.
+   *  - url: where to redirect.
+   *
+   */
+  res.writeHead(303, {'Location': url});
+  res.end();
+};
+
