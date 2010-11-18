@@ -74,21 +74,6 @@ var dispatcher = {
 
 
 // ---------------------------------------------------------
-// This is specific to auth server logic:
-// A typical end-user logging in a client using auth_server
-// should not have to access these urls:
-dispatcher[config.server.login_url] = function(req, res, next) {
-  if(req.method != 'GET') return next();
-  authentication.auth_server_login(res, res); //, '/toto');
-};
-dispatcher[config.server.logout_url] = function(req, res, next) {
-  if(req.method != 'GET') return next();
-  authentication.logout(req, res);
-};
-// ---------------------------------------------------------
-
-
-// ---------------------------------------------------------
 // Auth server specific API (resource server):
 
 dispatcher['/auth'] = function(req, res, next) {

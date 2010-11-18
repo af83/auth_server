@@ -12,13 +12,13 @@ exports.oauth2_server = {
 };
 
 var oauth2_client = exports.oauth2_client = {
-  process_login_url: '/login/process'
+  process_login_url: '/login/process',
+  login_url: '/login',
+  logout_url: '/logout',
 }
 
 var server = exports.server = {
   base_url: "http://localhost:8080",
-  login_url: '/login',
-  logout_url: '/logout',
   // Skip user login to access web app:
   // Must be set to false in prod env.
   skip_auth_app: false
