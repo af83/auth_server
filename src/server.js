@@ -27,6 +27,7 @@ var connect = require('connect')
   , rest_server = require('rest-mongo/http_rest/server')  
 
   , config = require('./config')
+  , oauth2 = require('./oauth2')
   , oauth2_server = require('./oauth2_server')
   , oauth2_resources_server = require('./oauth2_resources_server')  
   , oauth2_client = require('./oauth2_client')
@@ -38,6 +39,17 @@ var connect = require('connect')
   ;
 
 
+var alternative_valid_grant = function(code, callback, fallback) {  
+  // Since we are text_server, we do not use the oauth2 api, but directly
+  // request the grant checking function.
+  var R = RFactory();
+  oauth2.valid_grant(R, {
+    code: code, 
+    client_id: config.oauth2_client.client_id
+  }, callback, fallback);
+};
+
+
 var server = exports.server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
   // To serve objects directly (based on schema):
@@ -46,7 +58,7 @@ var server = exports.server = connect.createServer(
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , oauth2_server.connector(config.oauth2_server)
   , oauth2_resources_server.connector()
-  , oauth2_client.connector(config.oauth2_client)
+  , oauth2_client.connector(config.oauth2_client, alternative_valid_grant)
   , web_app.connector()
   );
 

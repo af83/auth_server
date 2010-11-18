@@ -22,6 +22,7 @@ exports.init_client_id = function(callback) {
   R.Client.index({query: {name: name}}, function(clients) {
     if(clients.length != 1) throw new Error('There must only be one ' + name);
     SELF_CLIENT_ID = clients[0].id;
+    config.oauth2_client.client_id = SELF_CLIENT_ID;
     callback();
   });
 };
@@ -49,45 +50,6 @@ exports.auth_server_login = function(req, res, next_url) {
             querystring.stringify(data);
   tools.redirect(res, url);
 };
-
-var auth_process_login = exports.auth_process_login = function(req, res) {
-  /* Check the grant given by user to login in authserver is a good one.
-   *
-   * Arguments:
-   *  - req
-   *  - res
-   */
-  var params = URL.parse(req.url, true).query || {}
-    , R = RFactory()
-    , code = params.code
-    ;
-
-  if(!code) {
-    res.writeHead(400, {'Content-Type': 'text/html'});
-    res.end('The "code" parameter is missing.');
-    return;
-  }
-  // Since we are text_server, we do not use the oauth2 api, but directly
-  // request the grant checking function:
-  oauth2.valid_grant(R, {code: code, client_id: SELF_CLIENT_ID}, function(token) {
-    if(!token) {
-      res.writeHead(400, {'Content-Type': 'text/html'});
-      res.end('Invalid grant.');
-      return;
-    }
-    if(params.state) try {
-      var next = JSON.parse(params.state).next;
-      if(next) return tools.redirect(res, next);
-    } catch (e) {
-      return tools.server_error(res, e);
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end('Logged in Text server');
-  }, function(err) {
-    tools.server_error(res, err);
-  });
-};
-
 
 var logout = exports.logout = function(req, res) {
   /* Logout the eventual logged in user.
