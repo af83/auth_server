@@ -1,4 +1,6 @@
 var URL = require('url');
+var querystring = require('querystring');
+
 
 var web = require('nodetk/web');
 var authentication = require('./authentication');
@@ -42,7 +44,6 @@ var valid_grant = function(code, callback, fallback) {
   });
 };
 
-
 var auth_process_login = exports.auth_process_login = function(req, res) {
   /* Check the grant given by user to login in authserver is a good one.
    *
@@ -77,6 +78,26 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
 };
 
 
+var redirects_for_login = 
+exports.redirects_for_login = function(req, res, next_url) {
+  /* Redirects the user to OAuth2 server for authentication.
+   *
+   * Arguments:
+   *  - req
+   *  - res
+   *  - next_url: an url to redirect to once the process is complete.
+   */
+  var data = {
+    client_id: config.client_id,
+    redirect_uri: config.redirect_uri,
+    response_type: 'code'
+  };
+  if(next_url) data.state = JSON.stringify({next: next_url});
+  var url = config.server_authorize_endpoint +'?'+ querystring.stringify(data);
+  tools.redirect(res, url);
+};
+
+
 exports.connector = function(conf, alternative_valid_grant) {
   /* Returns OAuth2 client connect middleware.
    *
@@ -104,7 +125,7 @@ exports.connector = function(conf, alternative_valid_grant) {
 
   var routes = {GET: {}};
   routes.GET[conf.process_login_url] = auth_process_login;
-  routes.GET[conf.login_url] = authentication.auth_server_login;
+  routes.GET[conf.login_url] = redirects_for_login;
   routes.GET[conf.logout_url] = authentication.logout;
   return tools.get_connector_from_routes(routes);
 };

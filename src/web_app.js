@@ -1,5 +1,5 @@
 var ms_templates = require('./lib/ms_templates');
-var authentication = require('./authentication');
+var oauth2_client = require('./oauth2_client');
 var tools = require('./tools');
 
 
@@ -9,9 +9,7 @@ var serve_web_app = function(req, res) {
    *
    */
   var user = req.session.user;
-  if(!user) {
-    return authentication.auth_server_login(req, res, '/');
-  }
+  if(!user) return oauth2_client.redirects_for_login(req, res, '/');
   res.writeHead(200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('app');
   res.end(body);

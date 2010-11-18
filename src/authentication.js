@@ -31,26 +31,6 @@ exports.init_client_id = function(callback) {
 var client_data_attrs = ['client_name', 'client_id', 'redirect_uri', 'state'];
 
 
-exports.auth_server_login = function(req, res, next_url) {
-  /* Redirects the user to auth_server page it can login to auth_server using
-   * auth_server.
-   *
-   * Arguments:
-   *  - req
-   *  - res
-   *  - next_url: an url to redirect to once the process is complete.
-   */
-  var data = {
-    client_id: SELF_CLIENT_ID,
-    redirect_uri: config.auth_server.redirect_uri,
-    response_type: 'code'
-  };
-  if(next_url) data.state = JSON.stringify({next: next_url});
-  var url = config.server.base_url + config.oauth2_server.authorize_url + '?' +
-            querystring.stringify(data);
-  tools.redirect(res, url);
-};
-
 var logout = exports.logout = function(req, res) {
   /* Logout the eventual logged in user.
    */

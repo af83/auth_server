@@ -20,6 +20,8 @@ var oauth2_client = exports.oauth2_client = {
   redirect_uri: server.base_url + '/login/process',
   login_url: '/login',
   logout_url: '/logout',
+
+  server_authorize_endpoint: server.base_url + oauth2_server.authorize_url,
   server_token_endpoint: server.base_url + oauth2_server.token_url,
 
   client_id: undefined, // Define the client_id depending on DB
