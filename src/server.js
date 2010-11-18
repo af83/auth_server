@@ -34,6 +34,7 @@ var connect = require('connect')
   , config = require('./config')
   , oauth2 = require('./oauth2')
   , oauth2_server = require('./oauth2_server')
+  , oauth2_resources_server = require('./oauth2_resources_server')  
   , oauth2_client = require('./oauth2_client')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
@@ -49,68 +50,6 @@ var connect = require('connect')
 var inspect = eyes.inspector({
   maxLength: null
 });
-
-
-
-// ---------------------------------------------------------
-// Auth server specific API (resource server):
-
-var dispatcher = {};
-dispatcher['/auth'] = function(req, res, next) {
-  /* Returns basic information about a user + its authorizations (roles)
-   * for the client (user_id and client_id in given oauth_token).
-   *
-   * TODO: The reply need some work to be compliant.
-   * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
-   *
-   */
-  if(req.method != 'GET') return next();
-  var params = URL.parse(req.url, true).query
-    , oauth_token = params.oauth_token
-    ;
-  if(req.headers.authorization) {
-    // XXX: support for getting oauth_token from header might not be complete
-    // http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.1.1
-    var match = req.headers.authorization.match(/OAuth\s+(.*)/);
-    if(match) {
-      if(oauth_token) {
-        res.writeHead(400, {'Content-Type': 'text/html'});
-        res.end('oauth_token can only be given using one method.');
-        return;
-      }
-      oauth_token = match[1];
-    }
-  }
-  var token_info = oauth2.token_info(oauth_token);
-  if(!token_info) {
-    res.writeHead(400, {'Content-Type': 'text/html'});
-    res.end('Invalid oauth_token.');
-    return;
-  }
-  var R = RFactory()
-    , user_id = token_info.user_id
-    , client_id = token_info.client_id
-    , info = {id: user_id, authorizations: {}}
-    ;
-  R.User.get({ids: user_id}, function(user) {
-    if(!user) { // The user doesn't exist anymore.
-      res.writeHead('404', {});
-      res.end();
-      return;
-    }
-    info.email = user.email;
-    R.Authorization.index({query: {
-      'client.id': client_id,
-      'email': user.email
-    }}, function(authorizations) {
-      authorizations.forEach(function(auth) {
-        info.authorizations[auth.context] = auth.roles;
-      });
-      res.writeHead(200, {"Content-Type": "text/html"});
-      res.end(JSON.stringify(info));
-    }, function() {res.writeHead(500, {}); res.end()});
-  }, function() {res.writeHead(500, {}); res.end()});
-};
 
 
 // ---------------------------------------------------------
@@ -145,9 +84,9 @@ var server = exports.server = connect.createServer(
   , connect_form({keepExtensions: true})
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , oauth2_server.connector(config.oauth2_server)
+  , oauth2_resources_server.connector()
   , oauth2_client.connector(config.oauth2_client)
   , web_app.connector()
-  , dispatch(dispatcher)
   );
 
 var serve = exports.serve = function(port, callback) {

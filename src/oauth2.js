@@ -258,10 +258,11 @@ var create_access_token = exports.create_access_token = function(user_id, client
   return user_id + ',' + client_id;
 };
 
-exports.token_info = function(token) {
+var token_info = exports.token_info = function(token) {
   /* Returns the information associated with a token, or null if token is bad.
    */
-  // TODO
+  // TODO: encrypt the token somehow to check it is valid...
+  // + limit its scope and lifetime.
   try {
     var token_parts = token.split(',');
     var info = {
@@ -335,5 +336,45 @@ exports.token = function(req, res) {
       }, function(err) { unknown_error(res, err) });
     }, function(err) { unknown_error(res, err) });
   });
+};
+
+
+exports.check_token = function(req, res, callback) {
+  /* Check the OAuth2 oauth_token present in request. Either returns http error
+   * to client or call callback with info about token, a hash containing clear
+   * info the token was transporting.
+   *
+   * Arguments:
+   *  - req: nodejs request object.
+   *  - res: nodejs response object.
+   *  - callback: function to be called with info as first parameter.
+   *
+   * NOTE: the function is asynchronous even it doesn't have to be right now,
+   * but it might be in the future.
+   *
+   */
+  var params = URL.parse(req.url, true).query
+    , oauth_token = params.oauth_token
+    ;
+  if(req.headers.authorization) {
+    // XXX: support for getting oauth_token from header might not be complete
+    // http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.1.1
+    var match = req.headers.authorization.match(/OAuth\s+(.*)/);
+    if(match) {
+      if(oauth_token) {
+        res.writeHead(400, {'Content-Type': 'text/html'});
+        res.end('oauth_token can only be given using one method.');
+        return;
+      }
+      oauth_token = match[1];
+    }
+  }
+  var info = token_info(oauth_token);
+  if(!info) {
+    res.writeHead(400, {'Content-Type': 'text/html'});
+    res.end('Invalid oauth_token.');
+    return;
+  }
+  callback(info);
 };
 
