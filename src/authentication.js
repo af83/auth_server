@@ -79,15 +79,12 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
       var next = JSON.parse(params.state).next;
       if(next) return tools.redirect(res, next);
     } catch (e) {
-      res.writeHead(500, {'Content-Type': 'text/html'});
-      res.end('An error has occured: ' + err.message);
-      return
+      return tools.server_error(res, e);
     }
     res.writeHead(200, {'Content-Type': 'text/html'});
     res.end('Logged in Text server');
   }, function(err) {
-    res.writeHead(500, {'Content-Type': 'text/html'});
-    res.end('An error has occured: ' + err);
+    tools.server_error(res, err);
   });
 };
 
@@ -209,10 +206,7 @@ exports.process_login = function(req, res) {
       // The user is logged in, let's remember:
       req.session.user = {email: user.email, id: user.id};
       oauth2.send_grant(res, R, user.id, client_data);
-    }, function(err) {
-      res.writeHead(500, {'Content-Type': 'text/html'});
-      res.end('Unknown error: ' + err);
-    });
+    }, function(err) {tools.server_error(res, err)});
   });
 };
 

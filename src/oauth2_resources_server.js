@@ -39,8 +39,8 @@ var get_auths = function(req, res) {
         });
         res.writeHead(200, {"Content-Type": "text/html"});
         res.end(JSON.stringify(info));
-      }, function() {res.writeHead(500, {}); res.end()});
-    }, function() {res.writeHead(500, {}); res.end()});
+      }, function(err) {tools.server_error(res, err)});
+    }, function(err) {tools.server_error(res, err)});
   });
 };
 

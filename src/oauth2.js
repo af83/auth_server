@@ -95,8 +95,7 @@ var unknown_error = function(res, err) {
    */
   console.log(err.message);
   console.log(err.stack);
-  res.writeHead(500, {'Content-Type': 'text/html'});
-  res.end('Unknown error: ' + err.message);
+  tools.server_error(res, error);
 };
 
 // Parameters we must/can have in different kinds of requests:

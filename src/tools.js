@@ -38,3 +38,22 @@ exports.redirect = function(res, url) {
   res.end();
 };
 
+
+exports.server_error = function(res, err) {
+  /* Send HTTP 500 result with details about error in body.
+   * The content-type is set to text/plain.
+   *
+   * Arguments:
+   *  - res: nodejs result object.
+   *  - err: error object or string.
+   *
+   */
+  res.writeHead(500, {'Content-Type': 'text/plain'});
+  if(typeof err == "string") res.end(err);
+  else {
+    res.write('An error has occured: ' + err.message);
+    res.write('\n\n');
+    res.end(err.stack);
+  }
+};
+
