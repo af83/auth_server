@@ -1,13 +1,9 @@
 
-var querystring = require('querystring')
-  , URL = require('url')
-
-  , oauth2 = require('./oauth2')
+var oauth2 = require('./oauth2')
   , tools = require('./tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
   , config = require('./config')
-  , SELF_CLIENT_ID = config.auth_server.client_id
   ;
 
 exports.init_client_id = function(callback) {
@@ -21,8 +17,7 @@ exports.init_client_id = function(callback) {
     , name = config.auth_server.name;
   R.Client.index({query: {name: name}}, function(clients) {
     if(clients.length != 1) throw new Error('There must only be one ' + name);
-    SELF_CLIENT_ID = clients[0].id;
-    config.oauth2_client.client_id = SELF_CLIENT_ID;
+    config.oauth2_client.client_id = clients[0].id;
     callback();
   });
 };

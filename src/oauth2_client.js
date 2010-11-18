@@ -1,9 +1,16 @@
+/* 
+ * OAuth2 client module, defining:
+ *  - a connect middleware, that allows your application to act as a OAuth2
+ *    client.
+ *  - the method redirects_for_login (connector method must have been called 
+ *    before), that redirects the user to the OAuth2 server for authentication.
+ *
+ */
 var URL = require('url');
 var querystring = require('querystring');
 
 
 var web = require('nodetk/web');
-var authentication = require('./authentication');
 var tools = require('./tools');
 
 // OAuth2 client config.
@@ -106,14 +113,14 @@ var nexturl_query = function(req) {
   return url
 };
 
-var logout = exports.logout = function(req, res) {
+var logout = function(req, res) {
   /* Logout the eventual logged in user.
    */
   req.session = {};
   tools.redirect(res, nexturl_query(req));
 };
 
-var login = exports.login = function(req, res) {
+var login = function(req, res) {
   /* Triggers redirects_for_login with next param if present in url query.
    */
   redirects_for_login(res, nexturl_query(req));
