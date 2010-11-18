@@ -35,6 +35,7 @@ var connect = require('connect')
   , oauth2 = require('./oauth2')
   , oauth2_server = require('./oauth2_server')
   , oauth2_client = require('./oauth2_client')
+  , web_app = require('./web_app')
   , authentication = require('./authentication')
   , authorizations = require('./controllers/authorizations')
   , users = require('./controllers/users')
@@ -52,30 +53,11 @@ var inspect = eyes.inspector({
 });
 
 
-// ---------------------------------------------------------
-
-var dispatcher = {
-
-  // Serve the JS web application:
-  '/': function(req, res, next) {
-    if(req.method != 'GET') return next();
-    var user = req.session.user;
-    if(!user && config.server.skip_auth_app) {
-      user = req.session = {user: {id: 1, email: 'admin@authserver'}};
-    }
-    if(!user) {
-      return authentication.auth_server_login(req, res, '/');
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    var body = ms_templates.render('app');
-    res.end(body);
-  }
-};
-
 
 // ---------------------------------------------------------
 // Auth server specific API (resource server):
 
+var dispatcher = {};
 dispatcher['/auth'] = function(req, res, next) {
   /* Returns basic information about a user + its authorizations (roles)
    * for the client (user_id and client_id in given oauth_token).
@@ -166,6 +148,7 @@ var server = exports.server = connect.createServer(
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , oauth2_server.connector(config.oauth2_server)
   , oauth2_client.connector(config.oauth2_client)
+  , web_app.connector()
   , dispatch(dispatcher)
   );
 

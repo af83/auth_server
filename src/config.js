@@ -19,9 +19,6 @@ var oauth2_client = exports.oauth2_client = {
 
 var server = exports.server = {
   base_url: "http://localhost:8080",
-  // Skip user login to access web app:
-  // Must be set to false in prod env.
-  skip_auth_app: false
 };
 
 exports.auth_server = {
