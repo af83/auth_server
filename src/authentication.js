@@ -1,5 +1,6 @@
 
 var oauth2 = require('./oauth2')
+  , oauth2_server = require('./oauth2_server')
   , tools = require('./tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
@@ -135,7 +136,7 @@ exports.process_login = function(req, res) {
 
       // The user is logged in, let's remember:
       req.session.user = {email: user.email, id: user.id};
-      oauth2.send_grant(res, R, user.id, client_data);
+      oauth2_server.send_grant(res, R, user.id, client_data);
     }, function(err) {tools.server_error(res, err)});
   });
 };

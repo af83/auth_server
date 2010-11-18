@@ -43,7 +43,7 @@ var alternative_valid_grant = function(code, callback, fallback) {
   // Since we are text_server, we do not use the oauth2 api, but directly
   // request the grant checking function.
   var R = RFactory();
-  oauth2.valid_grant(R, {
+  oauth2_server.valid_grant(R, {
     code: code, 
     client_id: config.oauth2_client.client_id
   }, callback, fallback);

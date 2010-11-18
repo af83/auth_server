@@ -13,6 +13,7 @@ var http = require('http')
   , server = require('../server')
   , config = require('../config')
   , oauth2 = require('../oauth2')
+  , oauth2_server = require('../oauth2_server')
   , load_data = require('../scripts/load_data').run
   , model = require('../model')
   , RFactory = model.RFactory
@@ -98,7 +99,7 @@ exports.tests = [
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
-  oauth2.PARAMS.eua.mandatory.forEach(function(param) {
+  oauth2_server.PARAMS.eua.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
@@ -237,7 +238,7 @@ exports.tests = [
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }
-  oauth2.PARAMS.oat.mandatory.forEach(function(param) {
+  oauth2_server.PARAMS.oat.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
     web.POST(token_url, partial_qs, get_error_checker('oat', 'invalid_request'));
@@ -436,7 +437,7 @@ exports.tests = [
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
-      , oauth_token = oauth2.create_access_token(user.id, errornot_client_id)
+      , oauth_token = oauth2_server.create_access_token(user.id, errornot_client_id)
       ;
     var check_answer = function(statusCode, headers, data) {
       var expected_data = {
