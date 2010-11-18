@@ -37,14 +37,13 @@ var generate_templates = function(fpaths, callback, fallback) {
 };
 
 
-exports.generate_refresh_templates = function(data, callback, fallback) {
+exports.generate_refresh_templates = function(callback, fallback) {
   /* Generate templates + update then whenever they change.
    */
   tkfs.getFilesDirs(MS_TEMPLATES_DIR, function(fpaths) {
     fpaths = fpaths.filter(function(fpath) {return fpath.match(/\.ms$/)});
 
     var set_data = function(templates_str) {
-      data.ms_templates = templates_str;
       TEMPLATES = templates_str;
     };
     generate_templates(fpaths, function(templates_str) {

@@ -43,8 +43,6 @@ var connect = require('connect')
   , RFactory = require('./model').RFactory
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
-
-  , app_model = {} // containing data to render app '/'
   ;
 
 
@@ -157,7 +155,7 @@ var serve = exports.serve = function(port, callback) {
     server.listen(port, callback);
   });
   authentication.init_client_id(waiter);
-  ms_templates.generate_refresh_templates(app_model, waiter, waiter.fall);
+  ms_templates.generate_refresh_templates(waiter, waiter.fall);
 }
 
 
