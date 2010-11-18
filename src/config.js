@@ -16,10 +16,12 @@ var oauth2_server = exports.oauth2_server = {
 };
 
 var oauth2_client = exports.oauth2_client = {
+  base_url: server.base_url,
   process_login_url: '/login/process',
   redirect_uri: server.base_url + '/login/process',
   login_url: '/login',
   logout_url: '/logout',
+  default_redirection_url: '/',
 
   server_authorize_endpoint: server.base_url + oauth2_server.authorize_url,
   server_token_endpoint: server.base_url + oauth2_server.token_url,

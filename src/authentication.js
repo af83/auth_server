@@ -31,13 +31,6 @@ exports.init_client_id = function(callback) {
 var client_data_attrs = ['client_name', 'client_id', 'redirect_uri', 'state'];
 
 
-var logout = exports.logout = function(req, res) {
-  /* Logout the eventual logged in user.
-   */
-  req.session = {};
-  tools.redirect(res, '/');
-};
-
 // -------------------------------------------------------------
 
 

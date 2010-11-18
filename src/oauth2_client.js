@@ -79,11 +79,10 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
 
 
 var redirects_for_login = 
-exports.redirects_for_login = function(req, res, next_url) {
+exports.redirects_for_login = function(res, next_url) {
   /* Redirects the user to OAuth2 server for authentication.
    *
    * Arguments:
-   *  - req
    *  - res
    *  - next_url: an url to redirect to once the process is complete.
    */
@@ -97,6 +96,28 @@ exports.redirects_for_login = function(req, res, next_url) {
   tools.redirect(res, url);
 };
 
+var nexturl_query = function(req) {
+  /* Returns value of next url query parameter if present, default otherwise.
+   * The next query parameter should not contain de domain, but the result will.
+   */
+  var params = URL.parse(req.url, true).query || {};
+  var next = params.next || config.default_redirection_url;
+  var url = config.base_url + next;
+  return url
+};
+
+var logout = exports.logout = function(req, res) {
+  /* Logout the eventual logged in user.
+   */
+  req.session = {};
+  tools.redirect(res, nexturl_query(req));
+};
+
+var login = exports.login = function(req, res) {
+  /* Triggers redirects_for_login with next param if present in url query.
+   */
+  redirects_for_login(res, nexturl_query(req));
+}
 
 exports.connector = function(conf, alternative_valid_grant) {
   /* Returns OAuth2 client connect middleware.
@@ -106,6 +127,8 @@ exports.connector = function(conf, alternative_valid_grant) {
    *
    * Arguments:
    *  - config: hash containing:
+   *    - base_url: The base URL of the OAuth2 client. 
+   *      Ex: http://domain.com:8080
    *    - process_login_url: the URL where to the OAuth2 server must redirect
    *      the user when authenticated.
    *    - login_url: the URL where the user must go to be redirected
@@ -113,6 +136,8 @@ exports.connector = function(conf, alternative_valid_grant) {
    *    - logout_url: the URL where the user must go so that his session is
    *      cleared, and he is unlogged from client.
    *    - server_token_endpoint: full URL, OAuth2 server token endpoint.
+   *    - default_redirection_url: default URL to redirect to after login / logout.
+   *      Optional, default to '/'.
    *
    *  - alternative_valid_grant: a function which will replace the default one
    *    to check the grant is ok. You might want to use this shortcut if you
@@ -120,13 +145,14 @@ exports.connector = function(conf, alternative_valid_grant) {
    *    with an HTTP request.
    *
    */
+  conf.default_redirection_url = conf.default_redirection_url || '/';
   config = conf;
   if(alternative_valid_grant) valid_grant = alternative_valid_grant;
 
   var routes = {GET: {}};
   routes.GET[conf.process_login_url] = auth_process_login;
-  routes.GET[conf.login_url] = redirects_for_login;
-  routes.GET[conf.logout_url] = authentication.logout;
+  routes.GET[conf.login_url] = login;
+  routes.GET[conf.logout_url] = logout;
   return tools.get_connector_from_routes(routes);
 };
 
