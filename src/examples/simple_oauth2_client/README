@@ -1,0 +1,27 @@
+
+To run this example:
+
+- Populate the db:
+
+    node src/scripts/load_data.js
+
+
+- Open the file src/examples/simple_oauth2_client/server.js
+- Paste the id previously displayed in "client_id" value (search for 'TODO')
+
+
+- Starts auth_server: 
+
+    node src/server.js
+
+
+- Starts the oauth2 client server:
+
+  node src/examples/simple_oauth2_client/server.js
+
+
+- Go to http://127.0.0.1:7070/ and try to log in
+  Credentials: pruyssen@af83.com / 1234
+
+To clear the sessions : just remove the cookies.
+
