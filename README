@@ -1,17 +1,20 @@
-Oauth2 server based on nodeJS.
+Oauth2 server (client and resource server) based on nodeJS.
+Base on following spec: http://tools.ietf.org/html/draft-ietf-oauth-v2-10
 
-Very partial and incomplete implementation at the moment. 
 Tested with nodeJS v0.3.0.
 
-To get / update the submodules:
-  git submodule update --init --recursive
+
+To Install:
+  make install
+  make update_js_templates
 
 To run the tests (need nodetk bins on the path):
   nodetests src/tests
 
+
 To Generate the mustache templates (for web app):
   make update_js_templates
 
-To update it (skiping i18n stuff):
+To update them (skiping i18n stuff):
   make skip
 
