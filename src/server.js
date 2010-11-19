@@ -27,10 +27,9 @@ var connect = require('connect')
   , rest_server = require('rest-mongo/http_rest/server')  
 
   , config = require('./config')
-  , oauth2 = require('./oauth2')
-  , oauth2_server = require('./oauth2_server')
-  , oauth2_resources_server = require('./oauth2_resources_server')  
-  , oauth2_client = require('./oauth2_client')
+  , oauth2_server = require('./oauth2/server')
+  , oauth2_resources_server = require('./oauth2/resources_server')  
+  , oauth2_client = require('./oauth2/client')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
   , RFactory = require('./model').RFactory

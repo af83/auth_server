@@ -12,8 +12,8 @@ var http = require('http')
 
   , server = require('../server')
   , config = require('../config')
-  , oauth2 = require('../oauth2')
-  , oauth2_server = require('../oauth2_server')
+  , oauth2 = require('../oauth2/common')
+  , oauth2_server = require('../oauth2/server')
   , load_data = require('../scripts/load_data').run
   , model = require('../model')
   , RFactory = model.RFactory

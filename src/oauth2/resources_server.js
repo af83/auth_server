@@ -1,8 +1,8 @@
 var URL = require('url');
 
-var oauth2 = require('./oauth2')
-  , RFactory = require('./model').RFactory
-  , tools = require('./tools')
+var oauth2 = require('./common')
+  , RFactory = require('../model').RFactory
+  , tools = require('../tools')
   ;
 
 

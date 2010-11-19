@@ -12,10 +12,10 @@
 var URL = require('url')
   , querystring = require('querystring')
   ;
-var oauth2 = require('./oauth2');
-var authentication = require('./authentication');
-var tools = require('./tools');
-var RFactory = require('./model').RFactory;
+var oauth2 = require('./common');
+var authentication = require('../authentication');
+var tools = require('../tools');
+var RFactory = require('../model').RFactory;
 
 
 var oauth_error = exports.oauth_error = function(res, type, id) {

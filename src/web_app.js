@@ -1,5 +1,5 @@
 var ms_templates = require('./lib/ms_templates');
-var oauth2_client = require('./oauth2_client');
+var oauth2_client = require('./oauth2/client');
 var tools = require('./tools');
 
 

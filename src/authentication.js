@@ -1,6 +1,6 @@
 
-var oauth2 = require('./oauth2')
-  , oauth2_server = require('./oauth2_server')
+var oauth2 = require('./oauth2/common')
+  , oauth2_server = require('./oauth2/server')
   , tools = require('./tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
