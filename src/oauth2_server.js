@@ -1,3 +1,14 @@
+/* 
+ * This implements a OAuth2 server methods, as specified at:
+ *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10
+ *
+ * Only features the "web server" schema: 
+ *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.4.1
+ *
+ * Terminology:
+ *  http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-1.2
+ *
+ */
 var URL = require('url')
   , querystring = require('querystring')
   ;
