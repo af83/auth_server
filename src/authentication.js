@@ -8,14 +8,14 @@ var oauth2 = require('./oauth2')
   ;
 
 exports.init_client_id = function(callback) {
-  /* Lookup in DB and set config.auth_server.client_id 
+  /* Lookup in DB and set config.oauth2_client.client_id 
    *
    * Arguments:
    *  - callback: to be called once it's done.
    *
    */
   var R = RFactory()
-    , name = config.auth_server.name;
+    , name = config.oauth2_client.name;
   R.Client.index({query: {name: name}}, function(clients) {
     if(clients.length != 1) throw new Error('There must only be one ' + name);
     config.oauth2_client.client_id = clients[0].id;
@@ -55,7 +55,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
     data[attr] = val || "";
   });
   data.signature = sign_data(client_data);
-  data.server_name = config.auth_server.name;
+  data.server_name = config.oauth2_server.name;
   user = req.session.user;
   if(user) { // The user is already logged in
     // TODO: for a client first time, ask the user

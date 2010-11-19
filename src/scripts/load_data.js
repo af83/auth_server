@@ -58,7 +58,7 @@ var load_clients = function(callback) {
    */
   var clients = [
     // name, redirect_uri
-    [config.auth_server.name, config.auth_server.redirect_uri],
+    [config.oauth2_client.name, config.oauth2_client.redirect_uri],
     ["errornot", 'http://127.0.0.1:8888/login'],
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
   ];
@@ -72,7 +72,7 @@ var load_clients = function(callback) {
     return client;
   });
   R.save(clients, function() {
-    config.auth_server.client_id = name2client[config.auth_server.name].id;
+    config.oauth2_client.client_id = name2client[config.oauth2_client.name].id;
     callback()
   }, function(err) {
     throw err;

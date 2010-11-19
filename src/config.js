@@ -10,9 +10,10 @@ var server = exports.server = {
 };
 
 var oauth2_server = exports.oauth2_server = {
-  authorize_url: '/oauth/authorize',
-  process_login_url: '/oauth/login',
-  token_url: '/oauth/token'
+  authorize_url: '/oauth2/authorize',
+  process_login_url: '/oauth2/login',
+  token_url: '/oauth2/token',
+  name: 'Auth server'
 };
 
 var oauth2_client = exports.oauth2_client = {
@@ -28,13 +29,6 @@ var oauth2_client = exports.oauth2_client = {
 
   client_id: undefined, // Define the client_id depending on DB
   client_secret: 'some secret string',
-  client_name: 'Auth server',
-}
-
-exports.auth_server = {
-  // Define the client_id depending on DB:
-  client_id: undefined,
   name: 'Auth server',
-  redirect_uri: server.base_url + oauth2_client.process_login_url
-};
+}
 
