@@ -18,6 +18,8 @@ var model = require('../model')
   , name2client = {}
   ;
 
+var DEBUG = false;
+
 
 var clear_collections = function(callback) {
   /* Erase all the data (delete the store files) and call callback.
@@ -61,6 +63,7 @@ var load_clients = function(callback) {
     [config.oauth2_client.name, config.oauth2_client.redirect_uri],
     ["errornot", 'http://127.0.0.1:8888/login'],
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
+    ["test_client", 'http://127.0.0.1:7070/login/process'],
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
@@ -73,6 +76,7 @@ var load_clients = function(callback) {
   });
   R.save(clients, function() {
     config.oauth2_client.client_id = name2client[config.oauth2_client.name].id;
+    DEBUG && console.log('test_client id:', name2client['test_client'].id);
     callback()
   }, function(err) {
     throw err;
@@ -117,6 +121,7 @@ var run = exports.run = function(callback) {
 
 
 if(process.argv[1] == __filename) {
+  DEBUG = true;
   console.log('Reset data in DB...');
   run(function() {
     process.exit()    

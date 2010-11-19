@@ -51,6 +51,28 @@ var valid_grant = function(code, callback, fallback) {
   });
 };
 
+
+var treat_access_token = function(access_token, req, res, callback) {
+  /* Make something with the access_token.
+   *
+   * This is the default implementation provided by this client.
+   * This implementation does nothing, and the exact way this access_token
+   * should be used is not specified by the OAuth2 spec (only how it should
+   * be passed to resource provider).
+   *
+   * Arguments:
+   *  - access_token: the access_token returned by the server.
+   *  - req
+   *  - res
+   *  - callback: to be called when action is done. The request will be blocked
+   *    while this callback has not been called (so that the session can be
+   *    updated...).
+   *
+   */
+  callback();
+};
+
+
 var auth_process_login = exports.auth_process_login = function(req, res) {
   /* Check the grant given by user to login in authserver is a good one.
    *
@@ -73,14 +95,16 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
       res.end('Invalid grant.');
       return;
     }
-    if(params.state) try {
-      var next = JSON.parse(params.state).next;
-      if(next) return tools.redirect(res, next);
-    } catch (e) {
-      return tools.server_error(res, e);
-    }
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.end('Logged in Text server');
+    treat_access_token(token.access_token, req, res, function() {
+      if(params.state) try {
+        var next = JSON.parse(params.state).next;
+        if(next) return tools.redirect(res, next);
+      } catch (e) {
+        return tools.server_error(res, e);
+      }
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end('Logged in Text server');
+    });
   }, function(err){tools.server_error(res, err)});
 };
 
@@ -126,7 +150,7 @@ var login = function(req, res) {
   redirects_for_login(res, nexturl_query(req));
 }
 
-exports.connector = function(conf, alternative_valid_grant) {
+exports.connector = function(conf, options) {
   /* Returns OAuth2 client connect middleware.
    *
    * This middleware will intercep requests aiming at OAuth2 client
@@ -146,15 +170,21 @@ exports.connector = function(conf, alternative_valid_grant) {
    *    - default_redirection_url: default URL to redirect to after login / logout.
    *      Optional, default to '/'.
    *
-   *  - alternative_valid_grant: a function which will replace the default one
-   *    to check the grant is ok. You might want to use this shortcut if you
-   *    have a faster way of checking than requesting the OAuth2 server
-   *    with an HTTP request.
+   *  - options: optional, hash containing:
+   *    - alternative_valid_grant: a function which will replace the default one
+   *      to check the grant is ok. You might want to use this shortcut if you
+   *      have a faster way of checking than requesting the OAuth2 server
+   *      with an HTTP request.
+   *    - alternative_treat_access_token: a function which will replace the
+   *      default one to do something with the access token. You will tipically
+   *      use that function to set some info in session.
    *
    */
   conf.default_redirection_url = conf.default_redirection_url || '/';
   config = conf;
-  if(alternative_valid_grant) valid_grant = alternative_valid_grant;
+  options = options || {};
+  valid_grant = options.alternative_valid_grant || valid_grant;
+  treat_access_token = options.alternative_treat_access_token || treat_access_token;
 
   var routes = {GET: {}};
   routes.GET[conf.process_login_url] = auth_process_login;

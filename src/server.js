@@ -38,14 +38,16 @@ var connect = require('connect')
   ;
 
 
-var alternative_valid_grant = function(code, callback, fallback) {  
-  // Since we are text_server, we do not use the oauth2 api, but directly
-  // request the grant checking function.
-  var R = RFactory();
-  oauth2_server.valid_grant(R, {
-    code: code, 
-    client_id: config.oauth2_client.client_id
-  }, callback, fallback);
+var oauth2_client_options = {
+  alternative_valid_grant: function(code, callback, fallback) {  
+    // Since we are text_server, we do not use the oauth2 api, but directly
+    // request the grant checking function.
+    var R = RFactory();
+    oauth2_server.valid_grant(R, {
+      code: code, 
+      client_id: config.oauth2_client.client_id
+    }, callback, fallback)
+  }
 };
 
 
@@ -57,7 +59,7 @@ var server = exports.server = connect.createServer(
   , sessions({secret: '123abc', session_key: 'auth_server_session'})
   , oauth2_server.connector(config.oauth2_server)
   , oauth2_resources_server.connector()
-  , oauth2_client.connector(config.oauth2_client, alternative_valid_grant)
+  , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
   , web_app.connector()
   );
 
