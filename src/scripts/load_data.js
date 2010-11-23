@@ -45,6 +45,7 @@ var load_users = function(callback) {
     var user =  new R.User({
       email: email,
       password: '1234',
+      confirmed: 1,
     });
     email2user[user.email] = user;
     return user;

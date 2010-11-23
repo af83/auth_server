@@ -125,7 +125,7 @@ exports.process_login = function(req, res) {
     if(!fields.email || !fields.password) 
       return fail_login(req, res, client_data);
     var R = RFactory();
-    R.User.index({query: {email: fields.email}}, function(users) {
+    R.User.index({query: {email: fields.email, confirmed: 1}}, function(users) {
       if(users.length != 1) return fail_login(req, res, client_data);
       var user = users[0];
       

@@ -30,6 +30,7 @@ var connect = require('connect')
   , oauth2_server = require('./oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
   , oauth2_client = require('./oauth2/client')
+  , registration = require('./register')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
   , RFactory = require('./model').RFactory
@@ -61,6 +62,7 @@ var server = exports.server = connect.createServer(
   , oauth2_resources_server.connector()
   , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
   , web_app.connector()
+  , registration.connector(config.server)
   );
 
 var serve = exports.serve = function(port, callback) {

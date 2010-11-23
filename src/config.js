@@ -30,5 +30,5 @@ var oauth2_client = exports.oauth2_client = {
   client_id: undefined, // Define the client_id depending on DB
   client_secret: 'some secret string',
   name: 'Auth server',
-}
+};
 

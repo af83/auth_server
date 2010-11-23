@@ -62,6 +62,6 @@ exports.render = function(template_name, data) {
    */
   var template = TEMPLATES[template_name];
   if(!template) throw new Error('Unknown template name: ' + template_name);
-  return mustache.to_html(template, data, TEMPLATES);
+  return mustache.to_html(template, data || {}, TEMPLATES);
 }
 

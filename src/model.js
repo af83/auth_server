@@ -15,6 +15,10 @@ var rest_mongo = require("rest-mongo/core"),
     schema = require('./schema').schema
 
 
-var backend = mongo_backend.get_backend(config.db)
-exports.RFactory = rest_mongo.getRFactory(schema, backend)
+var backend = mongo_backend.get_backend(config.db);
+exports.RFactory = rest_mongo.getRFactory(schema, backend);
+
+
+// Ensure indexes are created:
+backend.db.createIndex('User', 'email', true, function(){}); // email is unique
 

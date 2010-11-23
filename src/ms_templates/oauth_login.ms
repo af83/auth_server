@@ -42,6 +42,7 @@
 
       <input type="submit" value="Sign in" />
     </form>
+    <p>You don't have an account? <a href="/register">Register</a></p>
   </body>
 </html>
 

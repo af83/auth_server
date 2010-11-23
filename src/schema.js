@@ -29,6 +29,7 @@ exports.schema = {
         id: {type: "string"},
         password: {type: "string"},
         email: {type: "string"},
+        confirmed: {type: "integer"} // 1 if registration confirmed
       }
     }
   },
