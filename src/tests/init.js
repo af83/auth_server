@@ -19,8 +19,10 @@ var port = 8999,
 data.base_url = 'http://127.0.0.1:' + port;
 data.assert = assert;
 
+// Tweak a bit the configuration for tests:
 var config = require('../config');
 config.server.base_url = data.base_url;
+config.db.db_name = 'auth_server_test';
 
 
 var load_data = require('../scripts/load_data').run
@@ -62,10 +64,10 @@ var setup = function(callback) {
 
 var opened = false;
 var module_init = function(callback) {
-  if(!opened) {
+  if(!opened) setup(function() {
     opened = true;
     server.serve(port, callback);
-  }
+  });
   else callback();
 };
 

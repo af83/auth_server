@@ -52,26 +52,30 @@ var oauth2_client_options = {
 };
 
 
-var server = exports.server = connect.createServer(
+var server;
+var create_server = function() {
+  server = exports.server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
-  // To serve objects directly (based on schema):
-  , rest_server.connector(RFactory, schema)
-  , connect_form({keepExtensions: true})
-  , sessions({secret: '123abc', session_key: 'auth_server_session'})
-  , oauth2_server.connector(config.oauth2_server)
-  , oauth2_resources_server.connector()
-  , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
-  , web_app.connector()
-  , registration.connector(config.server)
+    // To serve objects directly (based on schema):
+    , rest_server.connector(RFactory, schema)
+    , connect_form({keepExtensions: true})
+    , sessions({secret: '123abc', session_key: 'auth_server_session'})
+    , oauth2_server.connector(config.oauth2_server)
+    , oauth2_resources_server.connector()
+    , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
+    , web_app.connector()
+    , registration.connector(config.server)
   );
+};
 
 var serve = exports.serve = function(port, callback) {
+  create_server();
   var waiter = CLB.get_waiter(2, function() {
     server.listen(port, callback);
   });
   authentication.init_client_id(waiter);
   ms_templates.generate_refresh_templates(waiter, waiter.fall);
-}
+};
 
 
 if(process.argv[1] == __filename) {
