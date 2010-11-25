@@ -1,6 +1,7 @@
 var URL = require('url');
 
 var ms_templates = require('./lib/ms_templates');
+var bcrypt = require('./lib/bcrypt');
 var tools = require('./tools');
 var email = require('./email');
 var RFactory = require('./model').RFactory;
@@ -98,19 +99,21 @@ var process_register = function(req, res) {
       fields.message = "There is an error in the form.";
       return register_page(req, res, {status_code: 400, data: fields});
     }
-    // Add the user:
-    var R = RFactory();
-    var user = new R.User({email: fields.email, password: fields.password});
-    user.save(function() {
-      send_confirmation_email(user);
-      process_register_success(res);
-    }, function(err) {
-      // If error is caused by duplicate email, say nothing to user:
-      if(err.message.indexOf("E11000 ") == 0) { // duplicate insert
+    bcrypt.hash(fields.password, function(hash) {
+      // Add the user:
+      var R = RFactory();
+      var user = new R.User({email: fields.email, password: hash});
+      user.save(function() {
+        send_confirmation_email(user);
         process_register_success(res);
-      }
-      else tools.server_error(res, err);
-    });
+      }, function(err) {
+        // If error is caused by duplicate email, say nothing to user:
+        if(err.message.indexOf("E11000 ") == 0) { // duplicate insert
+          process_register_success(res);
+        }
+        else tools.server_error(res, err);
+      });
+    }, function(err) {tools.server_error(res, err)});
   });
 };
 

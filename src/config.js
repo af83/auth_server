@@ -1,4 +1,8 @@
 
+exports.bcrypt = {
+  nb_rounds: 10 // Complexity of hashing function
+};
+
 exports.db = {
   host: 'localhost',
   port: 27017,

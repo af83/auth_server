@@ -3,6 +3,7 @@ var oauth2_server = require('./oauth2/server')
   , tools = require('./tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
+  , bcrypt = require('./lib/bcrypt')
   , config = require('./config')
   ;
 
@@ -129,13 +130,13 @@ exports.process_login = function(req, res) {
       if(users.length != 1) return fail_login(req, res, client_data);
       var user = users[0];
       
-      // TODO: crypt the password
-      if(user.password != fields.password) 
-        return fail_login(req, res, client_data);
+      bcrypt.check(user.password, fields.password, function(good) {
+        if(!good) return fail_login(req, res, client_data);
 
-      // The user is logged in, let's remember:
-      req.session.user = {email: user.email, id: user.id};
-      oauth2_server.send_grant(res, R, user.id, client_data);
+        // The user is logged in, let's remember:
+        req.session.user = {email: user.email, id: user.id};
+        oauth2_server.send_grant(res, R, user.id, client_data);
+      }, function(err) {tools.server_error(res, err)});
     }, function(err) {tools.server_error(res, err)});
   });
 };

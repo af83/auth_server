@@ -24,6 +24,9 @@ var config = require('../config');
 config.server.base_url = data.base_url;
 config.db.db_name = 'auth_server_test';
 
+var bcrypt = require('../lib/bcrypt');
+bcrypt.conf.nb_rounds = 4; // So that tests run faster
+
 
 var load_data = require('../scripts/load_data').run
   , model = require('../model')

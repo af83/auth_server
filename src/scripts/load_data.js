@@ -41,10 +41,12 @@ var load_users = function(callback) {
     'toto@af83.com',
     'titi@titi.com',
   ];
+  // password = 1234 (hashed using bcrypt)
+  var password = "$2a$04$DihcjQ4rOLjKtusXGcOwsO3SjbUA5oC/GLAJHBXoPhHsSODCcybDC";
   var users = emails.map(function(email) {
     var user =  new R.User({
       email: email,
-      password: '1234',
+      password: password,
       confirmed: 1,
     });
     email2user[user.email] = user;
