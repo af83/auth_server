@@ -30,8 +30,6 @@ exports.hash = function(password, callback, fallback) {
    *  - fallback: called in case of error.
    *
    */
-  // here we must be carefull to avoid code injection here
-  // XXX: do a node module to avoid such risk?
   var cmd = bcrypt_hash +' '+ conf.nb_rounds +" '"+ escape_pwd(password) +"'";
   exec(cmd, function(error, stdout, stderr) {
     if(error) return fallback(error);
