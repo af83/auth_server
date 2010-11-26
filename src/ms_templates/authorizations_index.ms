@@ -6,8 +6,8 @@
  <col class="roles" />
  <thead>
   <tr>
-     <th>E-mail</th>
-     <th>Client id</th>
+     <th>User E-mail</th>
+     <th>Client</th>
      <th>Context</th>
      <th>Roles</th>
   </tr>
@@ -16,7 +16,7 @@
  {{#authorizations}}
   <tr>
     <td>{{email}}</td>
-    <td>{{#client}}{{id}}{{/client}}</td>
+    <td>{{#client}}<a href="#/c/{{id}}">{{name}}</a>{{/client}}</td>
     <td>{{context}}</td>
     <td> > {{#roles}}<span class="role">{{.}}</span>{{/roles}}</td>
   </tr>

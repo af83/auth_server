@@ -1,6 +1,7 @@
 
 table.auths {
   border-collapse: collapse;
+  text-align: left;
 }
 
 table.auths col {
@@ -16,7 +17,8 @@ table.auths tr {
   height: 3ex;
 }
 
-table.auths td {
+table.auths td,
+table.auths th {
   padding-left: 10px;
 }
 

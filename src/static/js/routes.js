@@ -93,10 +93,16 @@ $.sammy(function() {
     /* Displays list of all authorizations. */
     $('#overview').html('<h1>Authorizations</h1>');
     $('#content').renders('waiting');
-    R.Authorization.index({}, function(authorizations){
+    var authorizations;
+    var waiter = callbacks.get_waiter(2, function() {
       $('#content').renders('authorizations_index', {
         authorizations: authorizations 
       });
+    });
+    R.Client.index({}, waiter);
+    R.Authorization.index({}, function(auths) {
+      authorizations = auths;
+      waiter();
     });
   });
 
