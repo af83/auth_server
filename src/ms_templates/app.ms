@@ -7,8 +7,7 @@
   <title>Auth server: authentication and authorization!</title>
   <link type="text/css" rel="stylesheet" href="/css/gui.css"/>
   <link type="text/css" rel="stylesheet" href="/css/authorizations.css"/>  
-<link href="css/global.css" rel="stylesheet" type="text/css" media="screen" charset="utf-8" />
-
+  <link href="css/global.css" rel="stylesheet" type="text/css" media="screen" charset="utf-8" />
 </head>
 
 <body>
@@ -53,9 +52,33 @@
   <script type="text/javascript" src="/js/templates_fr.js"></script>
 
   <script type="text/javascript" src="/js/utils.js"></script>
-  <script type="text/javascript" src="/js/callbacks.js"></script>
   <script type="text/javascript" src="/js/routes.js"></script>
-  <script type="text/javascript" src="/js/init.js"></script>
+
+  <script type="text/javascript" src="/init_browser.js"></script>
+  <script type="text/javascript" src="/yabble.js"></script>
+  <script type="text/javascript">
+    require.reset();
+
+    require.useScriptTags();
+    require.setModuleRoot('wrapped_js/');
+
+    require.ensure([
+      'util',
+      'events',
+      
+      'rest-mongo/core',
+      'rest-mongo/http_rest/jquery_backend',
+    
+      'nodetk/logging',
+      'nodetk/orchestration/callbacks',
+      'nodetk/utils',
+
+      'browser/init',
+      'schema',
+    ], function() {
+      require.run('browser/init');
+    });
+  </script>
 
 </body>
 </html>

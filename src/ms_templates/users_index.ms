@@ -1,3 +1,5 @@
 <ul>
-  <li>email</li>
+  {{#users}}
+    <li>{{email}}</li>
+  {{/users}}
 </ul>

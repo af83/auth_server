@@ -24,6 +24,7 @@ var connect = require('connect')
   , connect_form = require('connect-form')
 
   , CLB = require('nodetk/orchestration/callbacks')
+  , bserver = require('nodetk/browser/server')
   , rest_server = require('rest-mongo/http_rest/server')  
 
   , config = require('./config')
@@ -51,6 +52,13 @@ var oauth2_client_options = {
   }
 };
 
+// To serve some nodejs modules to browser:
+require.paths.unshift(__dirname);
+var serve_modules_connector = bserver.serve_modules_connector({
+  modules: ['util', 'schema'],
+  packages: ['nodetk', 'rest-mongo', 'browser']
+});
+
 
 var server;
 var create_server = function() {
@@ -63,6 +71,7 @@ var create_server = function() {
     , oauth2_server.connector(config.oauth2_server)
     , oauth2_resources_server.connector()
     , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
+    , serve_modules_connector
     , web_app.connector()
     , registration.connector(config.server)
   );

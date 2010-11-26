@@ -1,6 +1,6 @@
 
 $.sammy(function() {
-  
+
   this.get('', function() {
     this.redirect('#/c');
   });
@@ -8,7 +8,7 @@ $.sammy(function() {
   this.get('#/c', function() {
     // Display a list of clients for the user to choose.
     $('#overview').html('<h1>Clients</h1>');
-    $.getJSON('/clients', function(clients) {
+    R.Client.index({}, function(clients) {
       $('#content').renders('clients_index', {clients: clients});
     });
   });
@@ -81,9 +81,9 @@ $.sammy(function() {
     /* Displays list of users.
      */
     // TODO: handle permissions, no everyone should be able to see list of all users.
+    // TODO: don't send passwords hashs
     $('#overview').html('<h1>Users</h1>');
-    $('#content').renders('users_index', {users: users});
-    $.getJSON('/users', function(users) {
+    R.User.index({}, function(users) {
       $('#content').renders('users_index', {users: users});
     });
   });
@@ -93,9 +93,9 @@ $.sammy(function() {
     /* Displays list of all authorizations. */
     $('#overview').html('<h1>Authorizations</h1>');
     $('#content').renders('waiting');
-    $.getJSON('/authorizations', function(authorizations){
+    R.Authorization.index({}, function(authorizations){
       $('#content').renders('authorizations_index', {
-        authorizations: authorizations  
+        authorizations: authorizations 
       });
     });
   });
