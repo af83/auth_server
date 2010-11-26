@@ -18,24 +18,12 @@ $.sammy(function() {
     $('#overview').html('');
     $('#content').html('');
     var client, contexts;
-    var waiter = callbacks.get_waiter(2, function() {
+    R.Client.get({ids: client_id}, function(client) {
+      $('#overview').html('<h1>' + client.name + '</h1>');
       var data = {
         client: client,
-        contexts: contexts.map(function(context) {return {
-          name: context,
-          href: '#/c/' + client.id + '/' + context
-        }})
       };
       $('#content').renders('client_show', data);
-    });
-    $.getJSON('/clients/' + client_id, function(client_) {
-      $('#overview').html('<h1>' + client_.name + '</h1>');
-      client = client_;
-      waiter();
-    });
-    $.getJSON('/clients/' + env.params.client_id + '/contexts', function(contexts_) {
-      contexts = contexts_;
-      waiter();
     });
   });
 
@@ -43,14 +31,18 @@ $.sammy(function() {
     var self = this
       , params = env.params
       ;
-    $.post('/clients/' + params.client_id, {
-      name: params.name,
-      redirect_uri: params.redirect_uri,
-      secret: params.secret
-    }, function(result) {
-      console.log(result);
+    R.Client.get({ids: params.client_id}, function(client) {
+      $.extend(client, {
+        name: params.name,
+        redirect_uri: params.redirect_uri,
+        secret: params.secret
+      });
+      client.save(function() {
+        console.log("Client updated with success.");
+      }, function() {
+        console.log("Error while updating client.");
+      });
     });
-    console.log(env);
   });
 
   this.get('#/c/:client_id/:context', function(env) {
