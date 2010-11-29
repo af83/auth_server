@@ -52,7 +52,7 @@ var valid_grant = function(code, callback, fallback) {
 };
 
 
-var treat_access_token = function(access_token, req, res, callback) {
+var treat_access_token = function(access_token, req, res, callback, fallback) {
   /* Make something with the access_token.
    *
    * This is the default implementation provided by this client.
@@ -104,7 +104,7 @@ var auth_process_login = exports.auth_process_login = function(req, res) {
       }
       res.writeHead(200, {'Content-Type': 'text/html'});
       res.end('Logged in Text server');
-    });
+    }, function(err){tools.server_error(res, err)});
   }, function(err){tools.server_error(res, err)});
 };
 

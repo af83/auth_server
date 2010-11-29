@@ -172,9 +172,7 @@ var token_endpoint = function(req, res) {
 
     // Check the client_id exists and does have correct client_secret:
     R.Client.get({ids: params.client_id}, function(client) {
-      if(!client) return oauth_error(res, 'oat', 'invalid_client');
-      // TODO: encrypt password
-      if(client.secret != params.client_secret) 
+      if(!client || client.secret != params.client_secret) 
         return oauth_error(res, 'oat', 'invalid_client');
 
       // Check the redirect_uri:

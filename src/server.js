@@ -28,6 +28,7 @@ var connect = require('connect')
   , rest_server = require('rest-mongo/http_rest/server')  
 
   , config = require('./config')
+  , oauth2 = require('./oauth2/common')
   , oauth2_server = require('./oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
   , oauth2_client = require('./oauth2/client')
@@ -49,6 +50,14 @@ var oauth2_client_options = {
       code: code, 
       client_id: config.oauth2_client.client_id
     }, callback, fallback)
+  },
+  alternative_treat_access_token: function(access_token, req, res, callback, fallback) {
+    // Idem, since we are text_server, directly request get_authorizations
+    var info = oauth2.token_info(access_token);
+    oauth2_resources_server.get_info(info.client_id, info.user_id, function(info) {
+      req.session.authorizations = info.authorizations;
+      callback();
+    }, fallback);
   }
 };
 
@@ -59,21 +68,37 @@ var serve_modules_connector = bserver.serve_modules_connector({
   packages: ['nodetk', 'rest-mongo', 'browser']
 });
 
+// To check the user can access resources served by rest-mongo:
+var auth_check = function(req, res, next, info) {
+  var session = req.session || {}
+    , user = session.user
+    , auths = session.authorizations || {}
+    , roles = auths[config.oauth2_client.name]
+    ;
+  if(!user) {
+    res.writeHead(401, {}); res.end();
+  }
+  // For now, only accept users admin on auth_server:
+  else if(!roles || roles.indexOf('admin')<0) {
+    res.writeHead(403, {}); res.end();
+  }
+  else next();
+};
 
 var server;
 var create_server = function() {
   server = exports.server = connect.createServer(
     connect.staticProvider({root: __dirname + '/static', cache: false})
-    // To serve objects directly (based on schema):
-    , rest_server.connector(RFactory, schema)
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
     , oauth2_server.connector(config.oauth2_server)
     , oauth2_resources_server.connector()
     , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
+    , registration.connector(config.server)
+    // To serve objects directly (based on schema):
+    , rest_server.connector(RFactory, schema, auth_check)
     , serve_modules_connector
     , web_app.connector()
-    , registration.connector(config.server)
   );
 };
 

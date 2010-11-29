@@ -92,6 +92,8 @@ var load_authorizations = function(callback) {
    */
   var auths = [
    // user email , client name, context, roles
+    ['pruyssen@af83.com', config.oauth2_client.name, 
+                          config.oauth2_client.name, ['admin']],
     ['pruyssen@af83.com', 'errornot', 'errornot', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'text_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
