@@ -30,4 +30,4 @@
 	url = git://github.com/visionmedia/connect-form.git
 [submodule "vendors/bcrypt_hash"]
 	path = vendors/bcrypt_hash
-	url = git@github.com:virtuo/bcrypt_hash.git
+	url = git://github.com/virtuo/bcrypt_hash.git
