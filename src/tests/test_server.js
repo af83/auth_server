@@ -14,7 +14,7 @@ var http = require('http')
   , web = require('nodetk/web')
   , eyes = require('eyes')
 
-  , config = require('../config')
+  , config = require('../config_loader').get_config('./config')
   , oauth2 = require('../oauth2/common')
   , oauth2_server = require('../oauth2/server')
   ;

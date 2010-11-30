@@ -1,5 +1,5 @@
 
-var config = require('./config');
+var config = require('./config_loader').get_config();
 
 
 if(config.email.method == "smtp") {

@@ -8,7 +8,6 @@
  *
  */
 
-
 // Must be imported before server so we get the nodetest on path before
 // adding it from vendors.
 var assert = require('nodetk/testing/custom_assert');
@@ -20,7 +19,7 @@ data.base_url = 'http://127.0.0.1:' + port;
 data.assert = assert;
 
 // Tweak a bit the configuration for tests:
-var config = require('../config');
+var config = require('../config_loader').get_config('./config');
 config.server.base_url = data.base_url;
 config.db.db_name = 'auth_server_test';
 
