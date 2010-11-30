@@ -3,6 +3,10 @@ Base on following spec: http://tools.ietf.org/html/draft-ietf-oauth-v2-10
 
 Tested with nodeJS v0.3.0.
 
+Dependencies:
+  - git submodule with --recusive option
+  - libbsd-dev
+  - rake
 
 To Install:
   make install
