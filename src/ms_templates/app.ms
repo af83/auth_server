@@ -57,6 +57,7 @@
   <script type="text/javascript" src="/init_browser.js"></script>
   <script type="text/javascript" src="/yabble.js"></script>
   <script type="text/javascript">
+    TOKEN = "{{token}}";
     require.reset();
 
     require.useScriptTags();

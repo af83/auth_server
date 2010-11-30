@@ -39,6 +39,7 @@ var connect = require('connect')
   , RFactory = require('./model').RFactory
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
+  , randomString = require('./random_str').randomString
   ;
 
 
@@ -57,6 +58,7 @@ var oauth2_client_options = {
     var info = oauth2.token_info(access_token);
     oauth2_resources_server.get_info(info.client_id, info.user_id, function(info) {
       req.session.authorizations = info.authorizations;
+      req.session.token = randomString(128); // 22 chars length
       callback();
     }, fallback);
   }
@@ -75,15 +77,23 @@ var auth_check = function(req, res, next, info) {
     , user = session.user
     , auths = session.authorizations || {}
     , roles = auths[config.oauth2_client.name]
+    , token = info.data.token
+    , expected_token = session.token
     ;
   if(!user) {
     res.writeHead(401, {}); res.end();
+  }
+  else if(!expected_token || token != expected_token) {
+    res.writeHead(400, {}); res.end();
   }
   // For now, only accept users admin on auth_server:
   else if(!roles || roles.indexOf('admin')<0) {
     res.writeHead(403, {}); res.end();
   }
-  else next();
+  else {
+    delete info.data.token;    
+    next();
+  }
 };
 
 var server;

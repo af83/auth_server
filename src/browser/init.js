@@ -4,7 +4,7 @@ var rest_mongo = require("rest-mongo/core")
   , jbackend = require('rest-mongo/http_rest/jquery_backend')
   ;
 
-var backend = jbackend.get_backend();
+var backend = jbackend.get_backend({additional_params: {token: TOKEN}});
 var RFactory = rest_mongo.getRFactory(schema, backend)
 R = RFactory();
 
