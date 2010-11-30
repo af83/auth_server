@@ -20,6 +20,14 @@
 });
 
 
+// The Third argument, if provided, is an alternative config file
+var configpath = './config';
+if(process.argv.length > 2) {
+  configpath = process.cwd() + '/' + process.argv[2];
+}
+var config = require(configpath);
+
+
 var connect = require('connect')
   , sessions = require('cookie-sessions')
   , connect_form = require('connect-form')
@@ -28,7 +36,6 @@ var connect = require('connect')
   , bserver = require('nodetk/browser/server')
   , rest_server = require('rest-mongo/http_rest/server')  
 
-  , config = require('./config')
   , oauth2 = require('./oauth2/common')
   , oauth2_server = require('./oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
