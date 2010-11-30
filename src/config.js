@@ -1,3 +1,9 @@
+exports.email = {
+  method: "dev", // smtp in prod
+  conf: {
+    host: "smtp-out.bearstech.lan"
+  }
+};
 
 exports.db = {
   host: 'localhost',

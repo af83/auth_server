@@ -31,3 +31,6 @@
 [submodule "vendors/bcrypt_hash"]
 	path = vendors/bcrypt_hash
 	url = git://github.com/virtuo/bcrypt_hash.git
+[submodule "vendors/node-mail"]
+	path = vendors/node-mail
+	url = git://github.com/weaver/node-mail.git

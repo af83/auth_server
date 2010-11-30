@@ -14,6 +14,7 @@
 , 'cookie-sessions/lib'
 , 'connect-form/lib'
 , 'mustache/lib'
+, 'node-mail/lib'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
