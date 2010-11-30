@@ -2,16 +2,13 @@
  * Script to load test/dev data in the application.
  */
 
-require.paths.unshift(__dirname + '/../../vendors/nodetk/src');
-require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
-
-var model = require('../model')
+var server = require('../server')
+  , model = require('../model')
   , CLB = require('nodetk/orchestration/callbacks')
   , tkfs = require('nodetk/fs')
   , fs = require('fs')
-  , eyes = require('eyes')
   , R = model.RFactory()
-  , config = require('../config')
+  , config = server.config
 
   // indexes:
   , email2user = {}

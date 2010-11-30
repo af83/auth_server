@@ -25,7 +25,7 @@ var configpath = './config';
 if(process.argv.length > 2) {
   configpath = process.cwd() + '/' + process.argv[2];
 }
-var config = require(configpath);
+var config = exports.config = require(configpath);
 
 
 var connect = require('connect')
