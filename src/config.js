@@ -13,6 +13,7 @@ exports.db = {
 
 var server = exports.server = {
   base_url: "http://localhost:8080",
+  port: 8080,
 };
 
 var oauth2_server = exports.oauth2_server = {

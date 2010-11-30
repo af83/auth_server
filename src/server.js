@@ -124,8 +124,8 @@ var serve = exports.serve = function(port, callback) {
 
 
 if(process.argv[1] == __filename) {
-  serve(8080, function() {
-    console.log('Server listning on http://localhost:8080');
+  serve(config.server.port, function() {
+    console.log('Server listning on ' + config.server.base_url);
   });
 }
 
