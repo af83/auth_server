@@ -6,6 +6,7 @@ Tested with nodeJS v0.3.0.
 Dependencies:
   - git submodule with --recusive option
   - libbsd-dev
+  - xgettext and msgfmt (Debian package gettext)
 
 To Install:
   make install
