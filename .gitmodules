@@ -21,7 +21,7 @@
 	url = git://github.com/janl/mustache.js.git
 [submodule "vendors/cookie-sessions"]
 	path = vendors/cookie-sessions
-	url = git://github.com/caolan/cookie-sessions.git
+  url = git://github.com/virtuo/cookie-sessions.git
 [submodule "connect-form"]
 	path = connect-form
 	url = git://github.com/visionmedia/connect-form.git
