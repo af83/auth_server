@@ -16,6 +16,18 @@ var tools = require('../tools');
 // OAuth2 client config.
 var config;
 
+var transform_token_response = function(body) {
+  /* Given body answer to the HTTP request to obtain the access_token, 
+   * returns a JSON hash containing:
+   *  - access_token
+   *  - expires_in (optional)
+   *  - refresh_token (optional)
+   *
+   * If no access_token in there, return null;
+   *
+   */
+  return JSON.parse(body)
+};
 
 var valid_grant = function(code, callback, fallback) {
   /* Valid the grant given by user requesting the OAuth2 server 
@@ -36,12 +48,13 @@ var valid_grant = function(code, callback, fallback) {
     code: code,
     client_secret: config.client_secret,
     redirect_uri: config.redirect_uri
-  }, function(statusCode, headers, data) {
+  }, function(statusCode, headers, body) {
     if(statusCode == 200) {
       try {
-        var token = JSON.parse(data);
+        var token = transform_token_response(body)
         callback(token);
       } catch(err) {
+        console.error(err);
         fallback(err);
       }
     }
@@ -178,6 +191,10 @@ exports.connector = function(conf, options) {
    *    - alternative_treat_access_token: a function which will replace the
    *      default one to do something with the access token. You will tipically
    *      use that function to set some info in session.
+   *    - alternative_transform_token_response: a function which will replace
+   *      the default one to obtain a hash containing the access_token from
+   *      the OAuth2 server reply. This method should be provided if the
+   *      OAuth2 server we are requesting does not return JSON encoded data.
    *
    */
   conf.default_redirection_url = conf.default_redirection_url || '/';
@@ -185,6 +202,8 @@ exports.connector = function(conf, options) {
   options = options || {};
   valid_grant = options.alternative_valid_grant || valid_grant;
   treat_access_token = options.alternative_treat_access_token || treat_access_token;
+  transform_token_response = options.alternative_transform_token_response ||
+                             transform_token_response;
 
   var routes = {GET: {}};
   routes.GET[conf.process_login_url] = auth_process_login;
