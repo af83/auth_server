@@ -354,7 +354,8 @@ exports.tests = [
           redirect_uri: "http://127.0.0.1:8888/login"
         }, function(statusCode, headers, data) {
           assert.equal(statusCode, 200);
-          token = JSON.parse(data);
+          assert.equal(headers['cache-control'], 'no-store');
+          var token = JSON.parse(data);
           assert.equal(token.access_token, 'some_user_id,'+DATA.client_id);
         });
       });

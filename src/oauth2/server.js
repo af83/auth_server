@@ -98,7 +98,8 @@ exports.send_grant = function(res, R, user_id, client_data) {
 
 
 var valid_grant = exports.valid_grant = function(R, data, callback, fallback) {
-  /* Valid the grant, call callback(token|null) or fallback(err).
+  /* Valid the grant, call callback(token|null) or fallback(err),
+   * token being a JSON object.
    * If valid, the grant is invalidated and cannot be used anymore.
    *
    * To be valid, a grant must exist, not be deprecated and have the right
@@ -184,7 +185,9 @@ var token_endpoint = function(req, res) {
 
       valid_grant(R, {code: params.code, client_id: client.id}, function(token) {
         if(!token) return oauth_error(res, 'oat', 'invalid_grant');
-        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.writeHead(200, { 'Content-Type': 'application/json'
+                           , 'Cache-Control': 'no-store'
+                           });
         res.end(JSON.stringify(token));
       }, function(err) { unknown_error(res, err) });
     }, function(err) { unknown_error(res, err) });
