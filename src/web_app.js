@@ -1,6 +1,6 @@
 var ms_templates = require('./lib/ms_templates');
 var oauth2_client = require('./oauth2/client');
-var tools = require('./tools');
+var tools = require('./lib/tools');
 
 
 var serve_web_app = function(req, res) {

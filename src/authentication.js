@@ -1,10 +1,10 @@
 
 var oauth2_server = require('./oauth2/server')
-  , tools = require('./tools')
+  , tools = require('./lib/tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
   , bcrypt = require('./lib/bcrypt')
-  , config = require('./config_loader').get_config()
+  , config = require('./lib/config_loader').get_config()
   ;
 
 exports.init_client_id = function(callback) {

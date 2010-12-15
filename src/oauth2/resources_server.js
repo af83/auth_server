@@ -2,7 +2,7 @@ var URL = require('url');
 
 var oauth2 = require('./common')
   , RFactory = require('../model').RFactory
-  , tools = require('../tools')
+  , tools = require('../lib/tools')
   ;
 
 

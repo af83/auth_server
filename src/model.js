@@ -11,7 +11,7 @@ require.paths.unshift(__dirname + "/../vendors/rest-mongo/src")
 
 var rest_mongo = require("rest-mongo/core"),
     mongo_backend = require("rest-mongo/mongo_backend"),
-    config = require('./config_loader').get_config(),
+    config = require('./lib/config_loader').get_config(),
     schema = require('./schema').schema;
 
 

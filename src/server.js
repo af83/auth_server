@@ -32,14 +32,14 @@ var connect = require('connect')
   , oauth2_server = require('./oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
   , oauth2_client = require('./oauth2/client')
-  , config = require('./config_loader').get_config()
+  , config = require('./lib/config_loader').get_config()
   , registration = require('./register')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
   , RFactory = require('./model').RFactory
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
-  , randomString = require('./random_str').randomString
+  , randomString = require('./lib/random_str').randomString
   ;
 
 

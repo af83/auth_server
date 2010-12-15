@@ -14,7 +14,7 @@ var URL = require('url')
   ;
 var oauth2 = require('./common');
 var authentication = require('../authentication');
-var tools = require('../tools');
+var tools = require('../lib/tools');
 var RFactory = require('../model').RFactory;
 
 

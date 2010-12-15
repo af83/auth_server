@@ -19,7 +19,7 @@ data.base_url = 'http://127.0.0.1:' + port;
 data.assert = assert;
 
 // Tweak a bit the configuration for tests:
-var config = require('../config_loader').get_config('./config');
+var config = require('../lib/config_loader').get_config();
 config.server.base_url = data.base_url;
 config.db.db_name = 'auth_server_test';
 
@@ -89,7 +89,7 @@ exports.init = function(test_exports) {
 // -------------------------------------
 // redefine the email function for tests:
 
-var email = require('../email')
+var email = require('../lib/email')
   , original_send = email.send
   , expected_emails = []
   ;

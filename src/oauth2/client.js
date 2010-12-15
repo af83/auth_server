@@ -11,7 +11,7 @@ var querystring = require('querystring');
 
 
 var web = require('nodetk/web');
-var tools = require('../tools');
+var tools = require('../lib/tools');
 
 // OAuth2 client config.
 var config;

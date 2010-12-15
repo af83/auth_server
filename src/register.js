@@ -2,8 +2,8 @@ var URL = require('url');
 
 var ms_templates = require('./lib/ms_templates');
 var bcrypt = require('./lib/bcrypt');
-var tools = require('./tools');
-var email = require('./email');
+var tools = require('./lib/tools');
+var email = require('./lib/email');
 var RFactory = require('./model').RFactory;
 
 var BASE_URL;

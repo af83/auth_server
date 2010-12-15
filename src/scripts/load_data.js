@@ -8,7 +8,7 @@ var server = require('../server')
   , tkfs = require('nodetk/fs')
   , fs = require('fs')
   , R = model.RFactory()
-  , config = require('../config_loader').get_config()
+  , config = require('../lib/config_loader').get_config()
 
   // indexes:
   , email2user = {}
