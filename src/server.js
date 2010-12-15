@@ -15,6 +15,7 @@
 , 'connect-form/lib'
 , 'mustache/lib'
 , 'node-mail/lib'
+, 'oauth2_client_node/src'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
@@ -26,13 +27,13 @@ var connect = require('connect')
 
   , CLB = require('nodetk/orchestration/callbacks')
   , bserver = require('nodetk/browser/server')
+  , oauth2_client = require('oauth2_client')  
   , randomString = require('nodetk/random_str').randomString  
-  , rest_server = require('rest-mongo/http_rest/server')  
+  , rest_server = require('rest-mongo/http_rest/server')
 
   , oauth2 = require('./oauth2/common')
   , oauth2_server = require('./oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
-  , oauth2_client = require('./oauth2/client')
   , config = require('./lib/config_loader').get_config()
   , registration = require('./register')
   , web_app = require('./web_app')

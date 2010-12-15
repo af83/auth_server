@@ -34,3 +34,6 @@
 [submodule "vendors/node-mail"]
 	path = vendors/node-mail
 	url = git://github.com/weaver/node-mail.git
+[submodule "vendors/oauth2_client_node"]
+	path = vendors/oauth2_client_node
+	url = af83@git.af83.com:oauth2_client_node.git
