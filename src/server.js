@@ -26,6 +26,7 @@ var connect = require('connect')
 
   , CLB = require('nodetk/orchestration/callbacks')
   , bserver = require('nodetk/browser/server')
+  , randomString = require('nodetk/random_str').randomString  
   , rest_server = require('rest-mongo/http_rest/server')  
 
   , oauth2 = require('./oauth2/common')
@@ -39,7 +40,6 @@ var connect = require('connect')
   , RFactory = require('./model').RFactory
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
-  , randomString = require('./lib/random_str').randomString
   ;
 
 

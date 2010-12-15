@@ -1,6 +1,6 @@
 var ms_templates = require('./lib/ms_templates');
 var oauth2_client = require('./oauth2/client');
-var tools = require('./lib/tools');
+var tools = require('nodetk/server_tools');
 
 
 var serve_web_app = function(req, res) {
@@ -27,5 +27,5 @@ exports.connector = function() {
    */
   var routes = {GET: {}};
   routes.GET['/'] = serve_web_app;
-  return tools.get_connector_from_routes(routes);
+  return tools.get_connector_from_str_routes(routes);
 };

@@ -2,7 +2,7 @@ var URL = require('url');
 
 var oauth2 = require('./common')
   , RFactory = require('../model').RFactory
-  , tools = require('../lib/tools')
+  , tools = require('nodetk/server_tools')
   ;
 
 
@@ -76,6 +76,6 @@ exports.connector = function() {
    */
   var routes = {GET: {}};
   routes.GET['/auth'] = get_auths;
-  return tools.get_connector_from_routes(routes);
+  return tools.get_connector_from_str_routes(routes);
 };
 

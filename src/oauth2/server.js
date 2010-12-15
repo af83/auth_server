@@ -14,7 +14,7 @@ var URL = require('url')
   ;
 var oauth2 = require('./common');
 var authentication = require('../authentication');
-var tools = require('../lib/tools');
+var tools = require('nodetk/server_tools');
 var RFactory = require('../model').RFactory;
 
 
@@ -289,6 +289,6 @@ exports.connector = function(config) {
     routes.POST[config.authorize_url] = authorize_endpoint;
   routes.POST[config.process_login_url] = authentication.process_login;
   routes.POST[config.token_url] = token_endpoint;
-  return tools.get_connector_from_routes(routes);
+  return tools.get_connector_from_str_routes(routes);
 };
 

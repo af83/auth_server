@@ -1,6 +1,6 @@
 
 var oauth2_server = require('./oauth2/server')
-  , tools = require('./lib/tools')
+  , tools = require('nodetk/server_tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
   , bcrypt = require('./lib/bcrypt')

@@ -2,7 +2,7 @@ var URL = require('url');
 
 var ms_templates = require('./lib/ms_templates');
 var bcrypt = require('./lib/bcrypt');
-var tools = require('./lib/tools');
+var tools = require('nodetk/server_tools');
 var email = require('./lib/email');
 var RFactory = require('./model').RFactory;
 
@@ -138,6 +138,6 @@ exports.connector = function(config) {
   routes.POST['/register'] = process_register;
   routes.GET['/register/success'] = register_success_page;
   routes.GET['/register/confirm'] = confirm_registration;
-  return tools.get_connector_from_routes(routes);
+  return tools.get_connector_from_str_routes(routes);
 };
 

@@ -11,7 +11,7 @@ var querystring = require('querystring');
 
 
 var web = require('nodetk/web');
-var tools = require('../lib/tools');
+var tools = require('nodetk/server_tools');
 
 // OAuth2 client config.
 var config;
@@ -209,6 +209,6 @@ exports.connector = function(conf, options) {
   routes.GET[conf.process_login_url] = auth_process_login;
   routes.GET[conf.login_url] = login;
   routes.GET[conf.logout_url] = logout;
-  return tools.get_connector_from_routes(routes);
+  return tools.get_connector_from_str_routes(routes);
 };
 
