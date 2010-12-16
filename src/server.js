@@ -16,6 +16,7 @@
 , 'mustache/lib'
 , 'node-mail/lib'
 , 'oauth2_client_node/src'
+, 'oauth2_server_node/src'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
@@ -31,8 +32,8 @@ var connect = require('connect')
   , randomString = require('nodetk/random_str').randomString  
   , rest_server = require('rest-mongo/http_rest/server')
 
-  , oauth2 = require('./oauth2/common')
-  , oauth2_server = require('./oauth2/server')
+  , oauth2 = require('oauth2/common')
+  , oauth2_server = require('oauth2/server')
   , oauth2_resources_server = require('./oauth2/resources_server')  
   , config = require('./lib/config_loader').get_config()
   , registration = require('./register')
@@ -103,7 +104,7 @@ var create_server = function() {
     connect.staticProvider({root: __dirname + '/static', cache: false})
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
-    , oauth2_server.connector(config.oauth2_server)
+    , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
     , oauth2_resources_server.connector()
     , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
     , registration.connector(config.server)

@@ -15,8 +15,8 @@ var http = require('http')
   , eyes = require('eyes')
 
   , config = require('../lib/config_loader').get_config()
-  , oauth2 = require('../oauth2/common')
-  , oauth2_server = require('../oauth2/server')
+  , oauth2 = require('oauth2/common')
+  , oauth2_server = require('oauth2/server')
   ;
 
 

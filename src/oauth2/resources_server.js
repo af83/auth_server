@@ -1,6 +1,6 @@
 var URL = require('url');
 
-var oauth2 = require('./common')
+var oauth2 = require('oauth2/common')
   , RFactory = require('../model').RFactory
   , tools = require('nodetk/server_tools')
   ;

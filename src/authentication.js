@@ -1,5 +1,5 @@
 
-var oauth2_server = require('./oauth2/server')
+var oauth2_server = require('oauth2/server')
   , tools = require('nodetk/server_tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
@@ -102,7 +102,7 @@ var fail_login = function(req, res, client_data) {
 
 
 exports.process_login = function(req, res) {
-  /* Handles the login credentials given by client.
+  /* Handles the login credentials given by user.
    * If not authorized, then rerender the login page.
    * If authorized, send the user back to client or the page it came from (or "/").
    *
