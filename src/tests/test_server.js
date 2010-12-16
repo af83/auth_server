@@ -133,7 +133,7 @@ exports.tests = [
 }],
 
 
-['authentication ok', 4, function() {
+['authentication ok', 7, function() {
   web.POST(login_url, {
     client_id: 'errornot',
     response_type: 'code',
@@ -147,9 +147,14 @@ exports.tests = [
     var location = headers.location.split('?');
     assert.equal(location[0], 'http://127.0.0.1:8888/login');
     var qs = querystring.parse(location[1]);
+    assert.equal(qs.state, 'somestate');    
     assert.ok(qs.code);
-    // TODO: check the grant is inside the DB.
-    assert.equal(qs.state, 'somestate');
+    var id_code = qs.code.split('|');
+    assert.equal(id_code.length, 2);
+    R.Grant.get({ids: id_code[0]}, function(grant) {
+      assert.ok(grant);
+      assert.equal(grant.code, id_code[1]);
+    });
   });
 }],
 
@@ -339,7 +344,8 @@ exports.tests = [
   var grant = new R.Grant({
     client_id: DATA.client_id,
     user_id: 'some_user_id',
-    time: parseInt(Date.now() - 15000)
+    time: parseInt(Date.now() - 15000),
+    code: "somecode"
   });
   grant.save(function() {
     R.clear_caches();
@@ -349,7 +355,7 @@ exports.tests = [
         web.POST(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
-          code: grant.id,
+          code: grant.id+'|somecode',
           client_secret: "some secret string",
           redirect_uri: "http://127.0.0.1:8888/login"
         }, function(statusCode, headers, data) {

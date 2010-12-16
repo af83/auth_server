@@ -11,11 +11,14 @@
  */
 var URL = require('url')
   , querystring = require('querystring')
+  
+  , randomString = require('nodetk/random_str').randomString
+  , tools = require('nodetk/server_tools')
+  
+  , oauth2 = require('./common')
+  , authentication = require('../authentication')
+  , RFactory = require('../model').RFactory
   ;
-var oauth2 = require('./common');
-var authentication = require('../authentication');
-var tools = require('nodetk/server_tools');
-var RFactory = require('../model').RFactory;
 
 
 var oauth_error = exports.oauth_error = function(res, type, id) {
@@ -85,9 +88,10 @@ exports.send_grant = function(res, R, user_id, client_data) {
     client_id: client_data.client_id,
     time: Date.now(),
     user_id: user_id,
+    code: randomString(128),
   });
   grant.save(function() {
-    var qs = {code: grant.id}; // TODO: make a very random authorization code?
+    var qs = {code: grant.id + '|' + grant.code};
     if(client_data.state) qs.state = client_data.state;
     qs = querystring.stringify(qs);
     tools.redirect(res, client_data.redirect_uri + '?' + qs);
@@ -116,10 +120,13 @@ var valid_grant = exports.valid_grant = function(R, data, callback, fallback) {
    *    an error).
    *
    */
-  R.Grant.get({ids: data.code}, function(grant) {
+  var id_code = data.code.split('|');
+  if(id_code.length != 2) return callback(null);
+  R.Grant.get({ids: id_code[0]}, function(grant) {
     var minute_ago = Date.now() - 60000;
     if(!grant || grant.time < minute_ago || 
-       grant.client_id != data.client_id) return callback(null);
+       grant.client_id != data.client_id || 
+       grant.code != id_code[1]) return callback(null);
     // Delete the grant so that it cannot be used anymore:
     grant.delete_(function() {
       // Generate and send an access_token to the client:
