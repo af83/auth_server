@@ -46,7 +46,7 @@ var connect = require('connect')
 
 
 var oauth2_client_options = {
-  alternative_valid_grant: function(code, callback, fallback) {  
+  valid_grant: function(code, callback, fallback) {  
     // Since we are text_server, we do not use the oauth2 api, but directly
     // request the grant checking function.
     var R = RFactory();
@@ -55,7 +55,7 @@ var oauth2_client_options = {
       client_id: config.oauth2_client.client_id
     }, callback, fallback)
   },
-  alternative_treat_access_token: function(access_token, req, res, callback, fallback) {
+  treat_access_token: function(access_token, req, res, callback, fallback) {
     // Idem, since we are text_server, directly request get_authorizations
     var info = oauth2.token_info(access_token);
     oauth2_resources_server.get_info(info.client_id, info.user_id, function(info) {
