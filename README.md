@@ -84,7 +84,7 @@ All dependencies are included in repository or packaged via git submodules, exce
 
 ## Projects and organizations using auth_server
 
-A [wiki page](https://github.com/AF83/auth_server/wiki) lists the projects and organizations using auth_server. Don't hesitate to edit it.
+A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects and organizations using auth_server. Don't hesitate to edit it.
 
 
 ## License
