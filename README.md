@@ -77,6 +77,7 @@ oauth2_server_node uses many other projects, including:
 All dependencies are included in repository or packaged via git submodules, except:
   
   - node (v3.0)
+  - mongodb
   - libbsd-dev
   - xgettext and msgfmt (Debian package gettext)
 
