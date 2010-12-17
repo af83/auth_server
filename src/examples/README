@@ -1,7 +1,0 @@
-Here are two examples of use for the OAuth2 client server connect middleware.
-
-  - simple_oauth2_client: an OAuth2 client server connecting to auth_server
-    OAuth2 server.
-  - facebook_oauth2_client: an OAuth2 client server connecting to Facebook
-    OAuth2 server.
-
