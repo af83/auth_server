@@ -109,7 +109,7 @@ var create_server = function() {
     , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
     , registration.connector(config.server)
     // To serve objects directly (based on schema):
-    , rest_server.connector(RFactory, schema, auth_check)
+    , rest_server.connector(RFactory, schema, {auth_check: auth_check})
     , serve_modules_connector
     , web_app.connector()
   );
