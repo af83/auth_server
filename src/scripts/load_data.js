@@ -64,6 +64,7 @@ var load_clients = function(callback) {
     ["errornot", 'http://127.0.0.1:8888/login'],
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
     ["test_client", 'http://127.0.0.1:7070/login/process'],
+    ["geeks", 'http://127.0.0.1:3000/oauth2/process'],
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
@@ -96,6 +97,7 @@ var load_authorizations = function(callback) {
     ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'text_server', ['user', 'admin']],
+    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']],    
   ];
   auths = auths.map(function(auth) {
     return new R.Authorization({
