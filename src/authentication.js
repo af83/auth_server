@@ -5,6 +5,7 @@ var oauth2_server = require('oauth2/server')
   , ms_templates = require('./lib/ms_templates')
   , bcrypt = require('./lib/bcrypt')
   , config = require('./lib/config_loader').get_config()
+  , base64 = require('base64')
   ;
 
 exports.init_client_id = function(callback) {
@@ -47,14 +48,14 @@ var login = exports.login = function(req, res, client_data, code_status) {
    *
    */
   var R = RFactory();
-  var data = {};
+  var data = {}, info = {};
   client_data_attrs.forEach(function(attr) {
     // XXX: should we encode all the state in a more secure way?
     // XXX: we whould be very prudent not to permit any code injection here.
     var val = client_data[attr];
-    data[attr] = val || "";
+    info[attr] = val || "";
   });
-  data.signature = sign_data(client_data);
+  data.client_name = client_data.client_name;
   data.server_name = config.oauth2_server.name;
   user = req.session.user;
   if(user) { // The user is already logged in
@@ -63,42 +64,44 @@ var login = exports.login = function(req, res, client_data, code_status) {
   }
   else { // The user is not logged in
     data.action = config.oauth2_server.process_login_url;
+    data.info = pack_data(info);
     var body = ms_templates.render('oauth_login', data);
     res.writeHead(code_status || 200, {'Content-Type': 'text/html'});
     res.end(body)
   }
 };
 
-var sign_data = function(data) {
-  /* Returns signature corresponding to the data
+var pack_data = function(data) {
+  /* Returns data (obj) packed and signed as a string.
    */
-  // TODO
-  return "Big signature";
+  // TODO: sign data
+  return base64.encode(JSON.stringify(data));
 };
 
-var extract_client_data = function(fields) {
-  /* Returns client_data contained in the request, or null if data corrupted.
+var extract_client_data = function(info) {
+  /* Returns client_data contained in the info str, or null if data corrupted.
    *
    * Arguments:
-   *  - fields: form data
+   *  - info: string containing the information
    *
    */
-  var data = {}
-    , signature = fields.signature;
-  if(!signature) return null;
-  client_data_attrs.forEach(function(attr) {
-    data[attr] = fields[attr];
-  });
-  // TODO: check signature against data
-  return data;
-}
+  // TODO: check signature against data  
+  try {
+    var data = JSON.parse(base64.decode(info));
+    return data;
+  } catch(err) {
+    console.error(err.message + ": " + info);
+    console.error(err.stack);
+    return null;
+  }
+};
 
 var fail_login = function(req, res, client_data) {
   /* Reask the user to login.
    */
   // TODO: msg to tell the login / password are wrong.
   login(req, res, client_data, 401);
-}
+};
 
 
 exports.process_login = function(req, res) {
@@ -118,7 +121,7 @@ exports.process_login = function(req, res) {
     res.end('Invalid data.');
   }
   req.form.complete(function(err, fields, files) {
-    client_data = extract_client_data(fields);
+    client_data = extract_client_data(fields.info);
     if(!client_data) {
       res.writeHead(400, {'Content-Type': 'text/html'});
       res.end('Invalid data.');

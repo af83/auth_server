@@ -17,6 +17,7 @@
 , 'node-mail/lib'
 , 'oauth2_client_node/src'
 , 'oauth2_server_node/src'
+, 'node-base64'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
