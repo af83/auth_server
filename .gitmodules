@@ -36,7 +36,7 @@
 	url = git://github.com/weaver/node-mail.git
 [submodule "vendors/oauth2_client_node"]
 	path = vendors/oauth2_client_node
-	url = af83@git.af83.com:oauth2_client_node.git
+	url = git://github.com/AF83/oauth2_client_node.git
 [submodule "vendors/oauth2_server_node"]
 	path = vendors/oauth2_server_node
-	url = af83@git.af83.com:oauth2_server_node.git
+	url = git@github.com:AF83/oauth2_server_node.git
