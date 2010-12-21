@@ -10,6 +10,7 @@ var http = require('http')
   , querystring = require('querystring')
   , URL = require('url')
 
+  , base64 = require('base64')
   , extend = require('nodetk/utils').extend
   , web = require('nodetk/web')
   , eyes = require('eyes')
@@ -135,13 +136,14 @@ exports.tests = [
 
 ['authentication ok', 7, function() {
   web.POST(login_url, {
-    client_id: 'errornot',
-    response_type: 'code',
-    redirect_uri: 'http://127.0.0.1:8888/login',
-    state: 'somestate',
     email: 'pruyssen@af83.com',
     password: '1234',
-    signature: 'some signature',
+    info: base64.encode(JSON.stringify({
+      client_id: 'errornot',
+      response_type: 'code',
+      state:'somestate',
+      redirect_uri: 'http://127.0.0.1:8888/login'
+    }))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 303);
     var location = headers.location.split('?');
@@ -161,13 +163,15 @@ exports.tests = [
 
 ['authentication: wrong password', 1, function() {
   web.POST(login_url, {
-    client_id: 'errornot',
-    response_type: 'code',
-    redirect_uri: 'http://127.0.0.1:8888/login',
     state: 'somestate',
     email: 'pruyssen@af83.com',
     password: '123456',
-    signature: 'some signature',
+    info: base64.encode(JSON.stringify({
+      client_id: 'errornot',
+      response_type: 'code',
+      state:'somestate',
+      redirect_uri: 'http://127.0.0.1:8888/login'
+    }))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });
@@ -176,13 +180,14 @@ exports.tests = [
 
 ['authentication: unknown user', 1, function() {
   web.POST(login_url, {
-    client_id: 'errornot',
-    response_type: 'code',
-    redirect_uri: 'http://127.0.0.1:8888/login',
-    state: 'somestate',
     email: 'toto@af83.com',
     password: '123456',
-    signature: 'some signature',
+    info: base64.encode(JSON.stringify({
+      client_id: 'errornot',
+      response_type: 'code',
+      state:'somestate',
+      redirect_uri: 'http://127.0.0.1:8888/login'
+    }))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });
