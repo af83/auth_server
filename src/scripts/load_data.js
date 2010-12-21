@@ -63,7 +63,7 @@ var load_clients = function(callback) {
     [config.oauth2_client.name, config.oauth2_client.redirect_uri],
     ["errornot", 'http://127.0.0.1:8888/login'],
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
-    ["test_client", 'http://127.0.0.1:7070/login/process'],
+    ["test_client", 'http://127.0.0.1:7070/login/process/'],
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
