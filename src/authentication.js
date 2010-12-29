@@ -6,6 +6,7 @@ var oauth2_server = require('oauth2/server')
   , bcrypt = require('./lib/bcrypt')
   , config = require('./lib/config_loader').get_config()
   , base64 = require('base64')
+  , URL = require('url')
   ;
 
 exports.init_client_id = function(callback) {
@@ -18,8 +19,9 @@ exports.init_client_id = function(callback) {
   var R = RFactory()
     , name = config.oauth2_client.name;
   R.Client.index({query: {name: name}}, function(clients) {
-    if(clients.length != 1) throw new Error('There must only be one ' + name);
-    config.oauth2_client.client_id = clients[0].id;
+    if(clients.length != 1) 
+      throw new Error('There must be one and only one ' + name);
+    config.oauth2_client.servers['auth_server'].client_id = clients[0].id;
     callback();
   });
 };
@@ -64,6 +66,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
   }
   else { // The user is not logged in
     data.action = config.oauth2_server.process_login_url;
+    data.login_url = config.oauth2_client.client.login_url;
     data.info = pack_data(info);
     var body = ms_templates.render('oauth_login', data);
     res.writeHead(code_status || 200, {'Content-Type': 'text/html'});
@@ -71,14 +74,14 @@ var login = exports.login = function(req, res, client_data, code_status) {
   }
 };
 
-var pack_data = function(data) {
+var pack_data = exports.pack_data = function(data) {
   /* Returns data (obj) packed and signed as a string.
    */
   // TODO: sign data
   return base64.encode(JSON.stringify(data));
 };
 
-var extract_client_data = function(info) {
+var extract_client_data = exports.extract_client_data = function(info) {
   /* Returns client_data contained in the info str, or null if data corrupted.
    *
    * Arguments:
@@ -86,8 +89,10 @@ var extract_client_data = function(info) {
    *
    */
   // TODO: check signature against data  
+  if(!info) return null;
   try {
-    var data = JSON.parse(base64.decode(info));
+    var data = base64.decode(info);
+    data = JSON.parse(data);
     return data;
   } catch(err) {
     console.error(err.message + ": " + info);
@@ -123,10 +128,10 @@ exports.process_login = function(req, res) {
   req.form.complete(function(err, fields, files) {
     client_data = extract_client_data(fields.info);
     if(!client_data) {
-      res.writeHead(400, {'Content-Type': 'text/html'});
+      res.writeHead(400, {'Content-Type': 'text/plain'});
       res.end('Invalid data.');
     }
-    if(!fields.email || !fields.password) 
+    if(!fields.email || !fields.password)
       return fail_login(req, res, client_data);
     var R = RFactory();
     R.User.index({query: {email: fields.email, confirmed: 1}}, function(users) {
@@ -142,5 +147,24 @@ exports.process_login = function(req, res) {
       }, function(err) {tools.server_error(res, err)});
     }, function(err) {tools.server_error(res, err)});
   });
+};
+
+
+exports.process_login_proxy = function(req, res) {
+  /* The user want to login using another oauth2 provider
+   *
+   * GET to config.oauth2.process_login_url
+   */
+  var params = URL.parse(req.url, true).query;
+  if(!params.info || !params.tierce) {
+    res.writeHead(400, {'Content-Type': 'text/plain'});
+    return res.end('Missing parameter(s) "info" and/or "tierce".');
+  }
+  // TODO: check the info is not altered
+  if(params.tierce != 'facebook') {
+    res.writeHead(400, {'Content-Type': 'text/plain'});
+    return res.end('Unsupported tierce');
+  }
+
 };
 

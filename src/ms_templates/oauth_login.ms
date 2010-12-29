@@ -27,6 +27,9 @@
       <input type="submit" value="Sign in" />
     </form>
     <p>You don't have an account? <a href="/register">Register</a></p>
+    <p><a href="/login/delegate?provider=facebook.com&info={{info}}">
+      Login with Facebook
+    </a></p>
   </body>
 </html>
 

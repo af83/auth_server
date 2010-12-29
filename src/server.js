@@ -29,13 +29,16 @@ var connect = require('connect')
 
   , CLB = require('nodetk/orchestration/callbacks')
   , bserver = require('nodetk/browser/server')
-  , oauth2_client = require('oauth2_client')  
+  , oauth2_client = require('oauth2_client')
+  , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString  
   , rest_server = require('rest-mongo/http_rest/server')
+  , web = require('nodetk/web')
 
   , oauth2 = require('oauth2/common')
   , oauth2_server = require('oauth2/server')
-  , oauth2_resources_server = require('./oauth2/resources_server')  
+  , oauth2_resources_server = require('./oauth2/resources_server')
+  , delegate = require('./delegate')
   , config = require('./lib/config_loader').get_config()
   , registration = require('./register')
   , web_app = require('./web_app')
@@ -47,23 +50,56 @@ var connect = require('connect')
 
 
 var oauth2_client_options = {
-  valid_grant: function(code, callback, fallback) {  
-    // Since we are text_server, we do not use the oauth2 api, but directly
-    // request the grant checking function.
-    var R = RFactory();
-    oauth2_server.valid_grant(R, {
-      code: code, 
-      client_id: config.oauth2_client.client_id
-    }, callback, fallback)
+  "auth_server": {
+    valid_grant: function(data, code, callback, fallback) {
+      // Since we are auth_server, we do not use the oauth2 api, but directly
+      // request the grant checking function.
+      var R = RFactory();
+      oauth2_server.valid_grant(R, {
+        code: code, 
+        client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id
+      }, callback, fallback)
+    },
+    treat_access_token: function(data, req, res, callback, fallback) {
+      // Idem, since we are auth_server, directly request get_authorizations
+      var info = oauth2.token_info(data.token.access_token);
+      oauth2_resources_server.get_info(info.client_id, info.user_id, null, function(info) {
+        if(info) {
+          req.session.authorizations = info.authorizations;
+          req.session.token = randomString(128); // 22 chars length
+        }
+        // TODO: else display msg 'can only login using auth_server for that'
+        callback();
+      }, fallback);
+    }
   },
-  treat_access_token: function(access_token, req, res, callback, fallback) {
-    // Idem, since we are text_server, directly request get_authorizations
-    var info = oauth2.token_info(access_token);
-    oauth2_resources_server.get_info(info.client_id, info.user_id, function(info) {
-      req.session.authorizations = info.authorizations;
-      req.session.token = randomString(128); // 22 chars length
-      callback();
-    }, fallback);
+  "facebook.com": {
+    transform_token_response: function(body) {
+      // It seems Facebook does not respect OAuth2 draft 10 here, so we 
+      // have to override the method.
+      var data = querystring.parse(body);
+      if(!data.access_token) return null;
+      return data;
+    },
+    // To get info from access_token and send grant on the other side
+    treat_access_token: function(data, req, res, callback, fallback) {
+      // Here callback is not called, since we break the normal flow
+      // XXX: for now, we only send grant once we have validated
+      // grant sent by the other side.
+      var params = {access_token: data.token.access_token};
+      web.GET('https://graph.facebook.com/me', params, 
+              function(status_code, headers, body) {
+        if(status_code != 200)
+          return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
+        console.log('Info given by FB:', body);
+        var info = JSON.parse(body);
+        var R = RFactory();
+        oauth2_server.send_grant(res, R, 'FB'+info.id, data.state, {
+          provider: "facebook.com"
+        , name: info.name
+        });
+      }, fallback);
+    }
   }
 };
 
@@ -108,6 +144,7 @@ var create_server = function() {
     , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
     , oauth2_resources_server.connector()
     , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
+    , delegate.connector()
     , registration.connector(config.server)
     // To serve objects directly (based on schema):
     , rest_server.connector(RFactory, schema, {auth_check: auth_check})

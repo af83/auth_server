@@ -367,7 +367,7 @@ exports.tests = [
           assert.equal(statusCode, 200);
           assert.equal(headers['cache-control'], 'no-store');
           var token = JSON.parse(data);
-          assert.equal(token.access_token, 'some_user_id,'+DATA.client_id);
+          assert.ok(token.access_token);
         });
       });
     }, 10);
@@ -411,9 +411,9 @@ exports.tests = [
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
-      , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
+      , oauth_token = oauth2.create_access_token(user.id, DATA.client_id)
       ;
-    var check_answer = function(statusCode, headers, data) {
+    var check_answer = function(statusCode, headers, body) {
       var expected_data = {
         id: user.id,
         email: user.email,
@@ -424,7 +424,7 @@ exports.tests = [
         }
       }
       assert.equal(statusCode, 200);
-      assert.deepEqual(JSON.parse(data), expected_data);
+      assert.deepEqual(JSON.parse(body), expected_data);
     };
     web.GET(base_url + '/auth', {oauth_token: oauth_token}, check_answer);
     web.GET(base_url + '/auth', {}, check_answer, {

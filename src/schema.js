@@ -47,7 +47,8 @@ exports.schema = {
         client_id: {type: "string"},
         user_id: {type: "string"},
         code: {type: "string"}, // The code sent to client is: grant.id|grant.code
-        time: {type: "integer"} // timestamp
+        time: {type: "integer"}, // timestamp
+        additional_info: {type: "object"}
       }
     }
   },

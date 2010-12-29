@@ -6,13 +6,15 @@ var oauth2 = require('oauth2/common')
   ;
 
 
-var get_info = exports.get_info = function(client_id, user_id, callback, fallback) {
+var get_info = exports.get_info = 
+function(client_id, user_id, additional_info, callback, fallback) {
   /* Get email and authorizations for a client and a user.
    *
    * Arguments:
    *  - client_id: id of the client you want the authorizations for.
    *  - user_id: id of the user. Authorizations will be about this user
    *    on given client.
+   *  - additional_info
    *  - callback: to be called with info as first arguments.
    *    info = {email: 'toto@titi.com', authorization: {...}}
    *    Authorizations is a hash such as: {context: [role1, role2,...]}.
@@ -39,6 +41,19 @@ var get_info = exports.get_info = function(client_id, user_id, callback, fallbac
   }, fallback);
 };
 
+var provider_info = {};
+provider_info['facebook.com'] = 
+function(client_id, user_id, additional_info, callback, fallback) {
+  console.log(JSON.stringify(additional_info));
+  var info = {
+    'client.id': client_id
+  , 'email': null
+  , 'name': additional_info.name
+  , 'authorizations': {}
+  };
+  callback(info);
+};
+
 
 var get_auths = function(req, res) {
   /* Returns basic information about a user + its authorizations (roles)
@@ -55,13 +70,18 @@ var get_auths = function(req, res) {
     var user_id = token_info.user_id
       , client_id = token_info.client_id
       , info = {id: user_id, authorizations: {}}
+      , get_info_ = get_info
       ;
-    get_info(client_id, user_id, function(info_) {
+    if(token_info.additional_info && token_info.additional_info.provider) {
+      get_info_ = provider_info[token_info.additional_info.provider];
+    }
+    get_info_(client_id, user_id, token_info.additional_info, function(info_) {
       if(info_ == null) {
         res.writeHead('404', {}); res.end();
         return;
       }
       info.email = info_.email;
+      info.name = info_.name;
       info.authorizations = info_.authorizations;
       res.writeHead(200, {"Content-Type": "text/html"});
       res.end(JSON.stringify(info));
