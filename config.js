@@ -20,6 +20,8 @@ var oauth2_server = exports.oauth2_server = {
   authorize_url: '/oauth2/authorize',
   process_login_url: '/oauth2/login',
   token_url: '/oauth2/token',
+  crypt_key: 'some encryption key (1)',
+  sign_key: 'some signature key (1)',
   name: 'Auth server',
 };
 
@@ -31,6 +33,8 @@ var oauth2_client = exports.oauth2_client = {
     login_url: '/login',
     logout_url: '/logout',
     default_redirection_url: '/',
+    crypt_key: "some encryption key (2)",
+    sign_key: "some signature key (2)"
   },
   default_server: "auth_server",
   servers: {

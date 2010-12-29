@@ -5,7 +5,6 @@ var URL = require('url')
   , tools = require('nodetk/server_tools')
   , authentication = require('./authentication')
   , extract_client_data = authentication.extract_client_data
-  , pack_data = authentication.pack_data
   ;
 
 
