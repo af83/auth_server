@@ -151,7 +151,7 @@ exports.tests = [
     var qs = querystring.parse(location[1]);
     assert.equal(qs.state, 'somestate');    
     assert.ok(qs.code);
-    var id_code = qs.code.split('|');
+    var id_code = qs.code.split('.');
     assert.equal(id_code.length, 2);
     R.Grant.get({ids: id_code[0]}, function(grant) {
       assert.ok(grant);
@@ -360,7 +360,7 @@ exports.tests = [
         web.POST(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
-          code: grant.id+'|somecode',
+          code: grant.id+'.somecode',
           client_secret: "some secret string",
           redirect_uri: "http://127.0.0.1:8888/login"
         }, function(statusCode, headers, data) {
