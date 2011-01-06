@@ -59,7 +59,7 @@ When updating the templates, they need to be "repackaged" for the web applicatio
 
 or, to skip the i18n process:
 
-    make skipe
+    make skip
 
 
 ### Load some testing data in DB
@@ -95,8 +95,10 @@ All dependencies are included in repository or packaged via git submodules, exce
   
   - node (v0.3.1) 
     - Does not fully work with node v0.3.2 (node SSL client problem).
-  - mongodb
+  - mongodb (>=v1.4)
   - libbsd-dev
+  - make
+  - gcc
   - xgettext and msgfmt (Debian package gettext)
 
 
