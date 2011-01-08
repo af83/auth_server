@@ -72,6 +72,7 @@
     
       'nodetk/logging',
       'nodetk/orchestration/callbacks',
+      'nodetk/random_str',
       'nodetk/utils',
 
       'browser/init',
