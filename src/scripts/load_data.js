@@ -26,7 +26,7 @@ var clear_collections = function(callback) {
     callback && callback();
   });
   collections.forEach(function(collection) {
-    collection.clear_all(waiter);
+    collection.remove(waiter);
   });
 };
 

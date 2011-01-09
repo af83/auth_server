@@ -27,7 +27,7 @@ $.sammy(function() {
     });
   });
 
-  this.post('/clients/:client_id', function(env) {
+  this.put('/clients/:client_id', function(env) {
     var self = this
       , params = env.params
       ;
@@ -42,6 +42,29 @@ $.sammy(function() {
       }, function() {
         console.log("Error while updating client.");
       });
+    });
+  });
+
+  this.del('/clients/:client_id', function(env) {
+    var self = this
+      , params = env.params
+      , client_id = params.client_id
+      ;
+    R.Client.get({ids: client_id}, function(client) {
+      var name = client.name;
+      var redirect_uri = client.redirect_uri;
+      var client_label = '"'+name+'" ['+redirect_uri+']';
+      var msg = "Are you sure you want to delete the client " +
+                client_label + "?" +
+                "\nAll corresponding authorizations will also be deleted!";
+      if(confirm(msg)) {
+        client.delete_(function() {
+          console.log('Client' + client_label + ' deleted.');
+          self.redirect('#/c');
+        }, function() {
+          console.error("Error while deleting client " + client.id);
+        });
+      }
     });
   });
 
