@@ -8,7 +8,10 @@ exports.email = {
 exports.db = {
   host: 'localhost',
   port: 27017,
-  db_name: 'auth_server_dev'
+  db_name: 'auth_server_dev',
+  // if you need some authentication, un-comment these 2 lines
+  //  username: "username",
+  //  password: "password"
 };
 
 var server = exports.server = {
