@@ -65,6 +65,7 @@ var load_clients = function(callback) {
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
     ["test_client", 'http://127.0.0.1:7070/login/process/'],
     ["geeks", 'http://127.0.0.1:3000/oauth2/process'],
+    ['trac', 'http://localhost:8080/trac_env_test/auth_server_process']
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
