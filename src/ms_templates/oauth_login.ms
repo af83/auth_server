@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Login</title>
@@ -7,20 +8,15 @@
     <p>You are about to signin to <strong>{{client_name}}</strong>
       using <strong>{{server_name}}</strong>:</p>
     <form action="{{action}}" method="post">
-      Info associated with request (should be crypted): 
-      <input type="text" name="info" value="{{info}}" />
-      <br />
-
-      These should be what the user sees:
-      <br />
+      <input type="hidden" name="info" value="{{info}}" />
 
       <label>Email:
-        <input type="text" name="email" value="pruyssen@af83.com" />
+        <input type="email" name="email" required />
       </label>
       <br />
 
-      <label>Password (1234):
-        <input type="password" name="password" value="1234" />
+      <label>Password:
+        <input type="password" name="password" required />
       </label>
       <br />
 

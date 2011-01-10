@@ -167,7 +167,7 @@ var serve = exports.serve = function(port, callback) {
 
 if(process.argv[1] == __filename) {
   serve(config.server.port, function() {
-    console.log('Server listning on ' + config.server.base_url);
+    console.log('Server listening on ' + config.server.base_url);
   });
 }
 
