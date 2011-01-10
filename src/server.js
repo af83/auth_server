@@ -43,6 +43,8 @@ var connect = require('connect')
   , registration = require('./register')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
+  , strictTransportSecurity = require('./strict_transport_security')
+                                  .strictTransportSecurity
   , model = require('./model')
   , RFactory = model.RFactory
   , schema = require('./schema').schema
@@ -139,7 +141,8 @@ var auth_check = function(req, res, next, info) {
 var server;
 var create_server = function() {
   server = exports.server = connect.createServer(
-    connect.staticProvider({root: __dirname + '/static', cache: false})
+    strictTransportSecurity(365 * 24 * 3600, true)
+    , connect.staticProvider({root: __dirname + '/static', cache: false})
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
     , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
