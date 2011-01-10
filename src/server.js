@@ -43,7 +43,8 @@ var connect = require('connect')
   , registration = require('./register')
   , web_app = require('./web_app')
   , authentication = require('./authentication')
-  , RFactory = require('./model').RFactory
+  , model = require('./model')
+  , RFactory = model.RFactory
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
   ;
@@ -106,7 +107,7 @@ var oauth2_client_options = {
 // To serve some nodejs modules to browser:
 require.paths.unshift(__dirname);
 var serve_modules_connector = bserver.serve_modules_connector({
-  modules: ['util', 'schema'],
+  modules: ['schema'],
   packages: ['nodetk', 'rest-mongo', 'browser']
 });
 
@@ -147,7 +148,8 @@ var create_server = function() {
     , delegate.connector()
     , registration.connector(config.server)
     // To serve objects directly (based on schema):
-    , rest_server.connector(RFactory, schema, {auth_check: auth_check})
+    , rest_server.connector(RFactory, schema, {auth_check: auth_check, 
+                                               eventEmitter: model.emitter})
     , serve_modules_connector
     , web_app.connector()
   );

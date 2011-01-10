@@ -13,3 +13,10 @@ callbacks = require('nodetk/orchestration/callbacks');
 app = $.sammy(function() {});
 app.run();
 
+// To (re)generate client secret:
+var randomString = require('nodetk/random_str').randomString;
+$('.generate_secret').live('click', function() {
+  $('input[name=secret]').val(randomString(256));
+  return false;
+});
+

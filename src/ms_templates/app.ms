@@ -54,12 +54,10 @@
   <script type="text/javascript" src="/js/utils.js"></script>
   <script type="text/javascript" src="/js/routes.js"></script>
 
-  <script type="text/javascript" src="/init_browser.js"></script>
   <script type="text/javascript" src="/yabble.js"></script>
+  <script type="text/javascript" src="/init_browser.js"></script>
   <script type="text/javascript">
     TOKEN = "{{token}}";
-    require.reset();
-
     require.useScriptTags();
     require.setModuleRoot('wrapped_js/');
 
@@ -72,6 +70,7 @@
     
       'nodetk/logging',
       'nodetk/orchestration/callbacks',
+      'nodetk/random_str',
       'nodetk/utils',
 
       'browser/init',
