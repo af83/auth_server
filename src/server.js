@@ -60,7 +60,8 @@ var oauth2_client_options = {
       var R = RFactory();
       oauth2_server.valid_grant(R, {
         code: code, 
-        client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id
+        client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id,
+        redirect_uri: config.oauth2_client.client.redirect_uri
       }, callback, fallback)
     },
     treat_access_token: function(data, req, res, callback, fallback) {

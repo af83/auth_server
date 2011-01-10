@@ -55,12 +55,11 @@ exports.tests = [
 }],
 
 
-['/oauth/authorize: missing mandatory param', 6, function() {
+['/oauth/authorize: missing mandatory param', 4, function() {
   // A missing mandatory param should give us an error.
   var qs = {
     client_id: DATA.client_id,
-    response_type: "code",
-    redirect_uri: "http://127.0.0.1:8888/login"
+    response_type: "code"
   }
   oauth2_server.PARAMS.eua.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
@@ -350,7 +349,8 @@ exports.tests = [
     client_id: DATA.client_id,
     user_id: 'some_user_id',
     time: parseInt(Date.now() - 15000),
-    code: "somecode"
+    code: "somecode",
+    redirect_uri: "http://127.0.0.1:8888/login"
   });
   grant.save(function() {
     R.clear_caches();

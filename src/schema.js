@@ -48,6 +48,7 @@ exports.schema = {
         user_id: {type: "string"},
         code: {type: "string"}, // The code sent to client is: grant.id|grant.code
         time: {type: "integer"}, // timestamp
+        redirect_uri: {type: "string"},
         additional_info: {type: "object"}
       }
     }
