@@ -3,7 +3,7 @@
 var URL = require('url')
   , oauth2_client = require('oauth2_client')
   , tools = require('nodetk/server_tools')
-  , authentication = require('./authentication')
+  , authentication = require('../authentication')
   , extract_client_data = authentication.extract_client_data
   ;
 
@@ -37,4 +37,3 @@ exports.connector = function() {
   routes.GET['/login/delegate'] = delegate;
   return tools.get_connector_from_str_routes(routes);
 };
-

@@ -1,22 +1,22 @@
 var URL = require('url');
 
-var ms_templates = require('./lib/ms_templates');
-var bcrypt = require('./lib/bcrypt');
+var ms_templates = require('../lib/ms_templates');
+var bcrypt = require('../lib/bcrypt');
 var tools = require('nodetk/server_tools');
-var email = require('./lib/email');
-var RFactory = require('./model').RFactory;
+var email = require('../lib/email');
+var RFactory = require('../model').RFactory;
 
 var BASE_URL;
 
 
 var register_page = function(req, res, options) {
-  /* Serve page with form to register to auth_server. 
+  /* Serve page with form to register to auth_server.
    *
    * Arguments:
    *  - req
    *  - res
    *  - options, optional hash:
-   *    - status_code: an alternative status code for the reply 
+   *    - status_code: an alternative status code for the reply
    *      (default to 200).
    *    - data: data to prefill the form
    */
@@ -140,4 +140,3 @@ exports.connector = function(config) {
   routes.GET['/register/confirm'] = confirm_registration;
   return tools.get_connector_from_str_routes(routes);
 };
-

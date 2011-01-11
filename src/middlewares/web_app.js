@@ -1,4 +1,4 @@
-var ms_templates = require('./lib/ms_templates');
+var ms_templates = require('../lib/ms_templates');
 var oauth2_client = require('oauth2_client');
 var tools = require('nodetk/server_tools');
 

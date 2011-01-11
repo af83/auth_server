@@ -1,5 +1,5 @@
 var tools = require('nodetk/server_tools');
-var RFactory = require('./model').RFactory;
+var RFactory = require('../model').RFactory;
 
 var update_password = function(req, res) {
   /* Update password if the current user */
