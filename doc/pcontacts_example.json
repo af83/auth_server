@@ -1,0 +1,92 @@
+{
+  "startIndex": 0,
+  "itemsPerPage": 10,
+  "totalResults": 2,
+  "entry": [
+    { "id": "ABC",
+      "displayName": "Wendy Wellesley",
+      "emails": [
+        {
+          "value": "wendy.wellesley@af83.com",
+          "type": "work",
+          "primary": "true"
+        }
+      ],
+    "accounts": [
+        {
+          "domain": "trac.af83.com",
+          "userid": "WWellesley"
+        }
+      ]
+    },
+    {
+      "id": "1234",
+      "displayName": "John Doe",
+      "name": {
+       "familyName": "Doe",
+       "givenName": "John"
+      },
+      "birthday": "1985-05-85",
+      "gender": "male",
+      "tags": [
+        "node",
+        "python",
+        "oauth2",
+      ],
+      "emails": [
+        {
+          "value": "John.Doe@af83.com",
+          "type": "work",
+          "primary": "true"
+        },
+        {
+          "value": "JDoe@af83.com",
+          "type": "work"
+        },
+        {
+          "value": "John@Doe.fr",
+          "type": "home"
+        }
+      ],
+      "urls": [
+        {
+          "value": "http://John.Doe.fr",
+          "type": "home"
+        },
+      ],
+      "phoneNumbers": [
+        {
+          "value": "+33-6-000000",
+          "type": "mobile"
+        }
+      ],
+      "photos": [
+        {
+          "value": "http://John.Doe.fr/img/photo_John_ruyssen.jpeg",
+          "type": "thumbnail"
+        }
+      ],
+      "ims": [
+        {
+          "value": "John.Doe@gmail.com",
+          "type": "jabber"
+        }
+      ],
+      "addresses": [
+      ],
+      "organizations": [
+        {
+          "name": "AF83",
+          "title": "Ghost"
+        }
+      ],
+      "accounts": [
+        {
+          "domain": "trac.af83.com",
+          "userid": "JDoe"
+        }
+      ]
+    }
+  ]
+}
+
