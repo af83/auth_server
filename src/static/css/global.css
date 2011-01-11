@@ -19,7 +19,7 @@ body {
 a {
   color: #777;
 }
- 
+
 #wrapper {
   /*width: 920px;
   min-height: 1000px;*/
@@ -53,13 +53,13 @@ a {
 .left {
   float: left;
   width: 440px;
-  margin: 0 20px 0 0;  
+  margin: 0 20px 0 0;
 }
 
 .right {
   float: right;
   width: 440px;
-  margin: 0 0 0 20px;  
+  margin: 0 0 0 20px;
 }
 
 #footer {
