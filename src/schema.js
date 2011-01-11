@@ -31,6 +31,20 @@ exports.schema = {
         email: {type: "string"},
         confirmed: {type: "integer"} // 1 if registration confirmed
       }
+    },
+    methods: {
+      check_password: function(password, fn) {
+        var bcrypt = require('./lib/bcrypt');
+        bcrypt.check(this.password, password, fn);
+      },
+      set_password: function(password, callback, fallback) {
+        var bcrypt = require('./lib/bcrypt');
+        var self = this;
+        bcrypt.hash(password, function(hash) {
+          self.password = hash;
+          callback();
+        }, fallback);
+      }
     }
   },
 

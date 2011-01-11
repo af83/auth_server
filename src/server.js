@@ -22,9 +22,11 @@
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
 
+exports.get_session_middleware = function() {
+  return require('cookie-sessions');
+};
 
 var connect = require('connect')
-  , sessions = require('cookie-sessions')
   , connect_form = require('connect-form')
 
   , CLB = require('nodetk/orchestration/callbacks')
@@ -45,6 +47,7 @@ var connect = require('connect')
   , authentication = require('./authentication')
   , strictTransportSecurity = require('./strict_transport_security')
                                   .strictTransportSecurity
+  , account = require('./account')
   , model = require('./model')
   , RFactory = model.RFactory
   , schema = require('./schema').schema
@@ -141,6 +144,7 @@ var auth_check = function(req, res, next, info) {
 
 var server;
 var create_server = function() {
+  var sessions = exports.get_session_middleware();
   server = exports.server = connect.createServer(
     strictTransportSecurity(365 * 24 * 3600, true)
     , connect.staticProvider({root: __dirname + '/static', cache: false})
@@ -156,6 +160,7 @@ var create_server = function() {
                                                eventEmitter: model.emitter})
     , serve_modules_connector
     , web_app.connector()
+    , account.connector()
   );
 };
 

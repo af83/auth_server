@@ -3,7 +3,6 @@ var oauth2_server = require('oauth2/server')
   , tools = require('nodetk/server_tools')
   , RFactory = require('./model').RFactory
   , ms_templates = require('./lib/ms_templates')
-  , bcrypt = require('./lib/bcrypt')
   , config = require('./lib/config_loader').get_config()
   , base64 = require('base64')
   , URL = require('url')
@@ -138,7 +137,7 @@ exports.process_login = function(req, res) {
       if(users.length != 1) return fail_login(req, res, client_data);
       var user = users[0];
       
-      bcrypt.check(user.password, fields.password, function(good) {
+      user.check_password(fields.password, function(good) {
         if(!good) return fail_login(req, res, client_data);
 
         // The user is logged in, let's remember:

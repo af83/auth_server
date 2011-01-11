@@ -99,10 +99,10 @@ var process_register = function(req, res) {
       fields.message = "There is an error in the form.";
       return register_page(req, res, {status_code: 400, data: fields});
     }
-    bcrypt.hash(fields.password, function(hash) {
-      // Add the user:
-      var R = RFactory();
-      var user = new R.User({email: fields.email, password: hash});
+    // Add the user:
+    var R = RFactory();
+    var user = new R.User({email: fields.email});
+    user.set_password(fields.password, function() {
       user.save(function() {
         send_confirmation_email(user);
         process_register_success(res);

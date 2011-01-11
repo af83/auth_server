@@ -1,10 +1,11 @@
-
+/**
+ * Main sammy application
+ */
 $.sammy(function() {
-
   this.get('', function() {
     this.redirect('#/c');
   });
- 
+
   this.get('#/c', function() {
     // Display a list of clients for the user to choose.
     $('#overview').html('<h1>Clients</h1>');
@@ -111,7 +112,7 @@ $.sammy(function() {
     var authorizations;
     var waiter = callbacks.get_waiter(2, function() {
       $('#content').renders('authorizations_index', {
-        authorizations: authorizations 
+        authorizations: authorizations
       });
     });
     R.Client.index({}, waiter);
@@ -119,6 +120,36 @@ $.sammy(function() {
       authorizations = auths;
       waiter();
     });
+  });
+
+  this.get('#/account', function() {
+    /** Display account page */
+    $('#overview').html('<h1>Your account</h1>');
+    $('#content').renders('account');
+  });
+
+  this.post('/account', function(context) {
+    /** Process password update */
+
+    $(".errors").html('');
+    var params = context.params;
+    if (params.new_password != params.new_password_confirm) {
+      $(".errors").html('Passwords do not match.');
+    } else {
+      $.ajax({url: "/me/password",
+              type: 'post',
+              dataType: 'json',
+              data: {current_password: params.current_password,
+                     new_password    : params.new_password,
+                     token           : TOKEN},
+              success: function() {
+                console.log("success");
+              },
+              error: function(xhr) {
+                $(".errors").html(JSON.parse(xhr.responseText).error);
+              }});
+    }
+    return false;
   });
 
 });

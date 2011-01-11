@@ -17,6 +17,7 @@ var port = 8999,
     ;
 data.base_url = 'http://127.0.0.1:' + port;
 data.assert = assert;
+data.session = {};
 
 // Tweak a bit the configuration for tests:
 var config = require('../lib/config_loader').get_config();
@@ -33,18 +34,41 @@ var load_data = require('../scripts/load_data').run
   , eyes = require('eyes')
   , RFactory = model.RFactory
   , R = RFactory()
+  , CLB = require('nodetk/orchestration/callbacks')
   ;
 data.R = R;
 data.inspect = eyes.inspector();
 
+server.get_session_middleware = function() {
+  return function() {
+    return function(req, res, next) {
+      req.session = data.session;
+      next();
+    }
+  }
+};
 
 var get_client_id = function(client_name, callback) {
   /* Calls callback(client_id), client_id corresponding to the given name.
    * If no corresponding client found, throw error.
    */
   R.Client.index({query: {name: client_name}}, function(clients) {
-    if(clients.length != 1) throw "There should only be one client!";
+    if(clients.length != 1) throw new Errror("There should only be one client!");
     callback(clients[0].id);
+  }, function(err) {
+    console.log(err.message);
+    console.log(err.stack);
+    throw err;
+  });
+};
+
+var get_user_id = function(user_email, callback) {
+  /* Call callback(user_id), user_id corresponding to given name.
+   * If no user, throw an error.
+   */
+  R.User.index({query: {email: user_email}}, function(users) {
+    if(users.length != 1) throw new Error("There should be one user!");
+    callback(users[0].id);
   }, function(err) {
     console.log(err.message);
     console.log(err.stack);
@@ -54,11 +78,17 @@ var get_client_id = function(client_name, callback) {
 
 
 var setup = function(callback) {
+  reinit_session();
   R.clear_caches();
   load_data(function() {
+    var waiter = CLB.get_waiter(2, callback);
     get_client_id("errornot", function(client_id) {
       data.client_id = client_id;
-      callback();
+      waiter();
+    });
+    get_user_id("pruyssen@af83.com", function(user_id) {
+      data.user_id = user_id;
+      waiter();
     });
   });
 };
@@ -73,6 +103,11 @@ var module_init = function(callback) {
   else callback();
 };
 
+var reinit_session = function() {
+  Object.keys(data.session).forEach(function(key) {
+    delete data.session[key];
+  });
+};
 
 process.on('exit', function () {
   server.server.close();
@@ -82,6 +117,7 @@ process.on('exit', function () {
 exports.init = function(test_exports) {
   test_exports.setup = setup;
   test_exports.module_init = module_init;
+  //test_exports.module_clode = module_close;
   return data;
 };
 

@@ -35,6 +35,7 @@
 
   <p class="login-info">
     <span>{{email}}</span>
+    <a href="#/account">Account</a>
     <a class="signout" href="/logout">Sign out</a>
   </p>
 
