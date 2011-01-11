@@ -87,8 +87,14 @@ a {
   padding: 0;
 }
 
+.login-info {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
 #nav li a,
-#wrapper a.signout {
+#wrapper .signout {
   color: #111;
   text-decoration: none;
   padding: 7px 9px;
@@ -96,16 +102,10 @@ a {
 }
 
 #nav li a:hover,
-#wrapper a.signout:hover {
+#wrapper .signout:hover {
   color: #fff;
   text-decoration: none;
   background: #111;
-}
-
-#wrapper a.signout {
-  position: absolute;
-  top: 15px;
-  right: 15px;
 }
 
 #footer ul {
@@ -275,4 +275,3 @@ input.button {
   padding: 2px;
   width: 98%;
 }
-

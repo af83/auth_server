@@ -12,7 +12,8 @@ var serve_web_app = function(req, res) {
   if(!user) return oauth2_client.redirects_for_login('auth_server', res, '/');
   res.writeHead(200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('app', {
-    token: req.session.token
+    token: req.session.token,
+    email : user.email
   });
   res.end(body);
 };
