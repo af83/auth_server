@@ -10,7 +10,7 @@
 
 // Must be imported before server so we get the nodetest on path before
 // adding it from vendors.
-var assert = require('nodetk/testing/custom_assert');
+var assert = exports.assert = require('nodetk/testing/custom_assert');
 
 var port = 8999,
     data = {}
