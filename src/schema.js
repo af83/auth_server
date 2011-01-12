@@ -33,9 +33,9 @@ exports.schema = {
       }
     },
     methods: {
-      check_password: function(password, fn) {
+      check_password: function(password, callback, fallback) {
         var bcrypt = require('./lib/bcrypt');
-        bcrypt.check(this.password, password, fn);
+        bcrypt.check(this.password, password, callback, fallback);
       },
       set_password: function(password, callback, fallback) {
         var bcrypt = require('./lib/bcrypt');

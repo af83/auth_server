@@ -9,6 +9,9 @@ var update_password = function(req, res) {
     res.writeHead(status, {'Content-Type': 'application/json'});
     res.end(body);
   }
+  function send_error() {
+    send_answer(500, '{"error": "Server error"}');
+  }
   if(!user) {
     send_answer(401, '{"error": "not_authorized"}');
   }
@@ -20,15 +23,15 @@ var update_password = function(req, res) {
       }
       var R = RFactory();
       R.User.get({ids: user.id}, function(user) {
-        if (!user) return send_answer(500, '{"error": "Server error"}')
+        if (!user) return send_error();
         user.check_password(fields.current_password, function(good) {
           if(!good) return send_answer(400, '{"error": "Bad current password"}');
           user.set_password(fields.new_password, function() {
             user.save(function() {
               send_answer(200, '{"result": "ok"}');
-            }, function(err) {send_answer(500, '{"error": "Server error"}')});
-          }, function(err) {send_answer(500, '{"error": "Server error"}')});
-        });
+            }, send_error);
+          }, send_error);
+        }, send_error);
       });
     });
   }
