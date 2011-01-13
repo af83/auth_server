@@ -3,6 +3,8 @@ var URL = require('url');
 var oauth2 = require('oauth2/common')
   , RFactory = require('../model').RFactory
   , tools = require('nodetk/server_tools')
+  , url = require('url')
+  , portable_contacts = require('../lib/portable_contacts')
   ;
 
 
@@ -66,10 +68,15 @@ var get_auths = function(req, res) {
    * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
    *
    */
+  var query = url.parse(req.url, true).query || {};
+  if(!query.authority || !query.domain) {
+    res.writeHead(400, {"Content-Type": "application/json"});
+    return res.end('{"error": "Missing parameter."}');
+  }
   oauth2.check_token(req, res, function(token_info) {
     var user_id = token_info.user_id
       , client_id = token_info.client_id
-      , info = {id: user_id, authorizations: {}}
+      , info = {authorizations: {}}
       , get_info_ = get_info
       ;
     if(token_info.additional_info && token_info.additional_info.provider) {
@@ -80,11 +87,13 @@ var get_auths = function(req, res) {
         res.writeHead('404', {}); res.end();
         return;
       }
-      info.email = info_.email;
-      info.name = info_.name;
-      info.authorizations = info_.authorizations;
-      res.writeHead(200, {"Content-Type": "text/html"});
-      res.end(JSON.stringify(info));
+      portable_contacts.get_account_userid(query.domain, query.authority, info_.email,
+                                           function(userid) {
+        info.userid = userid || info_.email;
+        info.authorizations = info_.authorizations;
+        res.writeHead(200, {"Content-Type": "text/html"});
+        res.end(JSON.stringify(info));
+      });
     }, function(err) {tools.server_error(res, err)});
   });
 };

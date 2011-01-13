@@ -2,6 +2,7 @@
 var DATA = require('./init').init(exports)
   , assert = DATA.assert
   , R = DATA.R
+  , portable_contacts = require('../lib/portable_contacts')
   ;
 
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
@@ -22,7 +23,7 @@ var http = require('http')
 
 
 var base_url = DATA.base_url
-  , authorize_url = base_url + config.oauth2_server.authorize_url 
+  , authorize_url = base_url + config.oauth2_server.authorize_url
   , login_url = base_url + config.oauth2_server.process_login_url
   , token_url = base_url + config.oauth2_server.token_url
   ;
@@ -148,7 +149,7 @@ exports.tests = [
     var location = headers.location.split('?');
     assert.equal(location[0], 'http://127.0.0.1:8888/login');
     var qs = querystring.parse(location[1]);
-    assert.equal(qs.state, 'somestate');    
+    assert.equal(qs.state, 'somestate');
     assert.ok(qs.code);
     var id_code = qs.code.split('.');
     assert.equal(id_code.length, 2);
@@ -330,7 +331,7 @@ exports.tests = [
     setTimeout(function() { // To be sure the other connexion is aware of this.
       R.Grant.get({ids: grant.id}, function(grant) {
         assert.ok(grant != null, "The grand has not been saved yet...");
-        // We need to check the grant was actually 
+        // We need to check the grant was actually
         web.POST(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
@@ -377,7 +378,7 @@ exports.tests = [
 // -------------------------------------------------------------------------
 // Resource server stuff:
 
-['/auth: no token', 2, function(args) {
+['/auth: no token', 2, function() {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0];
@@ -387,19 +388,33 @@ exports.tests = [
   });
 }],
 
-['/auth: invalid token', 2, function(args) {
+['/auth: missing parameters', 2, function() {
   // Get info of one user
     web.GET(base_url + '/auth', {
       oauth_token: 'some wrong token'
+    }, function(statusCode, headers, body) {
+      assert.equal(statusCode, 400);
+      assert.equal(body, '{"error": "Missing parameter."}');
+    });
+}],
+
+['/auth: invalid token', 2, function() {
+  // Get info of one user
+    web.GET(base_url + '/auth', {
+      oauth_token: 'some wrong token',
+      authority: 'example.com',
+      domain : 'trac.example.com'
     }, function(statusCode, headers, body) {
       assert.equal(statusCode, 400);
       assert.equal(body, 'Invalid oauth_token.');
     });
 }],
 
-['/auth: double token (header and url parameters)', 2, function(args) {
+['/auth: double token (header and url parameters)', 2, function() {
   var headers = {'Authorization': 'OAuth toto'}
-    , params = {oauth_token: 'toto'}
+  , params = {oauth_token: 'toto',
+              authority: 'example.com',
+              domain : 'trac.example.com'}
     ;
   web.GET(base_url + '/auth', params, function(statusCode, headers, body) {
     assert.equal(statusCode, 400);
@@ -407,32 +422,53 @@ exports.tests = [
   }, {additional_headers: headers});
 }],
 
-['/auth: ok, token in url parameters or headers', 5, function(args) {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0]
-      , oauth_token = oauth2.create_access_token(user.id, DATA.client_id)
-      ;
-    var check_answer = function(statusCode, headers, body) {
-      var expected_data = {
-        id: user.id,
-        email: user.email,
+['/auth: ok, token in url parameters or headers and account found', 5, function() {
+  assert_result_ok('someuserid', {
+        userid: "someuserid",
         authorizations: {
           auth_server: ["user","admin"],
           text_server: ["user","admin"],
           errornot: ["user","admin"]
         }
-      }
-      assert.equal(statusCode, 200);
-      assert.deepEqual(JSON.parse(body), expected_data);
-    };
-    web.GET(base_url + '/auth', {oauth_token: oauth_token}, check_answer);
-    web.GET(base_url + '/auth', {}, check_answer, {
-      additional_headers: {'Authorization': 'OAuth '+oauth_token}
-    });
   });
 }],
 
+['/auth ok, token in url parameters or headers and account not found', 5, function() {
+   assert_result_ok(null, {
+        userid: "pruyssen@af83.com",
+        authorizations: {
+          auth_server: ["user","admin"],
+          text_server: ["user","admin"],
+          errornot: ["user","admin"]
+        }
+   });
+}]
 
 ]
 
+function assert_result_ok(userid, expected_data) {
+  /**
+   * userid being the result of portable contact, check expected_data for good token.
+   * 5 asserts.
+   */
+  portable_contacts.get_account_userid = function(_, _, _, callback) {
+    callback(userid);
+  };
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0]
+    , oauth_token = oauth2.create_access_token(user.id, DATA.client_id)
+    ;
+    var check_answer = function(statusCode, headers, body) {
+      assert.equal(statusCode, 200);
+      assert.deepEqual(JSON.parse(body), expected_data);
+    };
+    web.GET(base_url + '/auth', {oauth_token: oauth_token,
+                                 authority: 'example.com',
+                                 domain : 'trac.example.com'}, check_answer);
+    web.GET(base_url + '/auth', {authority: 'example.com',
+                                 domain : 'trac.example.com'}, check_answer, {
+                                   additional_headers: {'Authorization': 'OAuth '+oauth_token}
+                                 });
+  });
+}
