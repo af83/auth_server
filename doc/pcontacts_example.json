@@ -7,14 +7,14 @@
       "displayName": "Wendy Wellesley",
       "emails": [
         {
-          "value": "wendy.wellesley@af83.com",
+          "value": "wendy.wellesley@example.com",
           "type": "work",
           "primary": "true"
         }
       ],
     "accounts": [
         {
-          "domain": "trac.af83.com",
+          "domain": "trac.example.com",
           "userid": "WWellesley"
         }
       ]
@@ -35,12 +35,12 @@
       ],
       "emails": [
         {
-          "value": "John.Doe@af83.com",
+          "value": "John.Doe@example.com",
           "type": "work",
           "primary": "true"
         },
         {
-          "value": "JDoe@af83.com",
+          "value": "JDoe@example.com",
           "type": "work"
         },
         {
@@ -62,13 +62,13 @@
       ],
       "photos": [
         {
-          "value": "http://John.Doe.fr/img/photo_John_ruyssen.jpeg",
+          "value": "http://John.Doe.fr/img/photo_John_Doe.jpeg",
           "type": "thumbnail"
         }
       ],
       "ims": [
         {
-          "value": "John.Doe@gmail.com",
+          "value": "John.Doe@example.com",
           "type": "jabber"
         }
       ],
@@ -82,11 +82,10 @@
       ],
       "accounts": [
         {
-          "domain": "trac.af83.com",
+          "domain": "trac.example.com",
           "userid": "JDoe"
         }
       ]
     }
   ]
 }
-
