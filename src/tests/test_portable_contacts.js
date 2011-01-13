@@ -39,7 +39,7 @@ exports.tests = [
   web.GET = function(url, query, callback, fallback) {
     assert.equal(url, 'http://example.com/portablecontacts/');
     assert.deepEqual(query, {filterBy: 'emails.value',
-                             filterOp: 'contains',
+                             filterOp: 'equals',
                              filterValue: 'plop@example.com',
                              count: 1});
     callback(200, {}, JSON.stringify(result));

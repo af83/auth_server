@@ -19,7 +19,7 @@ var events = require('events')
 
 
 var backend = mongo_backend.get_backend(config.db);
-var RFactory = exports.RFactory = rest_mongo.getRFactory(schema, backend);
+exports.RFactory = exports.RFactory = rest_mongo.getRFactory(schema, backend);
 
 
 // Ensure indexes are created:

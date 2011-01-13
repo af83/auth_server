@@ -28,7 +28,7 @@ exports.get_entry = function get_portable_contact_entry(authority, email, callba
    */
   discovery.discover(authority, PORTABLE_CONTACTS_TYPE, function(url) {
     web.GET(url, {filterBy: 'emails.value',
-                  filterOp: 'contains',
+                  filterOp: 'equals',
                   filterValue: email,
                   count: 1}, function(status, headers, body) {
                     if (status == 200) {
