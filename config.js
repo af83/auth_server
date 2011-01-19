@@ -19,6 +19,8 @@ var server = exports.server = {
   port: 7070,
 };
 
+exports.hash_lib = "crypto"; // either crypto or bcrypt, mostly for OS X compatability
+
 var oauth2_server = exports.oauth2_server = {
   authorize_url: '/oauth2/authorize',
   process_login_url: '/oauth2/login',

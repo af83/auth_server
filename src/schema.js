@@ -34,16 +34,30 @@ exports.schema = {
     },
     methods: {
       check_password: function(password, callback, fallback) {
-        var bcrypt = require('./lib/bcrypt');
-        bcrypt.check(this.password, password, callback, fallback);
+        var config = require('./lib/config_loader').get_config();
+        if (config.hash_lib=="bcrypt"){
+            var bcrypt = require('./lib/bcrypt');
+            bcrypt.check(this.password, password, callback, fallback);
+        }
+        else if (config.hash_lib=="crypto"){
+            var crypto = require("crypto");
+            if (this.password == crypto.createHash('sha256').update(password).digest("hex")) callback(true); else callback(false);
+        }
       },
       set_password: function(password, callback, fallback) {
-        var bcrypt = require('./lib/bcrypt');
-        var self = this;
-        bcrypt.hash(password, function(hash) {
-          self.password = hash;
-          callback();
-        }, fallback);
+          var config = require('./lib/config_loader').get_config();
+          var self = this;
+          if (config.hash_lib=="bcrypt"){
+              bcrypt.hash(password, function(hash) {
+                self.password = hash;
+                callback();
+              }, fallback);
+           }
+           else if (config.hash_lib=="crypto"){
+               var crypto = require("crypto");
+               self.password = crypto.createHash('sha256').update(this.password).digest("hex");
+               callback();
+           }
       }
     }
   },
