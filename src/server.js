@@ -170,7 +170,7 @@ var serve = exports.serve = function(port, callback) {
     server.listen(port, callback);
   });
   authentication.init_client_id(waiter);
-  ms_templates.generate_refresh_templates(waiter, waiter.fall);
+  ms_templates.generate_templates(waiter, waiter.fall);
 };
 
 

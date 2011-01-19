@@ -37,12 +37,11 @@ var generate_templates = function(fpaths, callback, fallback) {
 };
 
 
-exports.generate_refresh_templates = function(callback, fallback) {
-  /* Generate templates + update then whenever they change.
+exports.generate_templates = function(callback, fallback) {
+  /* Generate templates
    */
   tkfs.getFilesDirs(MS_TEMPLATES_DIR, function(fpaths) {
     fpaths = fpaths.filter(function(fpath) {return fpath.match(/\.ms$/)});
-
     var set_data = function(templates_str) {
       TEMPLATES = templates_str;
     };
@@ -50,16 +49,13 @@ exports.generate_refresh_templates = function(callback, fallback) {
       set_data(templates_str);
       callback();
     }, fallback);
-    fpaths.forEach(function(fpath) {
-      fs.watchFile(fpath, set_data);
-    });
   });
 };
 
 
 exports.render = function(template_name, data) {
   /* Renders the template with given data and returns result.
-   */
+   */   
   var template = TEMPLATES[template_name];
   if(!template) throw new Error('Unknown template name: ' + template_name);
   return mustache.to_html(template, data || {}, TEMPLATES);
