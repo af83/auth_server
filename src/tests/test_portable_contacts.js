@@ -18,7 +18,7 @@ exports.setup = function(callback) {
 
 exports.module_close = function(callback) {
   discovery.discover = _discover;
-  web.get = _GET;
+  web.GET = _GET;
   callback();
 };
 
