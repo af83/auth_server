@@ -57,7 +57,7 @@ var load_users = function(callback) {
     return user;
   });
   R.save(users, callback, function(err) {
-    throw err;    
+    throw err;
   });
 };
 
@@ -99,25 +99,25 @@ var load_authorizations = function(callback) {
    */
   var auths = [
    // user email , client name, context, roles
-    ['pruyssen@af83.com', config.oauth2_client.name, 
+    ['pruyssen@af83.com', config.oauth2_client.name,
                           config.oauth2_client.name, ['admin']],
     ['pruyssen@af83.com', 'errornot', 'errornot', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'text_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'text_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']],    
-    ['ori@af83.com', config.oauth2_client.name, 
+    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']],
+    ['ori@af83.com', config.oauth2_client.name,
                           config.oauth2_client.name, ['admin']],
     ['ori@af83.com', 'errornot', 'errornot', ['user', 'admin']],
     ['ori@af83.com', 'errornot', 'text_server', ['user', 'admin']],
     ['ori@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
     ['ori@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
     ['ori@af83.com', 'text_server', 'text_server', ['user', 'admin']],
-    ['ori@af83.com', 'geeks', '/', ['user', 'admin']],    
-    ['ori@af83.com', 'local_redishttp', '/', ['user', 'admin']],    
-    ['ori@af83.com', 'local_redishttp', '/redis', ['user', 'admin']],        
-    ['ori@af83.com', 'local_redishttp', '/vote', ['user', 'admin']],        
+    ['ori@af83.com', 'geeks', '/', ['user', 'admin']],
+    ['ori@af83.com', 'local_redishttp', '/', ['user', 'admin']],
+    ['ori@af83.com', 'local_redishttp', '/redis', ['user', 'admin']],
+    ['ori@af83.com', 'local_redishttp', '/vote', ['user', 'admin']],
   ];
   auths = auths.map(function(auth) {
     return new R.Authorization({
@@ -148,7 +148,7 @@ if(process.argv[1] == __filename) {
   DEBUG = true;
   console.log('Reset data in DB...');
   run(function() {
-    process.exit()    
+    process.exit()
   });
 }
 
