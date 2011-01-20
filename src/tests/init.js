@@ -110,7 +110,9 @@ var reinit_session = function() {
 };
 
 process.on('exit', function () {
-  server.server.close();
+  // server.server might be undefined if we run a particular test file
+  // which doesn't initialize it.
+  if(server.server) server.server.close();
 });
 
 
