@@ -14,6 +14,12 @@ $.sammy(function() {
     });
   });
 
+  this.get('#/c/new', function() {
+    // Form to create a new client.
+    $('#overview').html('<h1>Create a new client</h1>');
+    $('#content').renders('client_new');
+  });
+
   this.get('#/c/:client_id', function(env) {
     var client_id = env.params.client_id;
     $('#overview').html('');
@@ -43,6 +49,18 @@ $.sammy(function() {
       }, function() {
         console.log("Error while updating client.");
       });
+    });
+  });
+
+  this.post("/clients", function(env) {
+    var self = this
+      , params = env.params
+    ;
+    var client = new R.Client(params);
+    client.save(function() {
+      env.redirect("#/c");
+    }, function(err) {
+      console.error(err);
     });
   });
 
