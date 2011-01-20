@@ -41,12 +41,11 @@ var load_users = function(callback) {
   ];
 
   if (config.hash_lib == "bcrypt") {
-        var password = "$2a$04$DihcjQ4rOLjKtusXGcOwsO3SjbUA5oC/GLAJHBXoPhHsSODCcybDC";
-        }   // password = 1234 (hashed using bcrypt)
-      else if (config.hash_lib == "crypto"){
-        var password = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
-        }   // password = 1234 (hashed using sha256)
-      
+    var password = "$2a$04$DihcjQ4rOLjKtusXGcOwsO3SjbUA5oC/GLAJHBXoPhHsSODCcybDC";
+  } // password = 1234 (hashed using bcrypt)
+  else if (config.hash_lib == "crypto"){
+    var password = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+  } // password = 1234 (hashed using sha256)
 
   var users = emails.map(function(email) {
     var user =  new R.User({
