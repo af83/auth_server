@@ -20,9 +20,11 @@ var events = require('events')
 
 
 var backend = mongo_backend.get_backend(config.db);
-exports.RFactory = exports.RFactory = rest_mongo.getRFactory(schema, backend, {
+exports.RFactory = rest_mongo.getRFactory(schema, backend, {
   additional_schema: server_schema
 });
+// The RFactory to serve public data:
+exports.RFactoryPublic = rest_mongo.getRFactory(schema, backend);
 
 
 // Ensure indexes are created:

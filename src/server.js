@@ -156,8 +156,9 @@ var create_server = function() {
     , delegate.connector()
     , registration.connector(config.server)
     // To serve objects directly (based on schema):
-    , rest_server.connector(RFactory, schema, {auth_check: auth_check, 
-                                               eventEmitter: model.emitter})
+    , rest_server.connector(model.RFactoryPublic, schema,
+                            {auth_check: auth_check,
+                             eventEmitter: model.emitter})
     , serve_modules_connector
     , web_app.connector()
     , account.connector()
