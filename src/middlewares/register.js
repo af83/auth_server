@@ -1,7 +1,6 @@
 var URL = require('url');
 
 var ms_templates = require('../lib/ms_templates');
-var bcrypt = require('../lib/bcrypt');
 var tools = require('nodetk/server_tools');
 var email = require('../lib/email');
 var RFactory = require('../model').RFactory;

@@ -8,7 +8,7 @@ var DATA = require('./init').init(exports)
 var web = require('nodetk/web')
   , extend = require('nodetk/utils').extend
   , CLB = require('nodetk/orchestration/callbacks')
-  , bcrypt = require('../lib/bcrypt')
+  , hash = require('../lib/hash')
   ;
 
 
@@ -68,7 +68,7 @@ exports.tests = [
   var params = {email: 'ti@ti.com', password: 'titi', password_confirm: 'titi'};
   var confirmation_link, new_user;
   var waiter = CLB.get_waiter(2, function() {
-    bcrypt.check(new_user.password, 'titi', function(good) {
+    hash.check(new_user.password, 'titi', function(good) {
       assert.ok(good);
     }, function(err) {assert.ok(false, err)});
     assert.equal(new_user.confirmed, undefined);

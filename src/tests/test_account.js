@@ -7,7 +7,6 @@ var DATA = require('./init').init(exports)
 var web = require('nodetk/web')
   , tools = require('nodetk/utils')
   , CLB = require('nodetk/orchestration/callbacks')
-  , bcrypt = require('../lib/bcrypt')
   ;
 
 var assert_json = function(expected_status, callback) {
