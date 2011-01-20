@@ -27,24 +27,11 @@ exports.schema = {
 
       properties: {
         id: {type: "string"},
-        password: {type: "string"},
         email: {type: "string"},
         confirmed: {type: "integer"} // 1 if registration confirmed
       }
     },
     methods: {
-      check_password: function(password, callback, fallback) {
-        var hash = require('./lib/hash');
-        hash.check(this.password, password, callback, fallback);
-      },
-      set_password: function(password, callback, fallback) {
-        var hash = require('./lib/hash');
-        var self = this;
-        hash.hash(password, function(hash) {
-            self.password = hash;
-            callback();
-        }, fallback);
-      }
     }
   },
 

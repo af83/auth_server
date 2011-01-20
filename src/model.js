@@ -15,11 +15,14 @@ var events = require('events')
   , mongo_backend = require("rest-mongo/mongo_backend")
   , config = require('./lib/config_loader').get_config()
   , schema = require('./schema').schema
+  , server_schema = require('./server_schema').schema
   ;
 
 
 var backend = mongo_backend.get_backend(config.db);
-exports.RFactory = exports.RFactory = rest_mongo.getRFactory(schema, backend);
+exports.RFactory = exports.RFactory = rest_mongo.getRFactory(schema, backend, {
+  additional_schema: server_schema
+});
 
 
 // Ensure indexes are created:
