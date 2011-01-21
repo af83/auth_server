@@ -1,31 +1,47 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Register to AuthServer</title>
-  </head>
-  <body>
-    <h1>Welcome!</h1>
-    <p>You are about to register to <strong>AuthServer</strong>:</p>
-    {{#message}}
-      <p class="error">{{message}}</p>
-    {{/message}}
-    <form action="/register" method="post">
-      <label>Email:
-        <input type="text" name="email" value="{{email}}" />
-      </label>
-      <br />
+    <head>
+        <title>Register to AuthServer</title>
+        <link type="text/css" rel="stylesheet" href="/css/global.css" />
+        <link type="text/css" rel="stylesheet" href="/css/gui.css"/>
+    </head>
+    <body>
+        <div id="wrapper">
 
-      <label>Password:
-        <input type="password" name="password" value="{{password}}" />
-      </label>
-      <br />
+            <div id="logo">
+                <a href="/">
+                    <img src="/img/logo_auth_server.png" alt="authServer" />
+                </a>
+            </div>
 
-      <label>Confirm password:
-        <input type="password" name="password_confirm" value="{{password_confirm}}" />
-      </label>
-      <br />
+            <div id="main">
+                <div id="content">
+                    <br />
+                    <h1>Register</h1>
+                    {{#message}}
+                    <p class="error">{{message}}</p>
+                    {{/message}}
+                    <form action="/register" method="post">
+                        <label>Email:
+                            <input type="email" name="email" value="{{email}}" required />
+                        </label>
+                        <br />
 
-      <input type="submit" value="Register" />
-    </form>
-  </body>
+                        <label>Password:
+                            <input type="password" name="password" value="{{password}}" required />
+                        </label>
+                        <br />
+
+                        <label>Confirm password:
+                            <input type="password" name="password_confirm" value="{{password_confirm}}" required />
+                        </label>
+                        <br />
+
+                        <input type="submit" value="Register" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
 

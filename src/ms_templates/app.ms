@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 
-
 <head>
   <title>Auth server: authentication and authorization!</title>
   <link type="text/css" rel="stylesheet" href="/css/gui.css"/>
   <link type="text/css" rel="stylesheet" href="/css/authorizations.css"/>  
-  <link href="css/global.css" rel="stylesheet" type="text/css" media="screen" charset="utf-8" />
+  <link type="text/css" rel="stylesheet" href="/css/global.css" />
 </head>
 
 <body>
