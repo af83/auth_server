@@ -48,7 +48,8 @@
  </div>
 
   <script type="text/javascript" src="/js/libs/jquery-1.4.2.min.js"></script>
-  <script type="text/javascript" src="/js/libs/sammy-0.5.4.min.js"></script>
+  <script type="text/javascript" src="/js/libs/underscore-min.js"></script>
+  <script type="text/javascript" src="/js/libs/backbone-min.js"></script>
   <script type="text/javascript" src="/js/libs/mustache.js"></script>
 
   <script type="text/javascript" src="/js/templates_fr.js"></script>
@@ -84,4 +85,3 @@
 
 </body>
 </html>
-

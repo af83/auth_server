@@ -87,7 +87,8 @@ oauth2_server_node uses many other projects, including:
  - [rest-mongo](https://github.com/AF83/rest-mongo), also using [node-mongodb-native](https://github.com/christkv/node-mongodb-native)
  - [mustache.js](https://github.com/janl/mustache.js/)
  - [jQuery](http://jquery.com/)
- - [Sammy](http://code.quirkey.com/sammy/)
+ - [Backbone](http://documentcloud.github.com/backbone/)
+ - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
  - [bcrypt_hash](https://github.com/virtuo/bcrypt_hash)
 

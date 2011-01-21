@@ -1,158 +1,201 @@
-/**
- * Main sammy application
- */
-$.sammy(function() {
-  this.get('', function() {
-    this.redirect('#/c');
-  });
-
-  this.get('#/c', function() {
+var AuthServerClientsIndexView = Backbone.View.extend({
+  render: function() {
     // Display a list of clients for the user to choose.
     $('#overview').html('<h1>Clients</h1>');
-    R.Client.index({}, function(clients) {
-      $('#content').renders('clients_index', {clients: clients});
-    });
-  });
+    $(this.el).renders('clients_index', {clients: this.model});
+    return this;
+  }
+});
 
-  this.get('#/c/new', function() {
-    // Form to create a new client.
+var AuthServerClientsNewView = Backbone.View.extend({
+  events: {
+    "input": "update_model",
+    "submit": "save"
+  },
+
+  render: function() {
     $('#overview').html('<h1>Create a new client</h1>');
-    $('#content').renders('client_new');
-  });
+    $(this.el).renders('client_new');
+    return this;
+  },
 
-  this.get('#/c/:client_id', function(env) {
-    var client_id = env.params.client_id;
-    $('#overview').html('');
-    $('#content').html('');
-    var client, contexts;
-    R.Client.get({ids: client_id}, function(client) {
-      $('#overview').html('<h1>' + client.name + '</h1>');
-      var data = {
-        client: client,
-      };
-      $('#content').renders('client_show', data);
-    });
-  });
+  update_model: function(e) {
+    var input = $(e.originalTarget);
+    this.model[input.attr('name')] = input.val();
+  },
 
-  this.put('/clients/:client_id', function(env) {
-    var self = this
-      , params = env.params
-      ;
-    R.Client.get({ids: params.client_id}, function(client) {
-      $.extend(client, {
-        name: params.name,
-        redirect_uri: params.redirect_uri,
-        secret: params.secret
-      });
-      client.save(function() {
-        console.log("Client updated with success.");
-      }, function() {
-        console.log("Error while updating client.");
-      });
-    });
-  });
-
-  this.post("/clients", function(env) {
-    var self = this
-      , params = env.params
-    ;
-    var client = new R.Client(params);
-    client.save(function() {
-      env.redirect("#/c");
+  save: function(e) {
+    e.preventDefault();
+    var self = this;
+    this.model.save(function() {
+      self.trigger("success");
     }, function(err) {
-      console.error(err);
+      self.trigger("error");
     });
-  });
+  }
+});
 
-  this.del('/clients/:client_id', function(env) {
-    var self = this
-      , params = env.params
-      , client_id = params.client_id
-      ;
-    R.Client.get({ids: client_id}, function(client) {
-      var name = client.name;
-      var redirect_uri = client.redirect_uri;
-      var client_label = '"'+name+'" ['+redirect_uri+']';
-      var msg = "Are you sure you want to delete the client " +
-                client_label + "?" +
-                "\nAll corresponding authorizations will also be deleted!";
-      if(confirm(msg)) {
-        client.delete_(function() {
-          console.log('Client' + client_label + ' deleted.');
-          self.redirect('#/c');
-        }, function() {
-          console.error("Error while deleting client " + client.id);
-        });
-      }
-    });
-  });
+var AuthServerClientShowView = Backbone.View.extend({
+  events: {
+    "input": "update_model",
+    "submit": "save",
+    "click .delete": "del"
+  },
 
-  this.get('#/c/:client_id/:context', function(env) {
-    /* Displays a list of authorizations (email -> roles) given a client and context.
-     *
-     */
-    var self = this
-      , params = env.params
-      , context = params.context
-      , client_id = params.client_id
-      ;
-    $('#overview').html('');
-    $.getJSON('/clients/' + client_id, function(client) {
-      $('#overview').html(
-        '<h1>'+client.name+' > '+context+'</h1>'
-      );
-    });
-    var url = '/authorizations?' + utils.param({
-      clients: client_id,
-      contexts: context
-    });
-    $.getJSON(url, function(authorizations) {
-      $('#content').renders('authorizations', {authorizations: authorizations});
-    });
-  });
+  render: function() {
+    $('#overview').html('<h1>' + this.model.name + '</h1>');
+    var data = {
+      client: this.model,
+    };
+    $(this.el).renders('client_show', data);
+    return this;
+  },
 
-  this.get('#/u', function() {
+  update_model: function(e) {
+    var input = $(e.originalTarget);
+    this.model[input.attr('name')] = input.val();
+  },
+
+  save: function(e) {
+    e.preventDefault();
+    var self = this;
+    this.model.save(function() {
+      self.trigger("saved");
+    }, function(err) {
+      self.trigger("error");
+    });
+  },
+
+  del: function(e) {
+    e.preventDefault();
+    var self = this;
+    var name = this.model.name;
+    var redirect_uri = this.model.redirect_uri;
+    var client_label = '"'+name+'" ['+redirect_uri+']';
+    var msg = "Are you sure you want to delete the client " +
+      client_label + "?" +
+      "\nAll corresponding authorizations will also be deleted!";
+    if(confirm(msg)) {
+      this.model.delete_(function() {
+        self.trigger("deleted");
+      }, function() {
+        self.trigger("error");
+      });
+    }
+  }
+});
+
+var AuthServerUsersView = Backbone.View.extend({
+  render: function() {
+    $('#overview').html('<h1>Users</h1>');
+    $(this.el).renders('users_index', {users: this.model});
+    return this;
+  }
+});
+
+var AuthServerAuthorizationsView = Backbone.View.extend({
+  render: function() {
+    $('#overview').html('<h1>Authorizations</h1>');
+    $(this.el).renders('authorizations_index', {authorizations: this.model});
+    return this;
+  }
+});
+
+var AuthServerClientsController = Backbone.Controller.extend({
+  routes: {
+    "": "index",
+    "/c": "clients",
+    "/c/new": "new",
+    "/c/:id": "show"
+  },
+
+  index: function() {
+    document.location.hash = "/c";
+  },
+
+  clients: function() {
+    R.Client.index({}, function(clients) {
+      new AuthServerClientsIndexView({model: clients,
+                                      el: $("#content")}).render();
+    });
+  },
+
+  new: function() {
+    new AuthServerClientsNewView({el: $("#content"),
+                                  model: new R.Client()}).render()
+      .bind("success", function() {
+        console.log("on success");
+      }).bind("error", function() {
+        console.log("on error");
+      });
+  },
+
+  show: function(id) {
+    R.Client.get({ids: id}, function(client) {
+      new AuthServerClientShowView({el: $("#content"),
+                                    model: client}).render();
+    });
+  }
+});
+
+var AuthServerUsersController = Backbone.Controller.extend({
+  routes: {
+    "/u": "users"
+  },
+
+  users: function() {
     /* Displays list of users.
      */
     // TODO: handle permissions, no everyone should be able to see list of all users.
-    // TODO: don't send passwords hashs
-    $('#overview').html('<h1>Users</h1>');
     R.User.index({}, function(users) {
-      $('#content').renders('users_index', {users: users});
+      new AuthServerUsersView({el: $('#content'),
+                               model: users}).render();
     });
-  });
+  }
+});
 
+var AuthServerAuthorizationsController = Backbone.Controller.extend({
+  routes: {
+    "/a": "authorizations"
+  },
 
-  this.get('#/a', function() {
+  authorizations: function() {
     /* Displays list of all authorizations. */
-    $('#overview').html('<h1>Authorizations</h1>');
-    $('#content').renders('waiting');
     var authorizations;
     var waiter = callbacks.get_waiter(2, function() {
-      $('#content').renders('authorizations_index', {
-        authorizations: authorizations
-      });
+      new AuthServerAuthorizationsView({el: $('#content'),
+                                        model: authorizations}).render();
     });
     R.Client.index({}, waiter);
     R.Authorization.index({}, function(auths) {
       authorizations = auths;
       waiter();
     });
-  });
+  }
+});
 
-  this.get('#/account', function() {
+var AuthServerAccountView = Backbone.View.extend({
+  events: {
+    "submit": "update"
+  },
+
+  render: function() {
     /** Display account page */
     $('#overview').html('<h1>Your account</h1>');
-    $('#content').renders('account');
-  });
+    $(this.el).renders('account');
+  },
 
-  this.post('/account', function(context) {
+  update: function(e) {
     /** Process password update */
-
-    $(".errors").html('');
-    var params = context.params;
+    e.preventDefault();
+    this.$(".errors").html('');
+    var params = {};
+    _($(e.target).serializeArray()).each(function(p) {
+      params[p.name] = p.value;
+    });
+    var self = this;
     if (params.new_password != params.new_password_confirm) {
-      $(".errors").html('Passwords do not match.');
+      this.$(".errors").html('Passwords do not match.');
     } else {
       $.ajax({url: "/me/password",
               type: 'post',
@@ -161,14 +204,21 @@ $.sammy(function() {
                      new_password    : params.new_password,
                      token           : TOKEN},
               success: function() {
-                console.log("success");
+                self.trigger("saved");
               },
               error: function(xhr) {
                 $(".errors").html(JSON.parse(xhr.responseText).error);
               }});
     }
-    return false;
-  });
-
+  }
 });
 
+var AuthServerAccountController = Backbone.Controller.extend({
+  routes: {
+    "/account": "account"
+  },
+
+  account: function() {
+    new AuthServerAccountView({el: $("#content")}).render();
+  }
+});

@@ -15,13 +15,10 @@
   <label>Redirect URI:
     <input type="text" name="redirect_uri" class="field" value="{{redirect_uri}}" />
   </label><br />
+
   <input class="button" value="Cancel" type="reset" />  
   <input class="button" value="Update" type="submit" />
+  <input class="button delete" value="Delete" type="submit" formmethod="delete" />
+
 </fieldset></form>
-
-<form action="/clients/{{id}}" method="delete">
-  <input class="button" value="Delete" type="submit" />
-</form>
-
 {{/client}}
-
