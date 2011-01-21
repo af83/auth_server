@@ -1,10 +1,10 @@
 <form action="/clients" method="post">
 <fieldset>
   <label>Client name:
-    <input type="text" name="name" class="field" value="{{name}}" />
+    <input type="text" name="name" class="field" value="{{name}}" required />
   </label><br />
   <label>Client secret:
-    <input type="text" name="secret" class="field" value="{{secret}}" />
+    <input type="text" name="secret" class="field" value="{{secret}}" required />
   </label>
   <a href="#" class="generate_secret">Generate random string</a>
   <br />
