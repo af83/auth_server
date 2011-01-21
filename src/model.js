@@ -36,7 +36,7 @@ var emitter = exports.emitter = new events.EventEmitter();
 
 // When removing a client, remove its authorizations
 emitter.on('DELETE:Client', function(ids) {
-  var R = RFactory();
+  var R = exports.RFactory();
   R.Authorization.remove({query: {
     client: {'$in': ids.map(function(id){return {id: id}})}
   }});
