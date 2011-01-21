@@ -12,14 +12,5 @@
      <th>Roles</th>
   </tr>
  </thead>
- <tbody>
- {{#authorizations}}
-  <tr>
-    <td>{{email}}</td>
-    <td>{{#client}}<a href="#/c/{{id}}" title="{{redirect_uri}}">{{name}}</a>{{/client}}</td>
-    <td>{{context}}</td>
-    <td> > {{#roles}}<span class="role">{{.}}</span>{{/roles}}</td>
-  </tr>
- {{/authorizations}}
- </tbody>
+ <tbody></tbody>
 </table>
