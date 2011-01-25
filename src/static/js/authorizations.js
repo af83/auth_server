@@ -1,7 +1,8 @@
 var AuthServerAuthorizationLineView = Backbone.View.extend({
   events: {
     "click .roles": "edit_roles",
-    "keypress .roles": "update_roles"
+    "keypress .roles": "update_roles",
+    "focusout .roles": "save_roles"
   },
 
   tagName: "tr",
@@ -20,21 +21,29 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
 
   update_roles: function(e) {
     if (e.keyCode == 13) { // ENTER
-      this.model.roles = _($(e.target).val().split(',')).filter(function(value) {
-        return value.trim();
-      }).map(function(value) {
-        return value.trim();
-      });
-      var self = this;
-      this.model.save(function() {
-        self.render();
-        self.trigger("saved");
-      }, function() {
-        self.trigger("error");
-      });
+      this.save_roles(e);
     } else if (e.keyCode == 27) { // ECHAP
-      this.render();
+      this.cancel_roles();
     }
+  },
+
+  save_roles: function(e) {
+    this.model.roles = _($(e.target).val().split(',')).filter(function(value) {
+      return value.trim();
+    }).map(function(value) {
+      return value.trim();
+    });
+    var self = this;
+    this.model.save(function() {
+      self.render();
+      self.trigger("saved");
+    }, function() {
+      self.trigger("error");
+    });
+  },
+
+  cancel_roles: function() {
+    this.render();
   }
 });
 
