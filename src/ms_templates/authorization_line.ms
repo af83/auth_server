@@ -1,4 +1,5 @@
 {{#authorization}}
+  <td><input type="checkbox" class="selector" /></td>
   <td>{{email}}</td>
   <td>{{#client}}<a href="#/c/{{id}}" title="{{redirect_uri}}">{{name}}</a>{{/client}}</td>
   <td>{{context}}</td>
