@@ -1,53 +1,72 @@
 var AuthServerAuthorizationLineView = Backbone.View.extend({
   events: {
-    "click .roles": "edit_roles",
-    "keypress .roles": "update_roles",
-    "focusout .roles": "save_roles",
-    "click": "selection"
+    "keypress input[type=text]": "keypress_authorization",
+    "click input[type=text]": "stop_propagation",
+    "click": "selection",
+    "dblclick": "edit"
   },
 
   tagName: "tr",
 
   render: function() {
-    $(this.el).renders('authorization_line', {
+    var tmpl_name = 'authorization_line';
+    if(this.editable) tmpl_name += '_edit';
+    $(this.el).renders(tmpl_name, {
       authorization: this.model
     , selected: this.selected
-    });
+    }).toggleClass('selected', Boolean(this.selected));
     return this;
   },
 
-  edit_roles: function(e) {
-    e.stopImmediatePropagation();
-    if ($(e.target).closest(".roles").hasClass('edit')) return;
-    var input = this.make('input', {name: "roles", value: this.model.roles.join(', ')});
-    $(e.target).closest(".roles").html(input).addClass('edit');
-    input.focus();
+  stop_propagation: function(e) {
+    e.stopImmediatePropagation();    
   },
 
-  update_roles: function(e) {
+  keypress_authorization: function(e) {
     if (e.keyCode == 13) { // ENTER
-      this.save_roles(e);
+      this.save_authorization(e);
     } else if (e.keyCode == 27) { // ECHAP
-      this.cancel_roles();
+      this.cancel_authorization();
     }
   },
 
-  save_roles: function(e) {
-    this.model.roles = _($(e.target).val().split(',')).filter(function(value) {
-      return value.trim();
-    }).map(function(value) {
-      return value.trim();
-    });
+  save_authorization: function(e) {
+    var authorization = this.model;
     var self = this;
-    this.model.save(function() {
-      self.render();
-      self.trigger("saved");
-    }, function() {
-      self.trigger("error");
+    // check client exists:
+    var client_input = self.$('input[name=client]');
+    var client_name = client_input.val().trim();
+    R.Client.index({query: {name: client_name}}, function(clients) {
+      if(clients.length < 1) {
+        console.error('This client does not exist');
+        client_input.focus();
+        return;
+      }
+      authorization.client = clients[0];
+      // email and context are "free":
+      authorization.email = self.$('input[name=user]').val().trim();
+      authorization.context = self.$('input[name=context]').val().trim();
+      // save roles:
+      authorization.roles = self.$('input[name=roles]').val()
+                              .split(',').filter(function(value) {
+        return value.trim();
+      }).map(function(value) {
+        return value.trim();
+      });
+      authorization.save(function() {
+        self.editable = false;
+        self.selected = false;
+        self.render();
+        self.trigger("Authorization saved");
+      }, function() {
+        self.trigger("Error while saving authorization");
+      });
     });
   },
 
-  cancel_roles: function() {
+  cancel_authorization: function() {
+    this.editable = false;
+    this.selected = false;
     this.render();
   },
 
@@ -58,6 +77,13 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
     this.selected = checkbox.checked = selected;
     this.$('.selector').val('checked', selected);
     $(this.el).toggleClass('selected', selected);
+  },
+
+  edit: function(e) {
+    this.selected = true;
+    this.editable = true;
+    this.render();
+    this.$('input[name=user]').focus();
   }
 });
 
