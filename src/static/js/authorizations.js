@@ -3,17 +3,21 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
     "click .roles": "edit_roles",
     "keypress .roles": "update_roles",
     "focusout .roles": "save_roles",
-    "click .selector": "selection"
+    "click": "selection"
   },
 
   tagName: "tr",
 
   render: function() {
-    $(this.el).renders('authorization_line', {authorization: this.model});
+    $(this.el).renders('authorization_line', {
+      authorization: this.model
+    , selected: this.selected
+    });
     return this;
   },
 
   edit_roles: function(e) {
+    e.stopImmediatePropagation();
     if ($(e.target).closest(".roles").hasClass('edit')) return;
     var input = this.make('input', {name: "roles", value: this.model.roles.join(', ')});
     $(e.target).closest(".roles").html(input).addClass('edit');
@@ -48,7 +52,11 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
   },
 
   selection: function(e) {
-    var selected = this.selected = e.target.checked;
+    var checkbox = this.$('.selector')[0];
+    var selected = checkbox.checked;
+    if(e.target != checkbox) selected = !selected;
+    this.selected = checkbox.checked = selected;
+    this.$('.selector').val('checked', selected);
     $(this.el).toggleClass('selected', selected);
   }
 });
