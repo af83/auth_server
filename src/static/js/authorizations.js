@@ -80,8 +80,12 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
     var checkbox = this.$('.selector')[0];
     var selected = checkbox.checked;
     if(e.target != checkbox) selected = !selected;
-    this.options.selected = checkbox.checked = selected;
-    this.$('.selector').val('checked', selected);
+    this.select(selected);
+  },
+
+  select: function(selected) {
+    this.options.selected = selected;
+    this.$('.selector').attr('checked', selected);
     $(this.el).toggleClass('selected', selected);
   },
 
@@ -98,7 +102,9 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
 var AuthServerAuthorizationsView = Backbone.View.extend({
   events: {
     "click input.delete": "del",
-    "click input.new": "new_authorization"
+    "click input.new": "new_authorization",
+    "click a[href=#select_all]": "select_all",
+    "click a[href=#select_none]": "select_none"
   },
 
   render: function() {
@@ -154,7 +160,17 @@ var AuthServerAuthorizationsView = Backbone.View.extend({
     this.model.push(authorization);
     this.$('tbody').append(line.el);
     line.$('input[name=user]').focus();
-  }
+  },
+
+  select: function(selected) {
+    _(this.model).each(function(authorization) {
+      authorization.view.select(selected);
+    });
+    return false;
+  },
+
+  select_all: function() {return this.select(true)},
+  select_none: function() {return this.select(false)}
 });
 
 

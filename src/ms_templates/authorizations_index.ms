@@ -16,6 +16,9 @@
  </thead>
  <tbody></tbody>
 </table>
+<p>
+  Select: <a href="#select_all">All</a> | <a href="#select_none">None</a>
+</p>
 <form>
   <input type="button" value="Delete" class="button delete" />
   <input type="button" value="New" class="button new" />
