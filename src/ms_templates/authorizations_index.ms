@@ -17,5 +17,6 @@
  <tbody></tbody>
 </table>
 <form>
-  <input type="button" value="delete" class="button delete" />
+  <input type="button" value="Delete" class="button delete" />
+  <input type="button" value="New" class="button new" />
 </form>

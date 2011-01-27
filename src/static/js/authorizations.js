@@ -10,11 +10,11 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
 
   render: function() {
     var tmpl_name = 'authorization_line';
-    if(this.editable) tmpl_name += '_edit';
+    if(this.options.editable) tmpl_name += '_edit';
     $(this.el).renders(tmpl_name, {
       authorization: this.model
-    , selected: this.selected
-    }).toggleClass('selected', Boolean(this.selected));
+    , selected: this.options.selected
+    }).toggleClass('selected', Boolean(this.options.selected));
     return this;
   },
 
@@ -54,8 +54,11 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
         return value.trim();
       });
       authorization.save(function() {
-        self.editable = false;
-        self.selected = false;
+        delete self.options.delete_;
+        $.extend(self.options, {
+          editable: false,
+          selected: false
+        });
         self.render();
         self.trigger("Authorization saved");
       }, function() {
@@ -65,8 +68,11 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
   },
 
   cancel_authorization: function() {
-    this.editable = false;
-    this.selected = false;
+    if(this.options.delete_) return this.options.delete_();
+    $.extend(this.options, {
+      editable: false,
+      selected: false
+    });
     this.render();
   },
 
@@ -74,14 +80,16 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
     var checkbox = this.$('.selector')[0];
     var selected = checkbox.checked;
     if(e.target != checkbox) selected = !selected;
-    this.selected = checkbox.checked = selected;
+    this.options.selected = checkbox.checked = selected;
     this.$('.selector').val('checked', selected);
     $(this.el).toggleClass('selected', selected);
   },
 
   edit: function(e) {
-    this.selected = true;
-    this.editable = true;
+    $.extend(this.options, {
+      editable: true,
+      selected: true
+    });
     this.render();
     this.$('input[name=user]').focus();
   }
@@ -89,7 +97,8 @@ var AuthServerAuthorizationLineView = Backbone.View.extend({
 
 var AuthServerAuthorizationsView = Backbone.View.extend({
   events: {
-    "click input.delete": "del"
+    "click input.delete": "del",
+    "click input.new": "new_authorization"
   },
 
   render: function() {
@@ -112,21 +121,39 @@ var AuthServerAuthorizationsView = Backbone.View.extend({
     var self = this;
     var to_delete = [], ids_to_delete = [], to_keep = [];
     _(this.model).each(function(authorization) {
-      if(authorization.view.selected) {
+      if(authorization.view.options.selected) {
         to_delete.push(authorization);
-        ids_to_delete.push(authorization.id);
+        authorization.id && ids_to_delete.push(authorization.id);
       }
       else to_keep.push(authorization);
     });
     R.Authorization.delete_({ids: ids_to_delete}, function() {
       self.model = to_keep;
       to_delete.forEach(function(authorization) {
-        $(authorization.view.el).remove();
-       });
+        authorization.view.remove();
+      });
       console.log("Authorization(s) deleted.");
     }, function(err) {
       console.error('Could not delete the authorizations:', err);
     });
+  },
+
+  new_authorization: function() {
+    var self = this;
+    var authorization = new R.Authorization();
+    var line = new AuthServerAuthorizationLineView({
+      model: authorization,
+      editable: true,
+      selected: true,
+      delete_: function() {
+        line.remove();
+        self.model = _.without(self.model, authorization);
+      }
+    }).render();
+    authorization.view = line;
+    this.model.push(authorization);
+    this.$('tbody').append(line.el);
+    line.$('input[name=user]').focus();
   }
 });
 
