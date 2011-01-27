@@ -1,6 +1,6 @@
 var AuthServerAuthorizationLineView = Backbone.View.extend({
   events: {
-    "keypress input[type=text]": "keypress_authorization",
+    "keyup input[type=text]": "keypress_authorization",
     "click input[type=text]": "stop_propagation",
     "click": "selection",
     "dblclick": "edit"
