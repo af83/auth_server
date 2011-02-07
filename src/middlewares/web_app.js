@@ -1,7 +1,7 @@
-var ms_templates = require('../lib/ms_templates');
-var oauth2_client = require('oauth2_client');
-var tools = require('nodetk/server_tools');
-
+var ms_templates = require('../lib/ms_templates')
+  , oauth2_client = require('oauth2_client')
+  , router = require('connect').router
+;
 
 var serve_web_app = function(req, res) {
   /* Serves the web application html if user logged in.
@@ -18,15 +18,15 @@ var serve_web_app = function(req, res) {
   res.end(body);
 };
 
-
+/**
+ *  Returns auth_server web application connect middleware.
+ *
+ * This middleware will take care of serving the auth_server web app
+ * components.
+ *
+ */
 exports.connector = function() {
-  /* Returns auth_server web application connect middleware.
-   *
-   * This middleware will take care of serving the auth_server web app
-   * components.
-   *
-   */
-  var routes = {GET: {}};
-  routes.GET['/'] = serve_web_app;
-  return tools.get_connector_from_str_routes(routes);
+  return router(function(app) {
+    app.get('/', serve_web_app);
+  });
 };

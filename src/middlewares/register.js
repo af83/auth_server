@@ -4,6 +4,7 @@ var ms_templates = require('../lib/ms_templates');
 var tools = require('nodetk/server_tools');
 var email = require('../lib/email');
 var RFactory = require('../model').RFactory;
+var router = require('connect').router;
 
 var BASE_URL;
 
@@ -116,26 +117,26 @@ var process_register = function(req, res) {
   });
 };
 
-
+/**
+ *  Returns auth_server connect middleware for registration process.
+ *
+ * This middleware will take care of displaying registration form +
+ * handling the result, and the confirmation link in email.
+ *
+ * This middleware must be placed after the following middlewares:
+ *  - connect-form
+ *
+ * Arguments:
+ *  - config: hash (non optional)
+ *    - base_url: the base url to access the site. ex: http://toto.com
+ *
+ */
 exports.connector = function(config) {
-  /* Returns auth_server connect middleware for registration process.
-   *
-   * This middleware will take care of displaying registration form +
-   * handling the result, and the confirmation link in email.
-   *
-   * This middleware must be placed after the following middlewares:
-   *  - connect-form
-   *
-   * Arguments:
-   *  - config: hash (non optional)
-   *    - base_url: the base url to access the site. ex: http://toto.com
-   *
-   */
   BASE_URL = config.base_url;
-  var routes = {GET: {}, POST: {}};
-  routes.GET['/register'] = register_page;
-  routes.POST['/register'] = process_register;
-  routes.GET['/register/success'] = register_success_page;
-  routes.GET['/register/confirm'] = confirm_registration;
-  return tools.get_connector_from_str_routes(routes);
+  return router(function(app) {
+    app.get('/register', register_page);
+    app.post('/register', process_register);
+    app.get('/register/success', register_success_page);
+    app.get('/register/confirm', confirm_registration);
+  });
 };

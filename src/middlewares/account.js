@@ -1,5 +1,5 @@
-var tools = require('nodetk/server_tools');
 var RFactory = require('../model').RFactory;
+var router = require('connect').router;
 
 var update_password = function(req, res) {
   /* Update password if the current user */
@@ -38,15 +38,14 @@ var update_password = function(req, res) {
 
 };
 
-
+/**
+ *  Returns auth_server web application connect middleware.
+ *
+ * This middleware will take care of serving the auth_server web app
+ * components.
+ */
 exports.connector = function() {
-  /* Returns auth_server web application connect middleware.
-   *
-   * This middleware will take care of serving the auth_server web app
-   * components.
-   *
-   */
-  var routes = {POST: {}};
-  routes.POST['/me/password'] = update_password;
-  return tools.get_connector_from_str_routes(routes);
+  return router(function(app) {
+    app.post('/me/password', update_password);
+  });
 };

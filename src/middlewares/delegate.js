@@ -2,9 +2,9 @@
 
 var URL = require('url')
   , oauth2_client = require('oauth2_client')
-  , tools = require('nodetk/server_tools')
   , authentication = require('../authentication')
   , extract_client_data = authentication.extract_client_data
+  , router = require('connect').router
   ;
 
 
@@ -25,15 +25,15 @@ var delegate = function(req, res) {
   oauth2_client.redirects_for_login(params.provider, res, redirect_uri, info);
 };
 
-
+/**
+ *  Returns auth_server web application connect middleware.
+ *
+ * This middleware will take care of serving the auth_server web app
+ * components.
+ *
+ */
 exports.connector = function() {
-  /* Returns auth_server web application connect middleware.
-   *
-   * This middleware will take care of serving the auth_server web app
-   * components.
-   *
-   */
-  var routes = {GET: {}};
-  routes.GET['/login/delegate'] = delegate;
-  return tools.get_connector_from_str_routes(routes);
+  return router(function(app) {
+    app.get('/login/delegate', delegate);
+  });
 };

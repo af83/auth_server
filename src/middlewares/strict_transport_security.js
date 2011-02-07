@@ -9,7 +9,7 @@
  */
 exports.strictTransportSecurity = function(maxAge, includeSubdomains) {
   return function(req, res, next) {
-    var originalWriteHead =  res.writeHead;
+    var originalWriteHead = res.writeHead;
     res.writeHead = function(status, headers) {
       headers = headers || {};
       headers['Strict-Transport-Security'] = "max-age=" + maxAge +
