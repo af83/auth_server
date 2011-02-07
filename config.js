@@ -15,7 +15,7 @@ exports.db = {
 };
 
 var server = exports.server = {
-  base_url: "http://example.com:7070",
+  base_url: "http://localhost:7070",
   port: 7070,
 };
 
@@ -60,4 +60,3 @@ var oauth2_client = exports.oauth2_client = {
   },
   name: 'auth_server'
 };
-
