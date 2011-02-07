@@ -18,6 +18,7 @@
 , 'oauth2_client_node/src'
 , 'oauth2_server_node/src'
 , 'node-base64'
+, 'connect-sts'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
@@ -28,12 +29,11 @@ exports.get_session_middleware = function() {
 
 var connect = require('connect')
   , connect_form = require('connect-form')
-
   , CLB = require('nodetk/orchestration/callbacks')
   , bserver = require('nodetk/browser/server')
   , oauth2_client = require('oauth2_client')
   , querystring = require('querystring')
-  , randomString = require('nodetk/random_str').randomString  
+  , randomString = require('nodetk/random_str').randomString
   , rest_server = require('rest-mongo/http_rest/server')
   , web = require('nodetk/web')
 
@@ -45,8 +45,7 @@ var connect = require('connect')
   , registration = require('./middlewares/register')
   , web_app = require('./middlewares/web_app')
   , authentication = require('./authentication')
-  , strictTransportSecurity = require('./middlewares/strict_transport_security')
-                                  .strictTransportSecurity
+  , strictTransportSecurity = require('connect-sts')
   , account = require('./middlewares/account')
   , model = require('./model')
   , RFactory = model.RFactory
@@ -62,7 +61,7 @@ var oauth2_client_options = {
       // request the grant checking function.
       var R = RFactory();
       oauth2_server.valid_grant(R, {
-        code: code, 
+        code: code,
         client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id,
         redirect_uri: config.oauth2_client.client.redirect_uri
       }, callback, fallback)
@@ -82,7 +81,7 @@ var oauth2_client_options = {
   },
   "facebook.com": {
     transform_token_response: function(body) {
-      // It seems Facebook does not respect OAuth2 draft 10 here, so we 
+      // It seems Facebook does not respect OAuth2 draft 10 here, so we
       // have to override the method.
       var data = querystring.parse(body);
       if(!data.access_token) return null;
@@ -94,7 +93,7 @@ var oauth2_client_options = {
       // XXX: for now, we only send grant once we have validated
       // grant sent by the other side.
       var params = {access_token: data.token.access_token};
-      web.GET('https://graph.facebook.com/me', params, 
+      web.GET('https://graph.facebook.com/me', params,
               function(status_code, headers, body) {
         if(status_code != 200)
           return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
@@ -137,7 +136,7 @@ var auth_check = function(req, res, next, info) {
     res.writeHead(403, {}); res.end();
   }
   else {
-    delete info.data.token;    
+    delete info.data.token;
     next();
   }
 };
@@ -180,4 +179,3 @@ if(process.argv[1] == __filename) {
     console.log('Server listening on ' + config.server.base_url);
   });
 }
-
