@@ -36,8 +36,7 @@ var load_users = function(callback) {
   var emails = [
     'pruyssen@af83.com',
     'toto@af83.com',
-    'titi@titi.com',
-    'ori@af83.com'
+    'titi@titi.com'
   ];
 
   if (config.hash_lib == "bcrypt") {
@@ -72,8 +71,7 @@ var load_clients = function(callback) {
     ["text_server", 'http://127.0.0.1:5000/oauth2/process'],
     ["test_client", 'http://127.0.0.1:7070/login/process/'],
     ["geeks", 'http://127.0.0.1:3000/oauth2/process'],
-    ['trac', 'http://localhost:8080/trac_env_test/auth_server_process'],
-    ['local_redishttp', 'http://localhost:3000/oauth2/process']
+    ['trac', 'http://localhost:8080/trac_env_test/auth_server_process']
   ];
   clients = clients.map(function(t) {
     var client = new R.Client({
@@ -106,18 +104,7 @@ var load_authorizations = function(callback) {
     ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
     ['pruyssen@af83.com', 'text_server', 'text_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']],
-    ['ori@af83.com', config.oauth2_client.name,
-                          config.oauth2_client.name, ['admin']],
-    ['ori@af83.com', 'errornot', 'errornot', ['user', 'admin']],
-    ['ori@af83.com', 'errornot', 'text_server', ['user', 'admin']],
-    ['ori@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
-    ['ori@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
-    ['ori@af83.com', 'text_server', 'text_server', ['user', 'admin']],
-    ['ori@af83.com', 'geeks', '/', ['user', 'admin']],
-    ['ori@af83.com', 'local_redishttp', '/', ['user', 'admin']],
-    ['ori@af83.com', 'local_redishttp', '/redis', ['user', 'admin']],
-    ['ori@af83.com', 'local_redishttp', '/vote', ['user', 'admin']],
+    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']]
   ];
   auths = auths.map(function(auth) {
     return new R.Authorization({
