@@ -4,12 +4,11 @@
 <head>
   <title>Auth server: authentication and authorization!</title>
   <link type="text/css" rel="stylesheet" href="/css/gui.css"/>
-  <link type="text/css" rel="stylesheet" href="/css/authorizations.css"/>  
   <link type="text/css" rel="stylesheet" href="/css/global.css" />
 </head>
 
 <body>
- 
+
  <div id="wrapper">
 
   <div id="logo">
@@ -25,9 +24,6 @@
       </li>
       <li>
         <a href="#/u">Users</a>
-      </li>
-      <li>
-        <a href="#/a">Authorizations</a>
       </li>
     </ul>
   </div>
@@ -71,10 +67,10 @@
     require.ensure([
       'util',
       'events',
-      
+
       'rest-mongo/core',
       'rest-mongo/http_rest/jquery_backend',
-    
+
       'nodetk/logging',
       'nodetk/orchestration/callbacks',
       'nodetk/random_str',

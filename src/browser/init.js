@@ -12,7 +12,6 @@ callbacks = require('nodetk/orchestration/callbacks');
 
 new AuthServerClientsController();
 new AuthServerUsersController();
-new AuthServerAuthorizationsController();
 new AuthServerAccountController();
 Backbone.history.start();
 

@@ -21,7 +21,7 @@ var DEBUG = false;
 var clear_collections = function(callback) {
   /* Erase all the data (delete the store files) and call callback.
    */
-  var collections = [R.Client, R.Grant, R.User, R.Authorization];
+  var collections = [R.Client, R.Grant, R.User];
   var waiter = CLB.get_waiter(collections.length, function() {
     callback && callback();
   });
