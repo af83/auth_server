@@ -9,7 +9,7 @@ var oauth2_server = require('oauth2/server')
   ;
 
 exports.init_client_id = function(callback) {
-  /* Lookup in DB and set config.oauth2_client.client_id 
+  /* Lookup in DB and set config.oauth2_client.client_id
    *
    * Arguments:
    *  - callback: to be called once it's done.
@@ -18,7 +18,7 @@ exports.init_client_id = function(callback) {
   var R = RFactory()
     , name = config.oauth2_client.name;
   R.Client.index({query: {name: name}}, function(clients) {
-    if(clients.length != 1) 
+    if(clients.length != 1)
       throw new Error('There must be one and only one ' + name);
     config.oauth2_client.servers['auth_server'].client_id = clients[0].id;
     callback();
@@ -87,7 +87,7 @@ var extract_client_data = exports.extract_client_data = function(info) {
    *  - info: string containing the information
    *
    */
-  // TODO: check signature against data  
+  // TODO: check signature against data
   if(!info) return null;
   try {
     var data = base64.decode(info);
@@ -136,7 +136,7 @@ exports.process_login = function(req, res) {
     R.User.index({query: {email: fields.email, confirmed: 1}}, function(users) {
       if(users.length != 1) return fail_login(req, res, client_data);
       var user = users[0];
-      
+
       user.check_password(fields.password, function(good) {
         if(!good) return fail_login(req, res, client_data);
 
