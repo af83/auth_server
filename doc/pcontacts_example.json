@@ -31,7 +31,7 @@
       "tags": [
         "node",
         "python",
-        "oauth2",
+        "oauth2"
       ],
       "emails": [
         {
@@ -52,7 +52,7 @@
         {
           "value": "http://John.Doe.fr",
           "type": "home"
-        },
+        }
       ],
       "phoneNumbers": [
         {
