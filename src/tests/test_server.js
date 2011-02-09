@@ -374,7 +374,7 @@ exports.tests = [
   });
 }],
 
-['GET /portable_contacts/@me/@self: return current user info', 2, function() {
+['GET /portable_contacts/@me/@self: return current user info', 5, function() {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
