@@ -2,7 +2,6 @@
 var DATA = require('./init').init(exports)
   , assert = DATA.assert
   , R = DATA.R
-  , portable_contacts = require('../lib/portable_contacts')
   ;
 
 require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
@@ -372,6 +371,37 @@ exports.tests = [
         });
       });
     }, 10);
+  });
+}],
+
+['GET /portable_contacts/@me/@self: return current user info', 2, function() {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0]
+    , oauth_token = oauth2.create_access_token(user.id, DATA.client_id)
+    ;
+    var check_answer = function(statusCode, headers, body) {
+      assert.equal(statusCode, 200);
+      var content = JSON.parse(body);
+      delete content.entry[0].id;
+      assert.deepEqual(content, {
+        startIndex: 0,
+        itemsPerPage: 1,
+        totalResults: 1,
+        entry: [
+          {
+            displayName: 'pruyssen',
+            emails: [
+              {value: 'pruyssen@af83.com'}
+            ]
+          }
+        ]
+      });
+    };
+    web.GET(base_url + '/portable_contacts/@me/@self', {oauth_token: oauth_token}, check_answer);
+    web.GET(base_url + '/portable_contacts/@me/@self', {}, check_answer, {
+      additional_headers: {'Authorization': 'OAuth '+oauth_token}
+    });
   });
 }]
 ]

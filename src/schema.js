@@ -27,11 +27,20 @@ exports.schema = {
 
       properties: {
         id: {type: "string"},
+        displayName: {type: "string"},
         email: {type: "string"},
-        confirmed: {type: "integer"} // 1 if registration confirmed
+        confirmed: {type: "integer"}, // 1 if registration confirmed
+        contacts: {}
       }
     },
     methods: {
+      toPortableContact: function() {
+        return {
+          id: this.id, // TODO: should an hash of clientid + mongodb id
+          displayName: this.displayName,
+          emails: [{value: this.email}]
+        };
+      }
     }
   },
 
@@ -53,27 +62,6 @@ exports.schema = {
         additional_info: {type: "object"}
       }
     }
-  },
-
-  Authorization: {
-    resource: '/authorizations',
-    schema: {
-      id: "Authorization",
-      description: "Represents an end-user list of roles, " +
-                  " given an application (client) and a context.",
-      type: "object",
-
-      properties: {
-        id: {type: 'string'},
-        // We just store the email, as we want to be able to give authorization
-        // to users not registered yet.
-        email: {type: 'string'},
-        client: {'$ref': 'Client'},
-        context: {'type': 'string'},
-        roles: {type: 'array', items: {type: "string"}}
-      }
-    }
   }
-
 }
 

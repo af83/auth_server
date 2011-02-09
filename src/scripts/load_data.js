@@ -9,6 +9,7 @@ var server = require('../server')
   , fs = require('fs')
   , R = model.RFactory()
   , config = require('../lib/config_loader').get_config()
+  , hash = require('../lib/hash')
 
   // indexes:
   , email2user = {}
@@ -39,24 +40,27 @@ var load_users = function(callback) {
     'titi@titi.com'
   ];
 
-  if (config.hash_lib == "bcrypt") {
-    var password = "$2a$04$DihcjQ4rOLjKtusXGcOwsO3SjbUA5oC/GLAJHBXoPhHsSODCcybDC";
-  } // password = 1234 (hashed using bcrypt)
-  else if (config.hash_lib == "crypto"){
-    var password = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
-  } // password = 1234 (hashed using sha256)
+  var data_file = __dirname +'/../../doc/pcontacts_example.json';
+  fs.readFile(data_file, 'utf8', function(err, data) {
+    if(err) throw err;
+    var json_users = JSON.parse(data).entry;
 
-  var users = emails.map(function(email) {
-    var user =  new R.User({
-      email: email,
-      password: password,
-      confirmed: 1,
+    hash.hash('1234', function(password) {
+      var users = emails.map(function(email) {
+        var user =  new R.User({
+          email: email,
+          password: password,
+          displayName: email.substring(0, email.indexOf('@')),
+          confirmed: 1,
+          contacts: json_users
+        });
+        email2user[user.email] = user;
+        return user;
+      });
+      R.save(users, callback, function(err) {
+        throw err;
+      });
     });
-    email2user[user.email] = user;
-    return user;
-  });
-  R.save(users, callback, function(err) {
-    throw err;
   });
 };
 
@@ -84,37 +88,8 @@ var load_clients = function(callback) {
   });
   R.save(clients, function() {
     config.oauth2_client.client_id = name2client[config.oauth2_client.name].id;
-    DEBUG && console.log('test_client id:', name2client['test_client'].id);
     callback()
   }, function(err) {
-    throw err;
-  });
-};
-
-
-var load_authorizations = function(callback) {
-  /* Load authorizations in DB.
-   */
-  var auths = [
-   // user email , client name, context, roles
-    ['pruyssen@af83.com', config.oauth2_client.name,
-                          config.oauth2_client.name, ['admin']],
-    ['pruyssen@af83.com', 'errornot', 'errornot', ['user', 'admin']],
-    ['pruyssen@af83.com', 'errornot', 'text_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'errornot', 'auth_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'text_server', 'auth_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'text_server', 'text_server', ['user', 'admin']],
-    ['pruyssen@af83.com', 'geeks', '/', ['user', 'admin']]
-  ];
-  auths = auths.map(function(auth) {
-    return new R.Authorization({
-      email: auth[0],
-      client: name2client[auth[1]],
-      context: auth[2],
-      roles: auth[3]
-    })
-  });
-  R.save(auths, callback, function(err) {
     throw err;
   });
 };
@@ -123,7 +98,7 @@ var load_authorizations = function(callback) {
 var run = exports.run = function(callback) {
   clear_collections(function() {
     var waiter = CLB.get_waiter(2, function() {
-      load_authorizations(callback);
+      callback();
     });
     load_users(waiter);
     load_clients(waiter);
@@ -138,4 +113,3 @@ if(process.argv[1] == __filename) {
     process.exit()
   });
 }
-

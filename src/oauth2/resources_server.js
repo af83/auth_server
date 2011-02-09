@@ -2,109 +2,53 @@ var URL = require('url');
 
 var oauth2 = require('oauth2/common')
   , RFactory = require('../model').RFactory
-  , tools = require('nodetk/server_tools')
+  , router = require('connect').router
   , url = require('url')
   , portable_contacts = require('../lib/portable_contacts')
   ;
 
-
-var get_info = exports.get_info = 
-function(client_id, user_id, additional_info, callback, fallback) {
-  /* Get email and authorizations for a client and a user.
-   *
-   * Arguments:
-   *  - client_id: id of the client you want the authorizations for.
-   *  - user_id: id of the user. Authorizations will be about this user
-   *    on given client.
-   *  - additional_info
-   *  - callback: to be called with info as first arguments.
-   *    info = {email: 'toto@titi.com', authorization: {...}}
-   *    Authorizations is a hash such as: {context: [role1, role2,...]}.
-   *    If info is null, then the user doesn't exist.
-   *  - fallback: to be called with error as first argument in case of problem.
-   *
-   */
-  var R = RFactory();
-  var info = {authorizations: {}};
-  R.User.get({ids: user_id}, function(user) {
-    if(!user) { // The user doesn't exist anymore.
-      return callback(null);
-    }
-    info.email = user.email;
-    R.Authorization.index({query: {
-      'client.id': client_id,
-      'email': user.email
-    }}, function(authorizations) {
-      authorizations.forEach(function(auth) {
-        info.authorizations[auth.context] = auth.roles;
-      });
-      callback(info);
-    }, fallback);
-  }, fallback);
-};
-
-var provider_info = {};
-provider_info['facebook.com'] = 
-function(client_id, user_id, additional_info, callback, fallback) {
-  console.log(JSON.stringify(additional_info));
-  var info = {
-    'client.id': client_id
-  , 'email': null
-  , 'name': additional_info.name
-  , 'authorizations': {}
-  };
-  callback(info);
-};
-
-
-var get_auths = function(req, res) {
-  /* Returns basic information about a user + its authorizations (roles)
-   * for the client (user_id and client_id in given oauth_token).
-   *
-   * This is kind of specific to auth_server API.
-   *
-   * TODO: The reply needs some work to be compliant.
-   * (have to include token in reply headers?)
-   * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
-   *
-   */
+/**
+ * Returns basic information about a user
+ * for the client (user_id and client_id in given oauth_token).
+ *
+ * This is kind of specific to auth_server API.
+ *
+ * TODO: The reply needs some work to be compliant.
+ * (have to include token in reply headers?)
+ * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
+ *
+ */
+var get_user_portable_contact = function(req, res) {
   var query = url.parse(req.url, true).query || {};
-  if(!query.authority || !query.domain) {
-    res.writeHead(400, {"Content-Type": "application/json"});
-    return res.end('{"error": "Missing parameter."}');
-  }
   oauth2.check_token(req, res, function(token_info) {
     var user_id = token_info.user_id
       , client_id = token_info.client_id
-      , info = {authorizations: {}}
-      , get_info_ = get_info
       ;
-    if(token_info.additional_info && token_info.additional_info.provider) {
-      get_info_ = provider_info[token_info.additional_info.provider];
-    }
-    get_info_(client_id, user_id, token_info.additional_info, function(info_) {
-      if(info_ == null) {
-        res.writeHead('404', {}); res.end();
-        return;
+    var R = RFactory();
+    R.User.get({ids: user_id}, function(user) {
+      if(!user) { // The user doesn't exist anymore.
+        res.writeHead(404);
+        res.end('this user doen\'t exist');
+        return null;
       }
-      portable_contacts.get_account_userid(query.domain, query.authority, info_.email,
-                                           function(userid) {
-        info.userid = userid || info_.email;
-        info.authorizations = info_.authorizations;
-        res.writeHead(200, {"Content-Type": "text/html"});
-        res.end(JSON.stringify(info));
-      });
-    }, function(err) {tools.server_error(res, err)});
+      var result = { startIndex: 0
+                     , itemsPerPage: 1
+                     , totalResults: 1
+                     , entry: [user.toPortableContact()]
+                   };
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(JSON.stringify(result));
+    });
   });
 };
 
-
+/**
+ * Returns OAuth2 resources server connect middleware.
+ */
 exports.connector = function() {
-  /* Returns OAuth2 resources server connect middleware.
-   *
-   */
-  var routes = {GET: {}};
-  routes.GET['/auth'] = get_auths;
-  return tools.get_connector_from_str_routes(routes);
+  return router(function(app) {
+    app.get('/portable_contacts/@me/@all/:id', function(req, res) {});
+    app.get('/portable_contacts/@me/@all', function(req, res) {});
+    app.get('/portable_contacts/@me/@self', get_user_portable_contact);
+  });
 };
-
