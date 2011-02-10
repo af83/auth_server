@@ -87,9 +87,6 @@ oauth2_server_node uses many other projects, including:
  - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
  - [bcrypt_hash](https://github.com/virtuo/bcrypt_hash)
-
-All dependencies are included in repository or packaged via git submodules, except:
-
   - node (v0.3.8)
   - mongodb (>=v1.4)
   - libbsd-dev
@@ -97,6 +94,8 @@ All dependencies are included in repository or packaged via git submodules, exce
   - gcc
   - xgettext and msgfmt (Debian package gettext)
 
+    $> git submodule --init --recursive
+    $> npm bundle
 
 ## Projects and organizations using auth_server
 

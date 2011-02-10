@@ -1,3 +1,14 @@
 { "name" : "AuthServer"
 , "version": "0.0.5pre"
+, "dependencies": {
+  "connect": "",
+  "connect-form": "",
+  "formidable": "",
+  "cookie-sessions": "",
+  "connect-sts": "",
+  "mail": "",
+  "eyes": "",
+  "mustache": "",
+  "base64":""
+}
 }

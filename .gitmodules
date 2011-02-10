@@ -1,45 +1,18 @@
-[submodule "vendors/eyes"]
-	path = vendors/eyes
-	url = git://github.com/cloudhead/eyes.js.git
 [submodule "vendors/nodetk"]
 	path = vendors/nodetk
 	url = git://github.com/AF83/nodetk.git
 [submodule "vendors/rest-mongo"]
 	path = vendors/rest-mongo
 	url = git://github.com/AF83/rest-mongo.git
-[submodule "vendors/node-formidable"]
-	path = vendors/node-formidable
-	url = git://github.com/felixge/node-formidable.git
 [submodule "vendors/jquery.mustache"]
 	path = vendors/jquery.mustache
 	url = git://github.com/AF83/jquery.mustache.git
-[submodule "vendors/connect"]
-	path = vendors/connect
-	url = git://github.com/senchalabs/connect.git
-[submodule "vendors/mustache"]
-	path = vendors/mustache
-	url = git://github.com/janl/mustache.js.git
-[submodule "vendors/cookie-sessions"]
-	path = vendors/cookie-sessions
-  url = git://github.com/virtuo/cookie-sessions.git
-[submodule "connect-form"]
-	path = connect-form
-	url = git://github.com/visionmedia/connect-form.git
-[submodule "vendors/connect-form"]
-	path = vendors/connect-form
-	url = git://github.com/visionmedia/connect-form.git
 [submodule "vendors/bcrypt_hash"]
 	path = vendors/bcrypt_hash
 	url = git://github.com/virtuo/bcrypt_hash.git
-[submodule "vendors/node-mail"]
-	path = vendors/node-mail
-	url = git://github.com/weaver/node-mail.git
 [submodule "vendors/oauth2_client_node"]
 	path = vendors/oauth2_client_node
 	url = git://github.com/AF83/oauth2_client_node.git
 [submodule "vendors/oauth2_server_node"]
 	path = vendors/oauth2_server_node
 	url = git://github.com/AF83/oauth2_server_node.git
-[submodule "vendors/connect-sts"]
-	path = vendors/connect-sts
-	url = https://github.com/AF83/connect-sts.git

@@ -6,23 +6,13 @@
  */
 
 // Add location of submodules to path:
-[ 'node-formidable/lib'
-, 'eyes/lib'
-, 'nodetk/src'
+[ 'nodetk/src'
 , 'rest-mongo/src'
-, 'connect/lib'
-, 'cookie-sessions/lib'
-, 'connect-form/lib'
-, 'mustache/lib'
-, 'node-mail/lib'
 , 'oauth2_client_node/src'
 , 'oauth2_server_node/src'
-, 'node-base64'
-, 'connect-sts'
 ].forEach(function(submodule) {
   require.paths.unshift(__dirname + '/../vendors/' + submodule);
 });
-
 exports.get_session_middleware = function() {
   return require('cookie-sessions');
 };
@@ -52,7 +42,6 @@ var connect = require('connect')
   , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
   ;
-
 
 var oauth2_client_options = {
   "auth_server": {
