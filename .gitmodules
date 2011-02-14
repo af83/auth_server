@@ -1,18 +1,9 @@
-[submodule "vendors/nodetk"]
-	path = vendors/nodetk
-	url = git://github.com/AF83/nodetk.git
-[submodule "vendors/rest-mongo"]
-	path = vendors/rest-mongo
-	url = git://github.com/AF83/rest-mongo.git
 [submodule "vendors/jquery.mustache"]
 	path = vendors/jquery.mustache
 	url = git://github.com/AF83/jquery.mustache.git
 [submodule "vendors/bcrypt_hash"]
 	path = vendors/bcrypt_hash
 	url = git://github.com/virtuo/bcrypt_hash.git
-[submodule "vendors/oauth2_client_node"]
-	path = vendors/oauth2_client_node
-	url = git://github.com/AF83/oauth2_client_node.git
 [submodule "vendors/oauth2_server_node"]
 	path = vendors/oauth2_server_node
 	url = git://github.com/AF83/oauth2_server_node.git

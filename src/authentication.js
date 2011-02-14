@@ -77,7 +77,7 @@ var pack_data = exports.pack_data = function(data) {
   /* Returns data (obj) packed and signed as a string.
    */
   // TODO: sign data
-  return base64.encode(JSON.stringify(data));
+  return base64.encode(new Buffer(JSON.stringify(data)));
 };
 
 var extract_client_data = exports.extract_client_data = function(info) {

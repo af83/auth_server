@@ -1,5 +1,5 @@
 var ms_templates = require('../lib/ms_templates')
-  , oauth2_client = require('oauth2_client')
+  , oauth2_client = require('oauth2-client')
   , router = require('connect').router
 ;
 

@@ -1,7 +1,7 @@
 /* Middleware taking care of the delegation process */
 
 var URL = require('url')
-  , oauth2_client = require('oauth2_client')
+  , oauth2_client = require('oauth2-client')
   , authentication = require('../authentication')
   , extract_client_data = authentication.extract_client_data
   , router = require('connect').router
