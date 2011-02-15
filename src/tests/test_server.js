@@ -16,8 +16,7 @@ var http = require('http')
   , eyes = require('eyes')
 
   , config = require('../lib/config_loader').get_config()
-  , oauth2 = require('oauth2/common')
-  , oauth2_server = require('oauth2/server')
+  , oauth2_server = require('oauth2-server')
   ;
 
 
@@ -41,7 +40,7 @@ var get_error_checker = function(type, error_code) {
     var error = JSON.parse(data);
     assert.deepEqual(error, {error: {
       type: 'OAuthException',
-      message: error_code + ': ' + oauth2.ERRORS[type][error_code]
+      message: error_code + ': ' + oauth2_server.ERRORS[type][error_code]
     }});
   };
 };
@@ -137,12 +136,12 @@ exports.tests = [
   web.POST(login_url, {
     email: 'pruyssen@af83.com',
     password: '1234',
-    info: base64.encode(JSON.stringify({
+    info: base64.encode(new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    }))
+    })))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 303);
     var location = headers.location.split('?');
@@ -165,12 +164,12 @@ exports.tests = [
     state: 'somestate',
     email: 'pruyssen@af83.com',
     password: '123456',
-    info: base64.encode(JSON.stringify({
+    info: base64.encode(new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    }))
+    })))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });
@@ -181,12 +180,12 @@ exports.tests = [
   web.POST(login_url, {
     email: 'toto@af83.com',
     password: '123456',
-    info: base64.encode(JSON.stringify({
+    info: base64.encode(new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    }))
+    })))
   }, function(statusCode, headers, data) {
     assert.equal(statusCode, 401);
   });
@@ -378,7 +377,7 @@ exports.tests = [
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
-    , oauth_token = oauth2.create_access_token(user.id, DATA.client_id)
+    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
     ;
     var check_answer = function(statusCode, headers, body) {
       assert.equal(statusCode, 200);
