@@ -51,19 +51,26 @@ exports.schema = {
       type: "object",
 
       properties: {
-        id: {type: "string"},
-        user: {type: "string", "$ref": "User"},
-        displayName: {type: "string"},
-        emails: {type: "object"}
+        id: {type: "string"}
+      , user: {type: "string", "$ref": "User"}
+      , birthday: {type: "string"}
+      , gender: {type: "string"}
+      , displayName: {type: "string"}
+      , name: {type: "object"}
+      , emails: {type: "object"}
+      , accounts: {type: "object"}
+      , urls: {type: "object"}
+      , phoneNumbers: {type: "object"}
+      , tags: {type: "object"}
       }
     },
     methods: {
+      // FIXME: should clone this
       toPortableContact: function() {
-        return {
-          id: this.id, // TODO: should be an hash of clientid + mongodb id
-          displayName: this.displayName,
-          emails: this.emails
-        };
+        delete this.id;
+        delete this.user;
+        delete this._pl;
+        return this;
       }
     }
   },

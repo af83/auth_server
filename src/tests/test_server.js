@@ -11,7 +11,7 @@ var http = require('http')
   , base64 = require('base64')
   , extend = require('nodetk/utils').extend
   , web = require('nodetk/web')
-  , eyes = require('eyes')
+  , util = require('util')
 
   , config = require('../lib/config_loader').get_config()
   , oauth2_server = require('oauth2-server')
@@ -402,7 +402,7 @@ exports.tests = [
   });
 }],
 
-['GET /portable_contacts/@me/@all', 5, function() {
+['GET /portable_contacts/@me/@all: no param', 11, function() {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
@@ -412,9 +412,35 @@ exports.tests = [
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
       assert.equal(content.entry.length, 2);
+      assert.ok(!content.entry[0].id);
+      assert.ok(!content.entry[0].user);
+      assert.ok(!content.entry[0]._pl);
     };
     web.GET(base_url + '/portable_contacts/@me/@all', {oauth_token: oauth_token}, check_answer);
     web.GET(base_url + '/portable_contacts/@me/@all', {}, check_answer, {
+      additional_headers: {'Authorization': 'OAuth '+oauth_token}
+    });
+  });
+}],
+
+['GET /portable_contacts/@me/@all: with email', 5, function() {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0]
+    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
+    ;
+    var check_answer = function(statusCode, headers, body) {
+      assert.equal(statusCode, 200);
+      var content = JSON.parse(body);
+      assert.equal(content.entry.length, 1);
+    };
+    var params = {filterBy: 'emails.value',
+                  filterOp: 'equals',
+                  filterValue: 'JDoe@example.com',
+                  oauth_token: oauth_token};
+    web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
+    delete params.oauth_token;
+    web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer, {
       additional_headers: {'Authorization': 'OAuth '+oauth_token}
     });
   });

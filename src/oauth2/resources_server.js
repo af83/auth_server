@@ -37,18 +37,16 @@ function get_user_portable_contacts(req, res) {
       return;
     }
   }
-  var R = RFactory();
   mongoquery['user.id'] = req.user.id;
+  var R = RFactory();
   R.Contact.index({query: mongoquery}, function(contacts) {
     var users = contacts.map(function(user) {
-      return {
-        displayName: user.displayName
-      }
+      return user.toPortableContact();
     });
     var result = { startIndex: 0
-                   , itemsPerPage: users.length
-                   , totalResults: users.length
-                   , entry: users
+                 , itemsPerPage: users.length
+                 , totalResults: users.length
+                 , entry: users
                  };
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(JSON.stringify(result));
