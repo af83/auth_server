@@ -2,7 +2,6 @@ var oauth2 = require('oauth2-server')
   , RFactory = require('../model').RFactory
   , router = require('connect').router
   , url = require('url')
-  , portable_contacts = require('../lib/portable_contacts')
   ;
 
 /**
