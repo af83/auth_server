@@ -51,7 +51,6 @@
   <script type="text/javascript" src="/js/templates_fr.js"></script>
 
   <script type="text/javascript" src="/js/utils.js"></script>
-  <script type="text/javascript" src="/js/authorizations.js"></script>
   <script type="text/javascript" src="/js/users.js"></script>
   <script type="text/javascript" src="/js/accounts.js"></script>
   <script type="text/javascript" src="/js/clients.js"></script>
