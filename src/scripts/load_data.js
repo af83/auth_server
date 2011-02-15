@@ -22,7 +22,7 @@ var DEBUG = false;
 var clear_collections = function(callback) {
   /* Erase all the data (delete the store files) and call callback.
    */
-  var collections = [R.Client, R.Grant, R.User];
+  var collections = [R.Client, R.Grant, R.User, R.Contact];
   var waiter = CLB.get_waiter(collections.length, function() {
     callback && callback();
   });
@@ -43,21 +43,34 @@ var load_users = function(callback) {
   var data_file = __dirname +'/../../doc/pcontacts_example.json';
   fs.readFile(data_file, 'utf8', function(err, data) {
     if(err) throw err;
-    var json_users = JSON.parse(data).entry;
+    var contacts = JSON.parse(data).entry;
 
     hash.hash('1234', function(password) {
       var users = emails.map(function(email) {
-        var user =  new R.User({
+        var user = new R.User({
           email: email,
           password: password,
           displayName: email.substring(0, email.indexOf('@')),
-          confirmed: 1,
-          contacts: json_users
+          confirmed: 1
         });
         email2user[user.email] = user;
         return user;
       });
-      R.save(users, callback, function(err) {
+      R.save(users, function() {
+        var toSave = [];
+        // save user's contacts
+        users.forEach(function(user) {
+          toSave = toSave.concat(contacts.map(function(contact) {
+            delete contact.id;
+            var c = new R.Contact(contact);
+            c.user = user;
+            return c;
+          }));
+        });
+        R.save(toSave, callback, function(err) {
+          throw err;
+        });
+      }, function(err) {
         throw err;
       });
     });

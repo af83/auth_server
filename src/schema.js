@@ -29,16 +29,40 @@ exports.schema = {
         id: {type: "string"},
         displayName: {type: "string"},
         email: {type: "string"},
-        confirmed: {type: "integer"}, // 1 if registration confirmed
-        contacts: {}
+        confirmed: {type: "integer"} // 1 if registration confirmed
       }
     },
     methods: {
       toPortableContact: function() {
         return {
-          id: this.id, // TODO: should an hash of clientid + mongodb id
+          id: this.id, // TODO: should be an hash of clientid + mongodb id
           displayName: this.displayName,
           emails: [{value: this.email}]
+        };
+      }
+    }
+  },
+
+  Contact: {
+    resource: '/contacts',
+    schema: {
+      id: "Contact",
+      description: "Contacts of users",
+      type: "object",
+
+      properties: {
+        id: {type: "string"},
+        user: {type: "string", "$ref": "User"},
+        displayName: {type: "string"},
+        emails: {type: "object"}
+      }
+    },
+    methods: {
+      toPortableContact: function() {
+        return {
+          id: this.id, // TODO: should be an hash of clientid + mongodb id
+          displayName: this.displayName,
+          emails: this.emails
         };
       }
     }

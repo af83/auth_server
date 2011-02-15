@@ -400,5 +400,24 @@ exports.tests = [
       additional_headers: {'Authorization': 'OAuth '+oauth_token}
     });
   });
+}],
+
+['GET /portable_contacts/@me/@all', 5, function() {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0]
+    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
+    ;
+    var check_answer = function(statusCode, headers, body) {
+      assert.equal(statusCode, 200);
+      var content = JSON.parse(body);
+      assert.equal(content.entry.length, 2);
+    };
+    web.GET(base_url + '/portable_contacts/@me/@all', {oauth_token: oauth_token}, check_answer);
+    web.GET(base_url + '/portable_contacts/@me/@all', {}, check_answer, {
+      additional_headers: {'Authorization': 'OAuth '+oauth_token}
+    });
+  });
 }]
+
 ]
