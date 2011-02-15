@@ -4,8 +4,6 @@ var DATA = require('./init').init(exports)
   , R = DATA.R
   ;
 
-require.paths.unshift(__dirname + '/../../vendors/eyes/lib');
-
 var http = require('http')
   , querystring = require('querystring')
   , URL = require('url')
