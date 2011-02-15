@@ -1,4 +1,4 @@
-var oauth2 = require('oauth2/common')
+var oauth2 = require('oauth2-server')
   , RFactory = require('../model').RFactory
   , router = require('connect').router
   , url = require('url')

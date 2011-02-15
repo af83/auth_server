@@ -11,8 +11,6 @@
   "mustache": "",
   "base64": "",
   "oauth2-client": "",
-  "oauth2-server": "",
-  "rest-mongo": "",
-  "nodetk": ""
+  "oauth2-server": ""
 }
 }
