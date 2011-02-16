@@ -56,14 +56,9 @@ var oauth2_client_options = {
     treat_access_token: function(data, req, res, callback, fallback) {
       // Idem, since we are auth_server, directly request get_authorizations
       var info = oauth2.token_info(data.token.access_token);
-      oauth2_resources_server.get_info(info.client_id, info.user_id, null, function(info) {
-        if(info) {
-          req.session.authorizations = info.authorizations;
-          req.session.token = randomString(128); // 22 chars length
-        }
-        // TODO: else display msg 'can only login using auth_server for that'
-        callback();
-      }, fallback);
+      req.session.authorizations = {'auth_server': 'admin'};
+      req.session.token = randomString(128); // 22 chars length
+      callback();
     }
   },
   "facebook.com": {
