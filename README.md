@@ -2,23 +2,18 @@
 
 ## Description
 
-  auth_server is a node application acting as an authentication and authorization provider. It enables an organization to easily handle authorizations and users credentials in one place, for many web applications. It uses [mongodb](http://www.mongodb.org/) as DB.
+auth_server is a node application acting as an authentication and portable contact server. It uses [mongodb](http://www.mongodb.org/) as DB.
+
+It's a part of a project named **turbulences** for creating a distributed social network.
 
 Based on [oauth2_client_node](https://github.com/AF83/oauth2_client_node) and [oauth2_server_node](https://github.com/AF83/oauth2_server_node), it follows the [draft 10 of the OAuth2 specification](http://tools.ietf.org/html/draft-ietf-oauth-v2-10). As these projects evolve, auth_server will follow the OAuth2 specification evolutions.
-
-The goal is to have an interface to be able to specify, for a given email, application and context, a list of roles: {application, context, email, [roles]}.
-For example, I want to let the user Alice have the role "admin" on the application "trac" inside the context "af83-rd" ({'trac', 'af83-rd', 'alice@af83.com', ['admin']}). When logging to "trac", Alice is redirected to auth_server, in which she signs in using her email/password. Alice is then redirected to the application "trac" with a token. Using this token, trac can ask auth_server what roles Alice have. Alice can now administer the "af83-rd" part of the "trac" application. Specifying {'trac', '*', '*@af83.com', ['user']} will enable every person @ af83 to be user on trac.
 
 The benefits are multiple:
 
  - there is only one application where Alice has to be registered (and so one set of credentials per user);
  - when developing a new application, there is no need to recreate all user registration process stuff, but only to plug the application to auth_server;
- - all the authorizations can be managed in a central place.
 
-Of course (to do things well), auth_server is plugged to itself: setting {'auth_server', 'trac', 'bob@af83.com', ['admin']} should enable Bob to administer the authorizations for the application 'trac' on auth_server.
-
-auth_server is functionnal (ie: users can sign in/out the the application and others applications using the service), but the administration interface lacks many features, including adding/editing authorizations. The asterik part described above is not implemented yet. Participations are welcome!
-
+auth_server is functionnal (ie: users can sign in/out the the application and others applications using the service), but the administration interface lacks many features, including adding/editing user's contacts.
 
 This project is alpha software, it might not be ready for production use yet.
 
@@ -29,7 +24,6 @@ auth_server is developed together with:
  - [oauth2_client_node](https://github.com/AF83/oauth2_client_node), a connect middleware featuring an OAuth2 client.
  - [oauth2_server_node](https://github.com/AF83/oauth2_server_node), a connect middleware featuring an OAuth2 server bases.
 
-
 ## Usage
 
 ### Installation
@@ -39,13 +33,11 @@ Make sure libbsd-dev and gettext (xgettext and msgfmt) are installed on your sys
     make install
     make update_js_templates
 
-
 ### Run the tests
 
 Make sure nodetk/bins is in your PATH environment variable and NODE_PATH environment variable includes node/lib directory. For more info on this, please have a look at the [nodetk README file](https://github.com/AF83/nodetk/blob/master/README.md). Then:
 
     nodetests src/tests
-
 
 ### Updating templates
 
@@ -56,7 +48,6 @@ When updating the templates, they need to be "repackaged" for the web applicatio
 or, to skip the i18n process:
 
     make skip
-
 
 ### Load some testing data in DB
 
@@ -70,7 +61,6 @@ This command will load some testing data in the DB:
 Tweak the config.js file to fit your needs, then:
 
     node src/server.js
-
 
 ## Dependencies
 
@@ -87,7 +77,7 @@ oauth2_server_node uses many other projects, including:
  - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
  - [bcrypt_hash](https://github.com/virtuo/bcrypt_hash)
-  - node (v0.3.8)
+  - node (v0.4)
   - mongodb (>=v1.4)
   - libbsd-dev
   - make
