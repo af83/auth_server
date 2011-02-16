@@ -19,6 +19,5 @@ exports.schema = {
         }, fallback);
       }
     }
-  },
-
+  }
 }

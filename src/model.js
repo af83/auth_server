@@ -10,7 +10,6 @@
 require.paths.unshift(__dirname + "/../vendors/rest-mongo/src")
 
 var events = require('events')
-
   , rest_mongo = require("rest-mongo/core")
   , mongo_backend = require("rest-mongo/mongo_backend")
   , config = require('./lib/config_loader').get_config()

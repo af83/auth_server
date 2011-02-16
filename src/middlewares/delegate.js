@@ -12,7 +12,7 @@ var delegate = function(req, res) {
   /* Delegates authentication to another provider.
    *
    */
-  var params = URL.parse(req.url, true).query || {};
+  var params = URL.parse(req.url, true).query;
   if(!params.provider) {
     res.writeHead(400, {'Content-Type': 'text/plain'});
     return res.end('Missing "provider" parameter.');

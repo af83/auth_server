@@ -55,7 +55,7 @@ exports.generate_templates = function(callback, fallback) {
 
 exports.render = function(template_name, data) {
   /* Renders the template with given data and returns result.
-   */   
+   */
   var template = TEMPLATES[template_name];
   if(!template) throw new Error('Unknown template name: ' + template_name);
   return mustache.to_html(template, data || {}, TEMPLATES);

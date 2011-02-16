@@ -31,4 +31,3 @@ else if(config.email.method == "dev") {
     if(callback) callback();
   };
 }
-

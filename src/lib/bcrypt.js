@@ -57,4 +57,3 @@ exports.check = function(hash, password, callback, fallback) {
     callback(stdout == "1\n");
   });
 };
-
