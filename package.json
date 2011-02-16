@@ -2,16 +2,16 @@
 , "description": "Application acting as an authentication and portable contacts provider (using OAuth2)"
 , "version": "0.0.5pre"
 , "dependencies": {
-  "connect": "",
-  "connect-form": "",
-  "formidable": "",
-  "cookie-sessions": "",
-  "connect-sts": "",
-  "mail": "",
-  "eyes": "",
-  "mustache": "",
-  "base64": "",
-  "oauth2-client": "",
-  "oauth2-server": ""
+  "connect": ""
+, "connect-form": ""
+, "formidable": ""
+, "cookie-sessions": ""
+, "connect-sts": ""
+, "mail": ""
+, "eyes": ""
+, "mustache": ""
+, "base64": ""
+, "oauth2-client": ""
+, "oauth2-server": ""
 }
 }
