@@ -444,6 +444,33 @@ exports.tests = [
       additional_headers: {'Authorization': 'OAuth '+oauth_token}
     });
   });
-}]
+}],
+
+['FilterOp contains is not implemented', 3, test_filter_op_not_implemented('contains')],
+['FilterOp startwith is not implemented', 3, test_filter_op_not_implemented('startwith')],
+['FilterOp present is not implemented', 3, test_filter_op_not_implemented('present')],
 
 ]
+
+function test_filter_op_not_implemented(filterOp) {
+  return function() {
+    R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+      assert.equal(users.length, 1);
+      var user = users[0]
+      , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
+      ;
+      var check_answer = function(statusCode, headers, body) {
+        assert.equal(statusCode, 503);
+      };
+      var params = {filterBy: 'emails.value',
+                    filterOp: filterOp,
+                    filterValue: 'JDoe@example.com',
+                    oauth_token: oauth_token};
+      web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
+      delete params.oauth_token;
+      web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer, {
+        additional_headers: {'Authorization': 'OAuth '+oauth_token}
+      });
+    });
+  }
+}
