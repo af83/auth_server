@@ -1,4 +1,5 @@
 { "name" : "AuthServer"
+, "description": "Application acting as an authentication and portable contacts provider (using OAuth2)"
 , "version": "0.0.5pre"
 , "dependencies": {
   "connect": "",
