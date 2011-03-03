@@ -84,7 +84,7 @@ oauth2_server_node uses many other projects, including:
   - gcc
   - xgettext and msgfmt (Debian package gettext)
 
-    $> git submodule --init --recursive
+    $> git submodule update --init
     $> npm bundle
 
 ## Projects and organizations using auth_server
