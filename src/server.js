@@ -6,11 +6,7 @@
  */
 
 // Add location of submodules to path:
-[ 'nodetk'
-, 'rest-mongo'
-].forEach(function(submodule) {
-  require.paths.unshift(__dirname + '/../vendors/');
-});
+require.paths.unshift(__dirname + '/../vendors/');
 
 exports.get_session_middleware = function() {
   return require('cookie-sessions');
