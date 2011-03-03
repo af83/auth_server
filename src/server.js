@@ -125,7 +125,7 @@ var create_server = function() {
   var sessions = exports.get_session_middleware();
   server = exports.server = connect.createServer(
     strictTransportSecurity(365 * 24 * 3600, true)
-    , connect.staticProvider({root: __dirname + '/static', cache: false})
+    , connect.static(__dirname + '/static')
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
     , oauth2.connector(config.oauth2_server, RFactory, authentication)
