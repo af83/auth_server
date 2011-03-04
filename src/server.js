@@ -22,7 +22,7 @@ var connect = require('connect')
   , rest_server = require('rest-mongo/http_rest/server')
   , web = require('nodetk/web')
 
-  , oauth2 = require('oauth2-server')
+  , oauth2_server = require('oauth2-server')
   , oauth2_resources_server = require('./oauth2/resources_server')
   , delegate = require('./middlewares/delegate')
   , config = require('./lib/config_loader').get_config()
@@ -43,7 +43,7 @@ var oauth2_client_options = {
       // Since we are auth_server, we do not use the oauth2 api, but directly
       // request the grant checking function.
       var R = RFactory();
-      oauth2.valid_grant(R, {
+      oauth2_server.valid_grant(R, {
         code: code,
         client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id,
         redirect_uri: config.oauth2_client.client.redirect_uri
@@ -51,7 +51,7 @@ var oauth2_client_options = {
     },
     treat_access_token: function(data, req, res, callback, fallback) {
       // Idem, since we are auth_server, directly request get_authorizations
-      var info = oauth2.token_info(data.token.access_token);
+      var info = oauth2_server.token_info(data.token.access_token);
       req.session.authorizations = {'auth_server': 'admin'};
       req.session.token = randomString(128); // 22 chars length
       callback();
@@ -74,11 +74,11 @@ var oauth2_client_options = {
       web.GET('https://graph.facebook.com/me', params,
               function(status_code, headers, body) {
         if(status_code != 200)
-          return oauth2.oauth_error(res, 'oat', 'invalid_grant');
+          return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
         console.log('Info given by FB:', body);
         var info = JSON.parse(body);
         var R = RFactory();
-        oauth2.send_grant(res, R, 'FB'+info.id, data.state, {
+        oauth2_server.send_grant(res, R, 'FB'+info.id, data.state, {
           provider: "facebook.com"
         , name: info.name
         });
@@ -120,6 +120,8 @@ var auth_check = function(req, res, next, info) {
   }
 };
 
+var client = oauth2_client.createClient(config.oauth2_client, oauth2_client_options);
+
 var server;
 var create_server = function() {
   var sessions = exports.get_session_middleware();
@@ -128,17 +130,17 @@ var create_server = function() {
     , connect.static(__dirname + '/static')
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
-    , oauth2.connector(config.oauth2_server, RFactory, authentication)
+    , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
     , oauth2_resources_server.connector()
-    , oauth2_client.connector(config.oauth2_client, oauth2_client_options)
-    , delegate.connector()
+    , client.connector()
+    , delegate.connector(client)
     , registration.connector(config.server)
     // To serve objects directly (based on schema):
     , rest_server.connector(model.RFactoryPublic, schema,
                             {auth_check: auth_check,
                              eventEmitter: model.emitter})
     , serve_modules_connector
-    , web_app.connector()
+    , web_app.connector(client)
     , account.connector()
   );
 };
