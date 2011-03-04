@@ -16,17 +16,29 @@ var oauth2 = require('oauth2-server')
  *
  */
 function get_current_user_portable_contact(req, res) {
-  var result = { startIndex: 0
-                 , itemsPerPage: 1
-                 , totalResults: 1
-                 , entry: [req.user.toPortableContact()]
-               };
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(JSON.stringify(result));
+  res.end(formatPortableContacts([req.user]));
 };
 
-function get_user_portable_contacts(req, res) {
-  var query = url.parse(req.url, true).query || {};
+function get_one_portable_contact(req, res) {
+  var id = req.params.id;
+  var R = RFactory();
+  R.Contact.get({ids: id}, function(contact) {
+    if (contact.user.id == req.user.id) {
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(formatPortableContacts([contact]));
+    } else {
+      res.writeHead(404, {'Content-Type': 'application/json'});
+      res.end();
+    }
+  }, function(err) {
+    console.error(err);
+  });
+
+}
+
+function get_filter_portable_contacts(req, res) {
+  var query = url.parse(req.url, true).query;
   var mongoquery = {};
   if (query.filterBy && query.filterValue) {
     if (query.filterOp == 'equals') {
@@ -40,19 +52,22 @@ function get_user_portable_contacts(req, res) {
   mongoquery['user.id'] = req.user.id;
   var R = RFactory();
   R.Contact.index({query: mongoquery}, function(contacts) {
-    var users = contacts.map(function(user) {
-      return user.toPortableContact();
-    });
-    var result = { startIndex: 0
-                 , itemsPerPage: users.length
-                 , totalResults: users.length
-                 , entry: users
-                 };
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify(result));
+    res.end(formatPortableContacts(contacts));
   }, function(err) {
     console.error(err);
   });
+}
+
+function formatPortableContacts(contacts) {
+  var result = { startIndex: 0
+               , itemsPerPage: contacts.length
+               , totalResults: contacts.length
+               , entry: contacts.map(function(contact) {
+                   return contact.toPortableContact();
+               })
+               };
+  return JSON.stringify(result);
 }
 
 /**
@@ -92,9 +107,10 @@ exports.connector = function() {
   return router(function(app) {
     app.get('/portable_contacts/@me/@self', check_token);
     app.get('/portable_contacts/@me/@all', check_token);
+    app.get('/portable_contacts/@me/@all/:id', check_token);
 
-    app.get('/portable_contacts/@me/@all/:id', function(req, res) {});
-    app.get('/portable_contacts/@me/@all', get_user_portable_contacts);
+    app.get('/portable_contacts/@me/@all/:id', get_one_portable_contact);
+    app.get('/portable_contacts/@me/@all', get_filter_portable_contacts);
     app.get('/portable_contacts/@me/@self', get_current_user_portable_contact);
   });
 };

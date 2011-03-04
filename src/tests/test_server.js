@@ -402,7 +402,7 @@ exports.tests = [
   });
 }],
 
-['GET /portable_contacts/@me/@all: no param', 11, function() {
+['GET /portable_contacts/@me/@all: no param', 9, function() {
   R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
     assert.equal(users.length, 1);
     var user = users[0]
@@ -412,7 +412,6 @@ exports.tests = [
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
       assert.equal(content.entry.length, 2);
-      assert.ok(!content.entry[0].id);
       assert.ok(!content.entry[0].user);
       assert.ok(!content.entry[0]._pl);
     };
@@ -450,6 +449,25 @@ exports.tests = [
 ['FilterOp startwith is not implemented', 3, test_filter_op_not_implemented('startwith')],
 ['FilterOp present is not implemented', 3, test_filter_op_not_implemented('present')],
 
+['GET /portable_contacts/@me/@all/:id', 3, function() {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    assert.equal(users.length, 1);
+    var user = users[0]
+    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
+    ;
+    var params = {oauth_token: oauth_token};
+    var check_answer = function(statusCode, headers, body) {
+      var users = JSON.parse(body);
+      console.log('user id', users.entry[0].id);
+      web.GET(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id, params, function(statusCode, headers, body) {
+        var user = JSON.parse(body);
+        assert.equal(1, user.totalResults);
+        assert.equal(users.entry[0].displayName, user.entry[0].displayName);
+      });
+    };
+    web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
+  });
+}]
 ]
 
 function test_filter_op_not_implemented(filterOp) {

@@ -67,7 +67,6 @@ exports.schema = {
     methods: {
       // FIXME: should clone this
       toPortableContact: function() {
-        delete this.id;
         delete this.user;
         delete this._pl;
         return this;
