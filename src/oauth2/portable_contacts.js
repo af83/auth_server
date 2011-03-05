@@ -33,8 +33,9 @@ function get_one_portable_contact(req, res) {
     }
   }, function(err) {
     console.error(err);
+    res.writeHead(500);
+    res.end();
   });
-
 }
 
 function get_filter_portable_contacts(req, res) {
@@ -56,6 +57,8 @@ function get_filter_portable_contacts(req, res) {
     res.end(formatPortableContacts(contacts));
   }, function(err) {
     console.error(err);
+    res.writeHead(500);
+    res.end();
   });
 }
 
