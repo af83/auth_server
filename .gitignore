@@ -1,4 +1,4 @@
 data/*
 src/ms_templates/i18n/*
 src/static/js/templates_*.js
-
+node_modules
