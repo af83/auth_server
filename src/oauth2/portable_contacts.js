@@ -17,7 +17,7 @@ var oauth2 = require('oauth2-server')
  */
 function get_current_user_portable_contact(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
-  res.end(formatPortableContacts([req.user]));
+  res.end(formatPortableContact(req.user));
 };
 
 function get_one_portable_contact(req, res) {
@@ -26,7 +26,7 @@ function get_one_portable_contact(req, res) {
   R.Contact.get({ids: id}, function(contact) {
     if (contact.user.id == req.user.id) {
       res.writeHead(200, {'Content-Type': 'application/json'});
-      res.end(formatPortableContacts([contact]));
+      res.end(formatPortableContact(contact));
     } else {
       res.writeHead(404, {'Content-Type': 'application/json'});
       res.end();
@@ -62,12 +62,21 @@ function get_filter_portable_contacts(req, res) {
   });
 }
 
+function formatPortableContact(contact) {
+  var result = { startIndex: 0
+               , itemsPerPage: 1
+               , totalResults: 1
+               , entry: contact.toPortableContact()
+               };
+  return JSON.stringify(result);
+}
+
 function formatPortableContacts(contacts) {
   var result = { startIndex: 0
                , itemsPerPage: contacts.length
                , totalResults: contacts.length
                , entry: contacts.map(function(contact) {
-                   return contact.toPortableContact();
+                 return contact.toPortableContact();
                })
                };
   return JSON.stringify(result);

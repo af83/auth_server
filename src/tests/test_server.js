@@ -377,19 +377,17 @@ exports.tests = [
     var check_answer = function(statusCode, headers, body) {
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
-      delete content.entry[0].id;
+      delete content.entry.id;
       assert.deepEqual(content, {
         startIndex: 0,
         itemsPerPage: 1,
         totalResults: 1,
-        entry: [
-          {
+        entry: {
             displayName: 'pruyssen',
             emails: [
               {value: 'pruyssen@af83.com'}
             ]
-          }
-        ]
+        }
       });
     };
     web.GET(base_url + '/portable_contacts/@me/@self', {oauth_token: oauth_token}, check_answer);
@@ -449,7 +447,7 @@ exports.tests = [
       web.GET(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id, params, function(statusCode, headers, body) {
         var user = JSON.parse(body);
         assert.equal(1, user.totalResults);
-        assert.equal(users.entry[0].displayName, user.entry[0].displayName);
+        assert.equal(users.entry[0].displayName, user.entry.displayName);
       });
     };
     web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
