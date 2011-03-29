@@ -73,12 +73,27 @@ function formatPortableContacts(contacts) {
   return JSON.stringify(result);
 }
 
+function create_contact(req, res) {
+  var R = RFactory();
+  var body = req.body;
+  var contact = new R.Contact({
+    displayName: body.displayName,
+    user: req.user
+  });
+  contact.save(function() {
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(formatPortableContacts([contact]));
+  }, function() {
+    res.writeHead(500);
+    res.end();
+  });
+}
+
 /**
  * Check oauth2 token
  * Return 404 if user doesn't exist
  */
 function check_token(req, res, next) {
-  var query = url.parse(req.url, true).query || {};
   oauth2.check_token(req, res, function(token_info) {
     var user_id = token_info.user_id
     , client_id = token_info.client_id
@@ -107,13 +122,16 @@ function check_token(req, res, next) {
  * Returns OAuth2 resources server connect middleware.
  */
 exports.connector = function() {
+  function create_route(app, verb, path, callback) {
+    app[verb](path, check_token);
+    app[verb](path, callback);
+  }
   return router(function(app) {
-    app.get('/portable_contacts/@me/@self', check_token);
-    app.get('/portable_contacts/@me/@all', check_token);
-    app.get('/portable_contacts/@me/@all/:id', check_token);
-
-    app.get('/portable_contacts/@me/@all/:id', get_one_portable_contact);
-    app.get('/portable_contacts/@me/@all', get_filter_portable_contacts);
-    app.get('/portable_contacts/@me/@self', get_current_user_portable_contact);
+    create_route(app, 'get','/portable_contacts/@me/@self', get_current_user_portable_contact);
+    create_route(app, 'get', '/portable_contacts/@me/@all/:id', get_one_portable_contact);
+    create_route(app, 'get', '/portable_contacts/@me/@all', get_filter_portable_contacts);
+    var connect = require('connect');
+    app.post('/portable_contacts/@me/@all', connect.bodyParser());
+    create_route(app, 'post', '/portable_contacts/@me/@all', create_contact);
   });
 };

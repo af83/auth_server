@@ -372,11 +372,8 @@ exports.tests = [
 }],
 
 ['GET /portable_contacts/@me/@self: return current user info', 5, function() {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0]
-    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
-    ;
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
     var check_answer = function(statusCode, headers, body) {
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
@@ -403,11 +400,8 @@ exports.tests = [
 }],
 
 ['GET /portable_contacts/@me/@all: no param', 9, function() {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0]
-    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
-    ;
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
     var check_answer = function(statusCode, headers, body) {
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
@@ -423,11 +417,8 @@ exports.tests = [
 }],
 
 ['GET /portable_contacts/@me/@all: with email', 5, function() {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0]
-    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
-    ;
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
     var check_answer = function(statusCode, headers, body) {
       assert.equal(statusCode, 200);
       var content = JSON.parse(body);
@@ -450,15 +441,11 @@ exports.tests = [
 ['FilterOp present is not implemented', 3, test_filter_op_not_implemented('present')],
 
 ['GET /portable_contacts/@me/@all/:id', 3, function() {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var user = users[0]
-    , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
-    ;
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
     var params = {oauth_token: oauth_token};
     var check_answer = function(statusCode, headers, body) {
       var users = JSON.parse(body);
-      console.log('user id', users.entry[0].id);
       web.GET(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id, params, function(statusCode, headers, body) {
         var user = JSON.parse(body);
         assert.equal(1, user.totalResults);
@@ -467,16 +454,41 @@ exports.tests = [
     };
     web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
   });
+}],
+
+['POST /portable_contacts/@me/@all create user', 4, function() {
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
+    var params = {oauth_token: oauth_token};
+    var check_answer = function(statusCode, headers, body) {
+      var users = JSON.parse(body);
+      var check_post = function (statusCode, headers, body) {
+        var user = JSON.parse(body);
+        assert.equal(1, user.totalResults);
+        assert.equal('Chuck Norris', user.entry[0].displayName);
+        web.GET(base_url + '/portable_contacts/@me/@all', params, function(statusCode, headers, body) {
+          assert.equal(JSON.parse(body).entry.length, users.entry.length + 1);
+        });
+      }
+      web.POST(base_url + '/portable_contacts/@me/@all?oauth_token='+ oauth_token, {'displayName': 'Chuck Norris'}, check_post);
+    };
+    web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
+  });
 }]
 ]
 
+function create_access_token(callback) {
+  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
+    callback(null, oauth2_server.create_access_token(users[0].id, DATA.client_id));
+  }, function(err) {
+    callback(err, null);
+  });
+}
+
 function test_filter_op_not_implemented(filterOp) {
   return function() {
-    R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-      assert.equal(users.length, 1);
-      var user = users[0]
-      , oauth_token = oauth2_server.create_access_token(user.id, DATA.client_id)
-      ;
+    create_access_token(function(err, oauth_token) {
+      assert.equal(null, err);
       var check_answer = function(statusCode, headers, body) {
         assert.equal(statusCode, 503);
       };
