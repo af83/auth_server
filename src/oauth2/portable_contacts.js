@@ -76,10 +76,8 @@ function formatPortableContacts(contacts) {
 function create_contact(req, res) {
   var R = RFactory();
   var body = req.body;
-  var contact = new R.Contact({
-    displayName: body.displayName,
-    user: req.user
-  });
+  body.user = req.user;
+  var contact = new R.Contact(body);
   contact.save(function() {
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(formatPortableContacts([contact]));
