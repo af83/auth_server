@@ -1,6 +1,9 @@
 
+all: install
+
 install:
-	git submodule update --init
+	git submodule update --init --recursive
+	npm bundle
 	cd vendors/bcrypt_hash && make && make clean
 
 update_js_templates:
