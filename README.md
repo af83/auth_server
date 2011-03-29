@@ -77,12 +77,12 @@ oauth2_server_node uses many other projects, including:
  - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
  - [bcrypt_hash](https://github.com/virtuo/bcrypt_hash)
-  - node (v0.4)
-  - mongodb (>=v1.4)
-  - libbsd-dev
-  - make
-  - gcc
-  - xgettext and msgfmt (Debian package gettext)
+ - node (v0.4)
+ - mongodb (>=v1.4)
+ - libbsd-dev
+ - make
+ - gcc
+ - xgettext and msgfmt (Debian package gettext)
 
     $> git submodule update --init
     $> npm bundle
@@ -90,6 +90,36 @@ oauth2_server_node uses many other projects, including:
 ## Projects and organizations using auth_server
 
 A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects and organizations using auth_server. Don't hesitate to edit it.
+
+## API
+
+### OAuth2
+
+#### Obtaining End-User Authorization
+
+    /oauth2/authorize
+
+#### Obtaining an Access Token
+
+    /oauth2/login
+
+### Portables contacts
+
+#### Get current user
+
+    GET /portable_contacts/@me/@self
+
+#### Get all contacts from current user
+
+    GET /portable_contacts/@me/@all
+
+#### Get one contact from current user
+
+    GET /portable_contacts/@me/@all/:id
+
+#### Create a contact
+
+    POST /portable_contacts/@me/@all
 
 ## License
 
