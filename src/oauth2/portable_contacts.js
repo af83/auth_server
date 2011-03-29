@@ -89,7 +89,7 @@ function create_contact(req, res) {
   var contact = new R.Contact(body);
   contact.save(function() {
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.end(formatPortableContacts([contact]));
+    res.end(formatPortableContact(contact));
   }, function() {
     res.writeHead(500);
     res.end();
