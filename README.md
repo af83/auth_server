@@ -35,7 +35,8 @@ Make sure libbsd-dev and gettext (xgettext and msgfmt) are installed on your sys
 
 ### Run the tests
 
-Make sure nodetk/bins is in your PATH environment variable and NODE_PATH environment variable includes node/lib directory. For more info on this, please have a look at the [nodetk README file](https://github.com/AF83/nodetk/blob/master/README.md). Then:
+Make sure nodetk/bins is in your PATH environment variable and NODE_PATH environment variable includes node/lib directory. For more info on this, please have a look at the [nodetk README file](https://github.com/AF83/nodetk/blob/master/README.md). (looks like 'npm install .' in vendor/nodetk should do the trick)
+     	Then:
 
     nodetests src/tests
 
