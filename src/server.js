@@ -97,7 +97,7 @@ var serve_modules_connector = bserver.serve_modules_connector({
 
 // To check the user can access resources served by rest-mongo:
 var auth_check = function(req, res, next, info) {
-  var session = req.session || {}
+  var session = req.session
     , user = session.user
     , auths = session.authorizations || {}
     , roles = auths[config.oauth2_client.name]
@@ -130,6 +130,12 @@ var create_server = function() {
     , connect.static(__dirname + '/static')
     , connect_form({keepExtensions: true})
     , sessions({secret: '123abc', session_key: 'auth_server_session'})
+    , function(req, res, next) {
+      if (req.session === undefined) {
+        req.session = {};
+      }
+      next();
+    }
     , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
     , portable_contacts_server.connector()
     , client.connector()
