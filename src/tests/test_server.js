@@ -463,7 +463,7 @@ exports.tests = [
       var check_post = function (statusCode, headers, body) {
         var user = JSON.parse(body);
         assert.equal(1, user.totalResults);
-        assert.equal('Chuck Norris', user.entry[0].displayName);
+        assert.equal('Chuck Norris', user.entry.displayName);
         web.GET(base_url + '/portable_contacts/@me/@all', params, function(statusCode, headers, body) {
           assert.equal(JSON.parse(body).entry.length, users.entry.length + 1);
         });
