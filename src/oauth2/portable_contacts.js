@@ -7,19 +7,15 @@ var oauth2 = require('oauth2-server')
 /**
  * Returns basic information about a user
  * for the client (user_id and client_id in given oauth_token).
- *
- * This is kind of specific to auth_server API.
- *
- * TODO: The reply needs some work to be compliant.
- * (have to include token in reply headers?)
- * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
- *
  */
 function get_current_user_portable_contact(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   res.end(formatPortableContact(req.user));
 };
 
+/**
+ * Return one contact formatted with portablecontacts
+ */
 function get_one_portable_contact(req, res) {
   var id = req.params.id;
   var R = RFactory();
@@ -38,6 +34,9 @@ function get_one_portable_contact(req, res) {
   });
 }
 
+/**
+ * Return a list of all or filtered portable contacts for the client
+ */
 function get_filter_portable_contacts(req, res) {
   var query = url.parse(req.url, true).query;
   var mongoquery = {};
@@ -82,6 +81,9 @@ function formatPortableContacts(contacts) {
   return JSON.stringify(result);
 }
 
+/**
+ * Create a contact for the client
+ */
 function create_contact(req, res) {
   var R = RFactory();
   var body = req.body;
@@ -99,6 +101,10 @@ function create_contact(req, res) {
 /**
  * Check oauth2 token
  * Return 404 if user doesn't exist
+ *
+ * TODO: The reply needs some work to be compliant.
+ * (have to include token in reply headers?)
+ * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
  */
 function check_token(req, res, next) {
   oauth2.check_token(req, res, function(token_info) {
