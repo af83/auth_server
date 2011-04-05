@@ -15,7 +15,6 @@ exports.get_session_middleware = function() {
 var connect = require('connect')
   , connect_form = require('connect-form')
   , CLB = require('nodetk/orchestration/callbacks')
-  , bserver = require('nodetk/browser/server')
   , oauth2_client = require('oauth2-client')
   , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString
