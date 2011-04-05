@@ -15,7 +15,8 @@ var events = require('events')
 ;
 
 var config = require('./lib/config_loader').get_config()
-  , hash = require('./lib/hash');
+  , hash = require('./lib/hash')
+  , _ = require('./lib/merger')
 ;
 
 var db = exports.db = provider.connect(config.db);
@@ -51,7 +52,11 @@ Model.prototype.remove = function(callback) {
   MongoProvider.prototype.remove.call(this, {_id: new ObjectID(this.get('id'))}, callback);
 }
 Model.prototype.toJSON = function() {
-  return JSON.stringify(this.data);
+  var id = this.data._id;
+  var model = _.extend({}, this.data);
+  model.id = id.toString();
+  delete model._id;
+  return JSON.stringify(model);
 }
 /**
  * User Model
