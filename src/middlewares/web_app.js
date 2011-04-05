@@ -10,7 +10,7 @@ var ms_templates = require('../lib/ms_templates')
 var serve_web_app = function(req, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('app', {
-    email : req.session.email
+    email : req.session.user.email
   });
   res.end(body);
 };
