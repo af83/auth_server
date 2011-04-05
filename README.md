@@ -109,9 +109,13 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     GET /clients
 
+### List users
+
+    GET /users
+
 ### Update user password
 
-   POST /me/password
+    POST /me/password
 
 ### Portables contacts
 

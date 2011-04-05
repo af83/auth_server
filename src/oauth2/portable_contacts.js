@@ -1,8 +1,10 @@
 var oauth2 = require('oauth2-server')
-  , RFactory = require('../model').RFactory
   , router = require('connect').router
   , url = require('url')
-  ;
+;
+
+var model = require('../model')
+;
 
 /**
  * Returns basic information about a user
@@ -18,19 +20,19 @@ function get_current_user_portable_contact(req, res) {
  */
 function get_one_portable_contact(req, res) {
   var id = req.params.id;
-  var R = RFactory();
-  R.Contact.get({ids: id}, function(contact) {
-    if (contact.user.id == req.user.id) {
+  model.Contact.getById(id, function(err, contact) {
+    if (err) {
+      console.error(err);
+      res.writeHead(500);
+      res.end();
+    }
+    if (contact.get('user') == req.user.id) {
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(formatPortableContact(contact));
     } else {
       res.writeHead(404, {'Content-Type': 'application/json'});
       res.end();
     }
-  }, function(err) {
-    console.error(err);
-    res.writeHead(500);
-    res.end();
   });
 }
 
@@ -49,15 +51,15 @@ function get_filter_portable_contacts(req, res) {
       return;
     }
   }
-  mongoquery['user.id'] = req.user.id;
-  var R = RFactory();
-  R.Contact.index({query: mongoquery}, function(contacts) {
+  mongoquery['user'] = req.session.user.id;
+  model.Contacts.search(mongoquery, function(err, contacts) {
+    if (err) {
+      console.error(err);
+      res.writeHead(500);
+      return res.end();
+    }
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(formatPortableContacts(contacts));
-  }, function(err) {
-    console.error(err);
-    res.writeHead(500);
-    res.end();
   });
 }
 
@@ -85,10 +87,9 @@ function formatPortableContacts(contacts) {
  * Create a contact for the client
  */
 function create_contact(req, res) {
-  var R = RFactory();
   var body = req.body;
   body.user = req.user;
-  var contact = new R.Contact(body);
+  var contact = new model.Contact(body);
   contact.save(function() {
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(formatPortableContact(contact));
@@ -111,9 +112,13 @@ function check_token(req, res, next) {
     var user_id = token_info.user_id
     , client_id = token_info.client_id
     ;
-    var R = RFactory();
-    R.User.get({ids: user_id}, function(user) {
-      if(!user) { // The user doesn't exist anymore.
+    model.User.getById(user_id, function(err, user) {
+      if (err) {
+        res.writeHead(500);
+        res.send();
+        return console.error(err);
+      }
+      if (!user) { // The user doesn't exist anymore.
         res.writeHead(404);
         res.send();
       } else {
@@ -122,14 +127,9 @@ function check_token(req, res, next) {
         req.user = user;
         next();
       }
-    }, function(err) {
-      res.writeHead(500);
-      res.send();
-      console.error(err);
     });
   });
 };
-
 
 /**
  * Returns OAuth2 resources server connect middleware.

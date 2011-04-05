@@ -65,6 +65,9 @@ function User(data) {
   Model.call(this, 'User', data);
 }
 inherits(User, Model);
+User.prototype.toPortableContact = function() {
+  return this.data;
+}
 /**
  * Check user password
  */
@@ -94,7 +97,7 @@ User.prototype.set_password = function(password, callback) {
 
 User.getById = function(id, callback) {
   new User().findOne({_id: new ObjectID(id)}, function(err, result) {
-    if (err) return callback(err);
+    if (err || !result) return callback(err, null);
     callback(null, new User(result));
   });
 }
@@ -190,6 +193,29 @@ inherits(Contact, Model);
 Contact.prototype.toPortableContact = function() {
   return this.data;
 }
+Contact.getById = function(id, callback) {
+  new MongoProvider(db, 'Contact').findOne({_id: new ObjectID(id)}, function(err, result) {
+    if (err) return callback(err);
+    callback(null, new Contact(result));
+  });
+}
+
+/**
+ * Contacts
+ */
+function Contacts() {
+  MongoProvider.call(this, db, 'Contact');
+}
+inherits(Contacts, MongoProvider);
+Contacts.prototype.search = function(query, callback) {
+  this.findItems(query, function(err, items) {
+    if (err) return callback(err);
+    console.log(items);
+    callback(null, items.map(function(item) {
+      return new Contact(item);
+    }));
+  });
+}
 
 exports.db = db;
 exports.Client = Client;
@@ -198,3 +224,4 @@ exports.User = User;
 exports.Users = new Users();
 exports.Grant = Grant;
 exports.Contact = Contact;
+exports.Contacts = new Contacts();
