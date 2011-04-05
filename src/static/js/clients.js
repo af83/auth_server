@@ -105,8 +105,17 @@ var AuthServerClientsController = Backbone.Controller.extend({
     "/c/:id": "show"
   },
 
+  callbacks : [],
+
   initialize: function() {
     this.clients = new Clients();
+    this.clients.bind('refresh', _.bind(function() {
+      this.initialized = true;
+      this.callbacks.forEach(function(fun) {
+        fun();
+      });
+    }, this));
+    this.clients.fetch();
   },
 
   index: function() {
@@ -116,7 +125,6 @@ var AuthServerClientsController = Backbone.Controller.extend({
   clients: function() {
     new AuthServerClientsIndexView({collection: this.clients,
                                     el: $("#content")}).render();
-    this.clients.fetch();
   },
 
   new: function() {
@@ -130,9 +138,16 @@ var AuthServerClientsController = Backbone.Controller.extend({
   },
 
   show: function(id) {
-    var client = this.clients.get(id);
-    new AuthServerClientShowView({el: $("#content"),
-                                  model: client}).render();
+    var onReady = _.bind(function() {
+      var client = this.clients.get(id);
+      new AuthServerClientShowView({el: $("#content"),
+                                    model: client}).render();
+    }, this);
+    if (this.initialized) {
+      onReady();
+    } else {
+      this.callbacks.push(onReady);
+    }
   }
 });
 

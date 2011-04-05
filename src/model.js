@@ -121,6 +121,14 @@ function Users() {
   MongoProvider.call(this, db, 'User');
 }
 inherits(Users, MongoProvider);
+Users.prototype.get = function(callback) {
+  this.findItems({}, function(err, result) {
+    if (err) return callback(err);
+    callback(null, result.map(function(item) {
+      return new User(item);
+    }));
+  });
+}
 
 /**
  * Client Model

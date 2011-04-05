@@ -30,6 +30,21 @@ function list_clients(req, res) {
     })+"]");
   });
 }
+/**
+ * List users
+ */
+function list_users(req, res) {
+  model.Users.get(function(err, users) {
+    if (err) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      return res.end(err.toString());
+    }
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end("["+ users.map(function(user) {
+      return user.toJSON();
+    })+"]");
+  });
+}
 
 function check_user(oauth2_client) {
   return function(req, res, next) {
@@ -48,9 +63,12 @@ function check_user(oauth2_client) {
  */
 exports.connector = function(oauth2_client) {
   return router(function(app) {
-    app.get('/', check_user(oauth2_client));
-    app.get('/clients', check_user(oauth2_client));
-    app.get('/', serve_web_app);
-    app.get('/clients', list_clients);
+    function addRoute(path, fun) {
+      app.get(path, check_user(oauth2_client));
+      app.get(path, fun);
+    }
+    addRoute('/', serve_web_app);
+    addRoute('/clients', list_clients);
+    addRoute('/users', list_users);
   });
 };
