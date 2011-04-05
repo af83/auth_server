@@ -71,7 +71,6 @@ oauth2_server_node uses many other projects, including:
  - [cookie-sessions](https://github.com/caolan/cookie-sessions)
  - [connect-form](https://github.com/visionmedia/connect-form) using [node-formidable](https://github.com/felixge/node-formidable)
  - [nodetk](https://github.com/AF83/nodetk), also using [Yabble](https://github.com/jbrantly/yabble)
- - [rest-mongo](https://github.com/AF83/rest-mongo), also using [node-mongodb-native](https://github.com/christkv/node-mongodb-native)
  - [mustache.js](https://github.com/janl/mustache.js/)
  - [jQuery](http://jquery.com/)
  - [Backbone](http://documentcloud.github.com/backbone/)
