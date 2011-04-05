@@ -14,7 +14,7 @@ exports.get_session_middleware = function() {
 
 var connect = require('connect')
   , connect_form = require('connect-form')
-  , CLB = require('nodetk/orchestration/callbacks')
+  , Futures = require('futures')
   , oauth2_client = require('oauth2-client')
   , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString
@@ -107,18 +107,17 @@ var create_server = function() {
   );
 };
 
-var serve = exports.serve = function(port, callback) {
+var serve = exports.serve = function(port) {
   create_server();
-  var waiter = CLB.get_waiter(2, function() {
-    server.listen(port, callback);
-  });
-  authentication.init_client_id(waiter);
-  ms_templates.generate_templates(waiter, waiter.fall);
+  return Futures.sequence().then(authentication.init_client_id)
+                           .then(ms_templates.generate_templates)
+                           .then(function(next) {
+                             server.listen(port, next);
+                           });
 };
 
-
 if(process.argv[1] == __filename) {
-  serve(config.server.port, function() {
+  serve(config.server.port).then(function() {
     console.log('Server listening on ' + config.server.base_url);
   });
 }
