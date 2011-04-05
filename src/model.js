@@ -19,6 +19,7 @@ var config = require('./lib/config_loader').get_config()
 ;
 
 var db = exports.db = provider.connect(config.db);
+db.createIndex('User', 'email', true, function(){}); // email is unique
 
 var ObjectID = db.bson_serializer.ObjectID;
 /**
@@ -92,22 +93,30 @@ User.getById = function(id, callback) {
     callback(null, new User(result));
   });
 }
+/**
+ * Get user by email
+ */
+User.getByEmail = function(email, callback) {
+  new User().findOne({email: email}, function(err, doc) {
+    if (err || !doc) return callback(err, null);
+    callback(null, new User(doc))
+  });
+}
+/**
+ * Get confirmed user by email
+ */
+User.getByConfirmedEmail = function(email, callback) {
+  new User().findOne({email: email, confirmed: 1}, function(err, doc) {
+    if (err || !doc) return callback(err, null);
+    callback(null, new User(doc));
+  });
+}
 
 function Users() {
   MongoProvider.call(this, db, 'User');
 }
 inherits(Users, MongoProvider);
-/**
- * Get confirmed users by email
- */
-Users.prototype.getByEmail = function(email, callback) {
-   this.findItems({email: email, confirmed: 1}, function(err, items) {
-     if (err) return callback(err);
-     callback(null, items.map(function(item) {
-       return new User(item);
-     }));
-   });
-}
+
 /**
  * Client Model
  */
@@ -165,7 +174,9 @@ function Contact(data) {
   Model.call(this, 'Contact', data);
 }
 inherits(Contact, Model);
-
+Contact.prototype.toPortableContact = function() {
+  return this.data;
+}
 
 exports.db = db;
 exports.Client = Client;

@@ -1,12 +1,14 @@
 
-var oauth2_server = require('oauth2-server')
-  , tools = require('nodetk/server_tools')
-  , Model = require('./model')
-  , ms_templates = require('./lib/ms_templates')
-  , config = require('./lib/config_loader').get_config()
+var tools = require('nodetk/server_tools')
+  , oauth2_server = require('oauth2-server')
   , base64 = require('base64')
   , URL = require('url')
-  ;
+;
+
+var model = require('./model')
+  , ms_templates = require('./lib/ms_templates')
+  , config = require('./lib/config_loader').get_config()
+;
 
 /**
  * Lookup in DB and set config.oauth2_client.client_id
@@ -17,7 +19,7 @@ var oauth2_server = require('oauth2-server')
  */
 exports.init_client_id = function(callback) {
   var name = config.oauth2_client.name;
-  Model.Client.getByName(name, function(err, clients) {
+  model.Client.getByName(name, function(err, clients) {
     if (err) throw err;
     if (clients.length != 1)
       throw new Error('There must be one and only one ' + name);
@@ -117,32 +119,30 @@ var fail_login = function(req, res, client_data) {
  * Arguments:
  *  - req
  *  - res
- *
  */
 exports.process_login = function(req, res) {
-  if(!req.form) {
+  if (!req.form) {
     res.writeHead(400, {'Content-Type': 'text/html'});
     res.end('Invalid data.');
   }
   req.form.complete(function(err, fields, files) {
     client_data = extract_client_data(fields.info);
-    if(!client_data) {
+    if (!client_data) {
       res.writeHead(400, {'Content-Type': 'text/plain'});
       res.end('Invalid data.');
     }
-    if(!fields.email || !fields.password)
+    if (!fields.email || !fields.password)
       return fail_login(req, res, client_data);
-    Model.Users.getByEmail(fields.email, function(err, users) {
+    model.User.getByConfirmedEmail(fields.email, function(err, user) {
       if (err) return tools.server_error(res, err);
-      if(users.length != 1) return fail_login(req, res, client_data);
-      var user = users[0];
+      if (!user) return fail_login(req, res, client_data);
 
       user.check_password(fields.password, function(err, good) {
         if (err) return tools.server_error(res, err);
         if(!good) return fail_login(req, res, client_data);
         // The user is logged in, let's remember:
         req.session.user = {email: user.get('email'), id: user.get('id')};
-        oauth2_server.send_grant(res, Model.Grant, user.get('id'), client_data);
+        oauth2_server.send_grant(res, model.Grant, user.get('id'), client_data);
       });
     });
   });

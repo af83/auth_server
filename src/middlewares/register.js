@@ -1,66 +1,67 @@
-var URL = require('url');
+var URL = require('url')
+  , tools = require('nodetk/server_tools')
+  , router = require('connect').router
+;
 
-var ms_templates = require('../lib/ms_templates');
-var tools = require('nodetk/server_tools');
-var email = require('../lib/email');
-var RFactory = require('../model').RFactory;
-var router = require('connect').router;
+var ms_templates = require('../lib/ms_templates')
+  , email = require('../lib/email')
+  , model = require('../model')
+;
 
 var BASE_URL;
 
-
+/**
+ * Serve page with form to register to auth_server.
+ *
+ * Arguments:
+ *  - req
+ *  - res
+ *  - options, optional hash:
+ *    - status_code: an alternative status code for the reply
+ *      (default to 200).
+ *    - data: data to prefill the form
+ */
 var register_page = function(req, res, options) {
-  /* Serve page with form to register to auth_server.
-   *
-   * Arguments:
-   *  - req
-   *  - res
-   *  - options, optional hash:
-   *    - status_code: an alternative status code for the reply
-   *      (default to 200).
-   *    - data: data to prefill the form
-   */
   options = options || {};
   res.writeHead(options.status_code || 200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('register_form', options.data);
   res.end(body);
 };
 
+/**
+ * Serve the success registration page.
+ */
 var register_success_page = function(req, res) {
-  /* Serve the success registration page.
-   *
-   */
   res.writeHead(200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('register_success');
   res.end(body);
 };
 
-
+/**
+ * Redirects the user after process_register when user created with success.
+ */
 var process_register_success = function(res) {
-  /* Redirects the user after process_register when user created with success.
-   *
-   */
   tools.redirect(res, BASE_URL+'/register/success');
 };
 
-
+/**
+ * Sends confirmation email to user.
+ *
+ * Arguments:
+ *  - user: User object.
+ *
+ */
 var send_confirmation_email = function(user) {
-  /* Sends confirmation email to user.
-   *
-   * Arguments:
-   *  - user: R User object.
-   *
-   */
   var url = BASE_URL+'/register/confirm?';
-  url += 'email=' + user.email;
-  url += '&code=' + user.id; // TODO: real code
-  email.send(user.email, 'AuthServer: registration confirmation', url);
+  url += 'email=' + user.get('email');
+  url += '&code=' + user.get('id'); // TODO: real code
+  email.send(user.get('email'), 'AuthServer: registration confirmation', url);
 };
 
+/**
+ * Handle registration confirmation (link in email).
+ */
 var confirm_registration = function(req, res) {
-  /* Handle registration confirmation (link in email).
-   *
-   */
   var params = URL.parse(req.url, true).query || {};
   var error = function(){
     res.writeHead(400, {'Content-Type': 'text/html'});
@@ -69,24 +70,22 @@ var confirm_registration = function(req, res) {
   var code = params.code;
   var email = params.email;
   if(!code || !email) return error();
-  var R = RFactory();
-  R.User.index({query: {email: email}}, function(users) {
-    if(users.length != 1) return error();
-    var user = users[0];
-    if(user.id != code) return error();
+
+  model.User.getByEmail(email, function(err, user) {
+    if(err || !user || user.get('id') != code) return error();
     // Mark the user as confirmed:
-    user.confirmed = 1;
-    user.save(function() {
+    user.set('confirmed', 1);
+    user.save(function(err) {
+      if (err) tools.server_error(res, err);
       tools.redirect(res, BASE_URL+'/');
-    }, function(err) {tools.server_error(res, err)});
-  }, function(err) {tools.server_error(res, err)});
+    });
+  });
 };
 
-
+/**
+ * Process data sent from register form.
+ */
 var process_register = function(req, res) {
-  /* Process data sent from register form.
-   *
-   */
   if(!req.form) return register_page(req, res, {status_code: 400});
   req.form.complete(function(err, fields, files) {
     if(err) return tools.server_error(res, err);
@@ -100,20 +99,21 @@ var process_register = function(req, res) {
       return register_page(req, res, {status_code: 400, data: fields});
     }
     // Add the user:
-    var R = RFactory();
-    var user = new R.User({email: fields.email});
-    user.set_password(fields.password, function() {
-      user.save(function() {
+    var user = new model.User({email: fields.email});
+    user.set_password(fields.password, function(err) {
+      if (err) return tools.server_error(res, err);
+      user.save(function(err) {
+        if (err) {
+          // If error is caused by duplicate email, say nothing to user:
+          if (err.message.indexOf("E11000 ") == 0) { // duplicate insert
+            return process_register_success(res);
+          }
+          return tools.server_error(res, err);
+        }
         send_confirmation_email(user);
         process_register_success(res);
-      }, function(err) {
-        // If error is caused by duplicate email, say nothing to user:
-        if(err.message.indexOf("E11000 ") == 0) { // duplicate insert
-          process_register_success(res);
-        }
-        else tools.server_error(res, err);
       });
-    }, function(err) {tools.server_error(res, err)});
+    });
   });
 };
 
