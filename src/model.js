@@ -18,7 +18,7 @@ var config = require('./lib/config_loader').get_config()
   , hash = require('./lib/hash');
 ;
 
-var db = provider.connect(config.db);
+var db = exports.db = provider.connect(config.db);
 
 var ObjectID = db.bson_serializer.ObjectID;
 /**
@@ -158,9 +158,19 @@ Grant.getById = function(id, callback) {
   });
 }
 
+/**
+ * Contact Model
+ */
+function Contact(data) {
+  Model.call(this, 'Contact', data);
+}
+inherits(Contact, Model);
+
+
 exports.db = db;
 exports.Client = Client;
 exports.Clients = new Clients();
 exports.User = User;
 exports.Users = new Users();
 exports.Grant = Grant;
+exports.Contact = Contact;

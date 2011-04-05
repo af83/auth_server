@@ -11,6 +11,7 @@
 , "eyes": ""
 , "mustache": ""
 , "base64": ""
+, "futures" : ""
 , "oauth2-client": ""
 , "oauth2-server": "https://github.com/AF83/oauth2_server_node/tarball/pure_mongo"
 , "mongodb-provider": "https://github.com/francois2metz/node-mongodb-provider/tarball/master"
