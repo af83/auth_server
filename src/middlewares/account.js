@@ -1,8 +1,10 @@
-var RFactory = require('../model').RFactory;
+var model = require('../model');
 var router = require('connect').router;
 
+/**
+ * Update password if the current user
+ */
 var update_password = function(req, res) {
-  /* Update password if the current user */
   var session = req.session;
   var user = session.user;
   function send_answer(status, body) {
@@ -12,30 +14,31 @@ var update_password = function(req, res) {
   function send_error() {
     send_answer(500, '{"error": "Server error"}');
   }
-  if(!user) {
+  if (!user) {
     send_answer(401, '{"error": "not_authorized"}');
   }
   else {
     req.form.complete(function(err, fields) {
-      if(err || !fields.current_password || !fields.new_password ||
-         !fields.token || fields.token != session.token) {
+      if(err || !fields.current_password || !fields.new_password) {
         return send_answer(400, '{"error": "Missing parameter or invalid token"}');
       }
-      var R = RFactory();
-      R.User.get({ids: user.id}, function(user) {
-        if (!user) return send_error();
-        user.check_password(fields.current_password, function(good) {
+
+      model.User.getById(user.id, function(err, user) {
+        if (err || !user) return send_error();
+        user.check_password(fields.current_password, function(err, good) {
+          if (err) return send_error();
           if(!good) return send_answer(400, '{"error": "Bad current password"}');
-          user.set_password(fields.new_password, function() {
-            user.save(function() {
+          user.set_password(fields.new_password, function(err) {
+            if (err) return send_error();
+            user.save(function(err, result) {
+              if (err) return send_error();
               send_answer(200, '{"result": "ok"}');
-            }, send_error);
-          }, send_error);
-        }, send_error);
+            });
+          });
+        });
       });
     });
   }
-
 };
 
 /**

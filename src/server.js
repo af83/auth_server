@@ -19,7 +19,6 @@ var connect = require('connect')
   , oauth2_client = require('oauth2-client')
   , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString
-  , rest_server = require('rest-mongo/http_rest/server')
   , web = require('nodetk/web')
 
   , oauth2_server = require('oauth2-server')
@@ -32,24 +31,21 @@ var connect = require('connect')
   , strictTransportSecurity = require('connect-sts')
   , account = require('./middlewares/account')
   , model = require('./model')
-  , RFactory = model.RFactory
-  , schema = require('./schema').schema
   , ms_templates = require('./lib/ms_templates')
   ;
 
 var oauth2_client_options = {
   "auth_server": {
-    valid_grant: function(data, code, callback, fallback) {
+    valid_grant: function(data, code, callback) {
       // Since we are auth_server, we do not use the oauth2 api, but directly
       // request the grant checking function.
-      var R = RFactory();
-      oauth2_server.valid_grant(R, {
+      oauth2_server.valid_grant(model.Grant, {
         code: code,
         client_id: config.oauth2_client.servers[data.oauth2_server_id].client_id,
         redirect_uri: config.oauth2_client.client.redirect_uri
-      }, callback, fallback)
+      }, callback)
     },
-    treat_access_token: function(data, req, res, callback, fallback) {
+    treat_access_token: function(data, req, res, callback) {
       // Idem, since we are auth_server, directly request get_authorizations
       var info = oauth2_server.token_info(data.token.access_token);
       req.session.authorizations = {'auth_server': 'admin'};
@@ -77,46 +73,12 @@ var oauth2_client_options = {
           return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
         console.log('Info given by FB:', body);
         var info = JSON.parse(body);
-        var R = RFactory();
-        oauth2_server.send_grant(res, R, 'FB'+info.id, data.state, {
+        oauth2_server.send_grant(res, model.Grant, 'FB'+info.id, data.state, {
           provider: "facebook.com"
         , name: info.name
         });
       }, fallback);
     }
-  }
-};
-
-// To serve some nodejs modules to browser:
-require.paths.unshift(__dirname);
-var serve_modules_connector = bserver.serve_modules_connector({
-  modules: ['schema'],
-  packages: ['nodetk', 'rest-mongo', 'browser']
-});
-
-
-// To check the user can access resources served by rest-mongo:
-var auth_check = function(req, res, next, info) {
-  var session = req.session
-    , user = session.user
-    , auths = session.authorizations || {}
-    , roles = auths[config.oauth2_client.name]
-    , token = info.data.token
-    , expected_token = session.token
-    ;
-  if(!user) {
-    res.writeHead(401, {}); res.end();
-  }
-  else if(!expected_token || token != expected_token) {
-    res.writeHead(400, {}); res.end();
-  }
-  // For now, only accept users admin on auth_server:
-  else if(!roles || roles.indexOf('admin')<0) {
-    res.writeHead(403, {}); res.end();
-  }
-  else {
-    delete info.data.token;
-    next();
   }
 };
 
@@ -136,16 +98,11 @@ var create_server = function() {
       }
       next();
     }
-    , oauth2_server.connector(config.oauth2_server, RFactory, authentication)
+    , oauth2_server.connector(config.oauth2_server, model, authentication)
     , portable_contacts_server.connector()
     , client.connector()
     , delegate.connector(client)
     , registration.connector(config.server)
-    // To serve objects directly (based on schema):
-    , rest_server.connector(model.RFactoryPublic, schema,
-                            {auth_check: auth_check,
-                             eventEmitter: model.emitter})
-    , serve_modules_connector
     , web_app.connector(client)
     , account.connector()
   );

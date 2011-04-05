@@ -104,6 +104,16 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     /oauth2/login
 
+## Internal
+
+### List clients
+
+    GET /clients
+
+### Update user password
+
+   POST /me/password
+
 ### Portables contacts
 
 #### Get current user

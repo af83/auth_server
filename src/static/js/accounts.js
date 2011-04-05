@@ -3,15 +3,17 @@ var AuthServerAccountView = Backbone.View.extend({
   events: {
     "submit": "update"
   },
-
+  /**
+   * Display account page
+   */
   render: function() {
-    /** Display account page */
     $('#overview').html('<h1>Your account</h1>');
     $(this.el).renders('account');
   },
-
+  /**
+   * Process password update
+   */
   update: function(e) {
-    /** Process password update */
     e.preventDefault();
     this.$(".errors").html('');
     var params = {};
@@ -26,8 +28,7 @@ var AuthServerAccountView = Backbone.View.extend({
               type: 'post',
               dataType: 'json',
               data: {current_password: params.current_password,
-                     new_password    : params.new_password,
-                     token           : TOKEN},
+                     new_password    : params.new_password},
               success: function() {
                 self.trigger("saved");
               },

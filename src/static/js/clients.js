@@ -1,8 +1,19 @@
+var Client = Backbone.Model.extend({
+  url: '/client'
+});
+var Clients = Backbone.Collection.extend({
+  url: '/clients',
+  model: Client
+});
+
 var AuthServerClientsIndexView = Backbone.View.extend({
+  initialize: function() {
+    this.collection.bind('refresh', _.bind(this.render, this));
+  },
   render: function() {
     // Display a list of clients for the user to choose.
     $('#overview').html('<h1>Clients</h1>');
-    $(this.el).renders('clients_index', {clients: this.model});
+    $(this.el).renders('clients_index', {clients: this.collection.toJSON()});
     return this;
   }
 });
@@ -43,9 +54,9 @@ var AuthServerClientShowView = Backbone.View.extend({
   },
 
   render: function() {
-    $('#overview').html('<h1>' + this.model.name + '</h1>');
+    $('#overview').html('<h1>' + this.model.get('name') + '</h1>');
     var data = {
-      client: this.model,
+      client: this.model.toJSON(),
     };
     $(this.el).renders('client_show', data);
     return this;
@@ -94,20 +105,23 @@ var AuthServerClientsController = Backbone.Controller.extend({
     "/c/:id": "show"
   },
 
+  initialize: function() {
+    this.clients = new Clients();
+  },
+
   index: function() {
     document.location.hash = "/c";
   },
 
   clients: function() {
-    R.Client.index({}, function(clients) {
-      new AuthServerClientsIndexView({model: clients,
-                                      el: $("#content")}).render();
-    });
+    new AuthServerClientsIndexView({collection: this.clients,
+                                    el: $("#content")}).render();
+    this.clients.fetch();
   },
 
   new: function() {
     new AuthServerClientsNewView({el: $("#content"),
-                                  model: new R.Client()}).render()
+                                  model: new Client()}).render()
       .bind("success", function() {
         console.log("on success");
       }).bind("error", function() {
@@ -116,10 +130,9 @@ var AuthServerClientsController = Backbone.Controller.extend({
   },
 
   show: function(id) {
-    R.Client.get({ids: id}, function(client) {
-      new AuthServerClientShowView({el: $("#content"),
-                                    model: client}).render();
-    });
+    var client = this.clients.get(id);
+    new AuthServerClientShowView({el: $("#content"),
+                                  model: client}).render();
   }
 });
 

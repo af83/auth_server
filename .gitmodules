@@ -7,6 +7,3 @@
 [submodule "vendors/nodetk"]
 	path = vendors/nodetk
 	url = https://github.com/AF83/nodetk.git
-[submodule "vendors/rest-mongo"]
-	path = vendors/rest-mongo
-	url = https://github.com/AF83/rest-mongo.git

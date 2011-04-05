@@ -1,26 +1,27 @@
 
 var oauth2_server = require('oauth2-server')
   , tools = require('nodetk/server_tools')
-  , RFactory = require('./model').RFactory
+  , Model = require('./model')
   , ms_templates = require('./lib/ms_templates')
   , config = require('./lib/config_loader').get_config()
   , base64 = require('base64')
   , URL = require('url')
   ;
 
+/**
+ * Lookup in DB and set config.oauth2_client.client_id
+ *
+ * Arguments:
+ *  - callback: to be called once it's done.
+ *
+ */
 exports.init_client_id = function(callback) {
-  /* Lookup in DB and set config.oauth2_client.client_id
-   *
-   * Arguments:
-   *  - callback: to be called once it's done.
-   *
-   */
-  var R = RFactory()
-    , name = config.oauth2_client.name;
-  R.Client.index({query: {name: name}}, function(clients) {
-    if(clients.length != 1)
+  var name = config.oauth2_client.name;
+  Model.Client.getByName(name, function(err, clients) {
+    if (err) throw err;
+    if (clients.length != 1)
       throw new Error('There must be one and only one ' + name);
-    config.oauth2_client.servers['auth_server'].client_id = clients[0].id;
+    config.oauth2_client.servers['auth_server'].client_id = clients[0]._id.toString();
     callback();
   });
 };
@@ -28,27 +29,25 @@ exports.init_client_id = function(callback) {
 
 var client_data_attrs = ['client_name', 'client_id', 'redirect_uri', 'state'];
 
-
 // -------------------------------------------------------------
 
-
+/**
+ * Renders the login page.
+ * If user is already logged in, ask him if he wants to login in
+ * the client application.
+ *
+ * Arguments:
+ *  - req
+ *  - res
+ *  - client_data, contains:
+ *    - client_id
+ *    - client_name
+ *    - redirect_uri
+ *    - state
+ *  - code_status: int, http code to put on http response (default: 200).
+ *
+ */
 var login = exports.login = function(req, res, client_data, code_status) {
-  /* Renders the login page.
-   * If user is already logged in, ask him if he wants to login in
-   * the client application.
-   *
-   * Arguments:
-   *  - req
-   *  - res
-   *  - client_data, contains:
-   *    - client_id
-   *    - client_name
-   *    - redirect_uri
-   *    - state
-   *  - code_status: int, http code to put on http response (default: 200).
-   *
-   */
-  var R = RFactory();
   var data = {}, info = {};
   client_data_attrs.forEach(function(attr) {
     // XXX: should we encode all the state in a more secure way?
@@ -61,7 +60,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
   user = req.session.user;
   if(user) { // The user is already logged in
     // TODO: for a client first time, ask the user
-    oauth2_server.send_grant(res, R, user.id, client_data);
+    //oauth2_server.send_grant(res, R, user.id, client_data);
   }
   else { // The user is not logged in
     data.action = config.oauth2_server.process_login_url;
@@ -72,22 +71,23 @@ var login = exports.login = function(req, res, client_data, code_status) {
     res.end(body)
   }
 };
-
+/**
+ * Returns data (obj) packed and signed as a string.
+ * TODO: sign data
+ */
 var pack_data = exports.pack_data = function(data) {
-  /* Returns data (obj) packed and signed as a string.
-   */
-  // TODO: sign data
   return base64.encode(new Buffer(JSON.stringify(data)));
 };
 
+/**
+ * Returns client_data contained in the info str, or null if data corrupted.
+ *
+ * Arguments:
+ *  - info: string containing the information
+ *
+ * TODO: check signature against data
+ */
 var extract_client_data = exports.extract_client_data = function(info) {
-  /* Returns client_data contained in the info str, or null if data corrupted.
-   *
-   * Arguments:
-   *  - info: string containing the information
-   *
-   */
-  // TODO: check signature against data
   if(!info) return null;
   try {
     var data = base64.decode(info);
@@ -99,27 +99,27 @@ var extract_client_data = exports.extract_client_data = function(info) {
     return null;
   }
 };
-
+/**
+ * Reask the user to login.
+ * TODO: msg to tell the login / password are wrong.
+ */
 var fail_login = function(req, res, client_data) {
-  /* Reask the user to login.
-   */
-  // TODO: msg to tell the login / password are wrong.
   login(req, res, client_data, 401);
 };
 
-
+/**
+ * Handles the login credentials given by user.
+ * If not authorized, then rerender the login page.
+ * If authorized, send the user back to client or the page it came from (or "/").
+ *
+ * POST to config.oauth2.process_login_url
+ *
+ * Arguments:
+ *  - req
+ *  - res
+ *
+ */
 exports.process_login = function(req, res) {
-  /* Handles the login credentials given by user.
-   * If not authorized, then rerender the login page.
-   * If authorized, send the user back to client or the page it came from (or "/").
-   *
-   * POST to config.oauth2.process_login_url
-   *
-   * Arguments:
-   *  - req
-   *  - res
-   *
-   */
   if(!req.form) {
     res.writeHead(400, {'Content-Type': 'text/html'});
     res.end('Invalid data.');
@@ -132,28 +132,28 @@ exports.process_login = function(req, res) {
     }
     if(!fields.email || !fields.password)
       return fail_login(req, res, client_data);
-    var R = RFactory();
-    R.User.index({query: {email: fields.email, confirmed: 1}}, function(users) {
+    Model.Users.getByEmail(fields.email, function(err, users) {
+      if (err) return tools.server_error(res, err);
       if(users.length != 1) return fail_login(req, res, client_data);
       var user = users[0];
 
-      user.check_password(fields.password, function(good) {
+      user.check_password(fields.password, function(err, good) {
+        if (err) return tools.server_error(res, err);
         if(!good) return fail_login(req, res, client_data);
-
         // The user is logged in, let's remember:
-        req.session.user = {email: user.email, id: user.id};
-        oauth2_server.send_grant(res, R, user.id, client_data);
-      }, function(err) {tools.server_error(res, err)});
-    }, function(err) {tools.server_error(res, err)});
+        req.session.user = {email: user.get('email'), id: user.get('id')};
+        oauth2_server.send_grant(res, Model.Grant, user.get('id'), client_data);
+      });
+    });
   });
 };
 
-
+/**
+ * The user want to login using another oauth2 provider
+ *
+ * GET to config.oauth2.process_login_url
+ */
 exports.process_login_proxy = function(req, res) {
-  /* The user want to login using another oauth2 provider
-   *
-   * GET to config.oauth2.process_login_url
-   */
   var params = URL.parse(req.url, true).query;
   if(!params.info || !params.tierce) {
     res.writeHead(400, {'Content-Type': 'text/plain'});
@@ -164,6 +164,4 @@ exports.process_login_proxy = function(req, res) {
     res.writeHead(400, {'Content-Type': 'text/plain'});
     return res.end('Unsupported tierce');
   }
-
 };
-

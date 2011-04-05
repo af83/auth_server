@@ -5,14 +5,7 @@ exports.email = {
   }
 };
 
-exports.db = {
-  host: 'localhost',
-  port: 27017,
-  db_name: 'auth_server_dev',
-  // if you need some authentication, un-comment these 2 lines
-  //  username: "username",
-  //  password: "password"
-};
+exports.db = "db://localhost/auth_server_dev";
 
 var server = exports.server = {
   base_url: "http://localhost:7070",

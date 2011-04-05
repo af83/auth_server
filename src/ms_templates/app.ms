@@ -54,33 +54,7 @@
   <script type="text/javascript" src="/js/users.js"></script>
   <script type="text/javascript" src="/js/accounts.js"></script>
   <script type="text/javascript" src="/js/clients.js"></script>
-
-
-  <script type="text/javascript" src="/yabble.js"></script>
-  <script type="text/javascript" src="/init_browser.js"></script>
-  <script type="text/javascript">
-    TOKEN = "{{token}}";
-    require.useScriptTags();
-    require.setModuleRoot('wrapped_js/');
-
-    require.ensure([
-      'util',
-      'events',
-
-      'rest-mongo/core',
-      'rest-mongo/http_rest/jquery_backend',
-
-      'nodetk/logging',
-      'nodetk/orchestration/callbacks',
-      'nodetk/random_str',
-      'nodetk/utils',
-
-      'browser/init',
-      'schema',
-    ], function() {
-      require.run('browser/init');
-    });
-  </script>
+  <script type="text/javascript" src="/js/init.js"></script>
 
 </body>
 </html>
