@@ -19,15 +19,16 @@ var connect = require('connect')
   , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString
   , web = require('nodetk/web')
-
   , oauth2_server = require('oauth2-server')
-  , portable_contacts_server = require('./oauth2/portable_contacts')
+  , strictTransportSecurity = require('connect-sts')
+;
+
+var portable_contacts_server = require('./oauth2/portable_contacts')
   , delegate = require('./middlewares/delegate')
   , config = require('./lib/config_loader').get_config()
   , registration = require('./middlewares/register')
   , web_app = require('./middlewares/web_app')
   , authentication = require('./authentication')
-  , strictTransportSecurity = require('connect-sts')
   , account = require('./middlewares/account')
   , model = require('./model')
   , ms_templates = require('./lib/ms_templates')
@@ -83,10 +84,9 @@ var oauth2_client_options = {
 
 var client = oauth2_client.createClient(config.oauth2_client, oauth2_client_options);
 
-var server;
-var create_server = function() {
+function create_server() {
   var sessions = exports.get_session_middleware();
-  server = exports.server = connect.createServer(
+  return exports.server = connect.createServer(
     strictTransportSecurity(365 * 24 * 3600, true)
     , connect.static(__dirname + '/static')
     , connect_form({keepExtensions: true})
@@ -108,12 +108,12 @@ var create_server = function() {
 };
 
 var serve = exports.serve = function(port) {
-  create_server();
+  var listen = function(next) {
+    create_server().listen(port, next);
+  }
   return Futures.sequence().then(authentication.init_client_id)
                            .then(ms_templates.generate_templates)
-                           .then(function(next) {
-                             server.listen(port, next);
-                           });
+                           .then(listen);
 };
 
 if(process.argv[1] == __filename) {
