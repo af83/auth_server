@@ -20,7 +20,7 @@ var update_password = function(req, res) {
   else {
     req.form.complete(function(err, fields) {
       if(err || !fields.current_password || !fields.new_password) {
-        return send_answer(400, '{"error": "Missing parameter or invalid token"}');
+        return send_answer(400, '{"error": "Missing parameter"}');
       }
 
       model.User.getById(user.id, function(err, user) {
