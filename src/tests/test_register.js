@@ -2,14 +2,16 @@
 var DATA = require('./init').init(exports)
   , assert = DATA.assert
   , inspect = DATA.inspect
-  , R = DATA.R
   ;
 
 var web = require('nodetk/web')
-  , extend = require('nodetk/utils').extend
-  , CLB = require('nodetk/orchestration/callbacks')
-  , hash = require('../lib/hash')
-  ;
+  , extend = require('../lib/merger').extend
+  , Futures = require('futures')
+;
+
+var hash = require('../lib/hash')
+  , model = require('../model')
+;
 
 
 exports.tests = [
@@ -46,55 +48,61 @@ exports.tests = [
   });
 }],
 
-['/register: post, already registered user', 4, function() {
-  var url = DATA.base_url + '/register';
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    assert.equal(users.length, 1);
-    var pierre = users[0]; var json1 = pierre.json();
-    var params = {email: pierre.email, password: 'p', password_confirm: 'p'};
+['/register: post, already registered user', 3, function() {
+  model.User.getByEmail('pruyssen@af83.com', function(err, pierre) {
+    var json1 = pierre.toJSON();
+    var params = {email: pierre.get('email'), password: 'p', password_confirm: 'p'};
+    var url = DATA.base_url + '/register';
     web.POST(url, params, function(status_code, headers, data) {
       // If an email is sent, it will trigger an error.
       assert.equal(status_code, 303);
       assert.equal(headers['location'], DATA.base_url+'/register/success');
-      pierre.refresh(function() { // user has not been changed
-        assert.deepEqual(json1, pierre.json());
-      });
+      assert.deepEqual(json1, pierre.toJSON());
     });
   });
 }],
 
 ['/register: post, success', 10, function() {
-  var url = DATA.base_url + '/register';
-  var params = {email: 'ti@ti.com', password: 'titi', password_confirm: 'titi'};
   var confirmation_link, new_user;
-  var waiter = CLB.get_waiter(2, function() {
-    hash.check(new_user.password, 'titi', function(good) {
+  var join = Futures.join();
+  join.add(function() {
+    var future = Futures.future();
+    DATA.add_expected_email(function(destination, subject, body) {
+      assert.equal(destination, 'ti@ti.com');
+      assert.equal(subject, 'AuthServer: registration confirmation');
+      confirmation_link = body;
+      future.deliver();
+    });
+    return future;
+  }());
+  join.add(function() {
+    var future = Futures.future();
+    var url = DATA.base_url + '/register';
+    var params = {email: 'ti@ti.com', password: 'titi', password_confirm: 'titi'};
+    web.POST(url, params, function(status_code, headers, data) {
+      assert.equal(status_code, 303);
+      assert.equal(headers['location'], DATA.base_url+'/register/success');
+      // Check the user has been added and is not activated:
+      model.User.getByEmail('ti@ti.com', function(err, user) {
+        new_user = user;
+        future.deliver();
+      });
+    });
+    return future;
+  }());
+  join.when(function() {
+    hash.check(new_user.get('password'), 'titi', function(good) {
       assert.ok(good);
     }, function(err) {assert.ok(false, err)});
-    assert.equal(new_user.confirmed, undefined);
+    assert.equal(new_user.get('confirmed'), undefined);
     // check confirmation_link:
     web.GET(confirmation_link, null, function(status_code, headers, data) {
       assert.equal(status_code, 303);
       assert.equal(headers['location'], DATA.base_url+'/');
-      new_user.refresh(function() {
-        assert.equal(new_user.confirmed, 1);
+      var user = model.User.getById(new_user.get('id'), function(err, user) {
+        assert.equal(err, null);
+        assert.equal(user.get('confirmed'), 1);
       });
-    });
-  });
-  DATA.add_expected_email(function(destination, subject, body) {
-    assert.equal(destination, 'ti@ti.com');
-    assert.equal(subject, 'AuthServer: registration confirmation');
-    confirmation_link = body;
-    waiter();
-  });
-  web.POST(url, params, function(status_code, headers, data) {
-    assert.equal(status_code, 303);
-    assert.equal(headers['location'], DATA.base_url+'/register/success');
-    // Check the user has been added and is not activated:
-    R.User.index({query: {email: 'ti@ti.com'}}, function(users) {
-      assert.equal(users.length, 1);
-      new_user = users[0];
-      waiter();
     });
   });
 }],
@@ -144,4 +152,3 @@ exports.tests = [
 // ------------------------------------------------------
 
 ];
-

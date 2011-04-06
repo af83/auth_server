@@ -14,7 +14,8 @@ var assert = exports.assert = require('nodetk/testing/custom_assert');
 
 var port = 8999,
     data = {}
-    ;
+;
+
 data.base_url = 'http://127.0.0.1:' + port;
 data.assert = assert;
 data.session = {};
@@ -22,21 +23,19 @@ data.session = {};
 // Tweak a bit the configuration for tests:
 var config = require('../lib/config_loader').get_config();
 config.server.base_url = data.base_url;
-config.db.db_name = 'auth_server_test';
+config.db = 'db://localhost/auth_server_test';
 
 var bcrypt = require('../lib/bcrypt');
 bcrypt.conf.nb_rounds = 4; // So that tests run faster
 
+var eyes = require('eyes')
+;
 
 var load_data = require('../scripts/load_data').run
   , model = require('../model')
   , server = require('../server')
-  , eyes = require('eyes')
-  , RFactory = model.RFactory
-  , R = RFactory()
-  , CLB = require('nodetk/orchestration/callbacks')
   ;
-data.R = R;
+
 data.inspect = eyes.inspector();
 
 server.get_session_middleware = function() {
@@ -48,49 +47,42 @@ server.get_session_middleware = function() {
   }
 };
 
+/**
+ * Calls callback(client_id), client_id corresponding to the given name.
+ * If no corresponding client found, throw error.
+ */
 var get_client_id = function(client_name, callback) {
-  /* Calls callback(client_id), client_id corresponding to the given name.
-   * If no corresponding client found, throw error.
-   */
-  R.Client.index({query: {name: client_name}}, function(clients) {
-    if(clients.length != 1) throw new Errror("There should only be one client!");
-    callback(clients[0].id);
-  }, function(err) {
-    console.log(err.message);
-    console.log(err.stack);
-    throw err;
+  model.Client.getByName(client_name, function(err, clients) {
+    if (err) throw new Error(err);
+    if (clients.length != 1) throw new Errror("There should only be one client!");
+    callback(clients[0].get('id'));
   });
 };
 
+/**
+ * Call callback(user_id), user_id corresponding to given name.
+ * If no user, throw an error.
+ */
 var get_user_id = function(user_email, callback) {
-  /* Call callback(user_id), user_id corresponding to given name.
-   * If no user, throw an error.
-   */
-  R.User.index({query: {email: user_email}}, function(users) {
-    if(users.length != 1) throw new Error("There should be one user!");
-    callback(users[0].id);
-  }, function(err) {
-    console.log(err.message);
-    console.log(err.stack);
-    throw err;
+  model.User.getByEmail(user_email, function(err, user) {
+    if (err) throw new Error(err);
+    callback(user.get('id'));
   });
 };
-
 
 var setup = function(callback) {
   reinit_session();
-  R.clear_caches();
-  load_data(function() {
-    var waiter = CLB.get_waiter(2, callback);
+  load_data().then(function(next) {
     get_client_id("errornot", function(client_id) {
       data.client_id = client_id;
-      waiter();
+      next();
     });
+  }).then(function(next) {
     get_user_id("pruyssen@af83.com", function(user_id) {
       data.user_id = user_id;
-      waiter();
+      next();
     });
-  });
+  }).then(callback);
 };
 
 
@@ -98,7 +90,7 @@ var opened = false;
 var module_init = function(callback) {
   if(!opened) setup(function() {
     opened = true;
-    server.serve(port, callback);
+    server.serve(port).then(callback);
   });
   else callback();
 };
@@ -132,7 +124,7 @@ var email = require('../lib/email')
   , expected_emails = []
   ;
 email.send = function() {
-  if(expected_emails.length < 1) throw new Error('Cannot send email!');
+  if (expected_emails.length < 1) throw new Error('Cannot send email!');
   var fct = expected_emails.shift(0);
   fct.apply(this, arguments);
 };

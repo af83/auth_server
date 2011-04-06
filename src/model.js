@@ -33,7 +33,7 @@ function Model(collection, data) {
 }
 inherits(Model, MongoProvider);
 Model.prototype.get = function(key) {
-  if (key == 'id') return this.data['_id'].toString();
+  if (key == 'id') return this.data['_id'] ? this.data['_id'].toString() : null;
   return this.data[key];
 }
 Model.prototype.set = function(key, value) {
@@ -41,7 +41,7 @@ Model.prototype.set = function(key, value) {
 }
 Model.prototype.save = function(callback) {
   var that = this;
-  MongoProvider.prototype.save.call(this, this.data, function(err, result) {
+  MongoProvider.prototype.save.call(this, this.data, {safe: true}, function(err, result) {
     if (err) return callback(err);
     result = result[0];
     this.data = result;
@@ -98,7 +98,7 @@ User.prototype.set_password = function(password, callback) {
 User.getById = function(id, callback) {
   new User().findOne({_id: new ObjectID(id)}, function(err, result) {
     if (err || !result) return callback(err, null);
-    callback(null, new User(result));
+    callback(null, result ? new User(result): null);
   });
 }
 /**
@@ -142,9 +142,11 @@ function Client(data) {
 inherits(Client, Model);
 Client.getByName = function(name, callback) {
   var clients = new MongoProvider(db, 'Client');
-  clients.find({name: name}, function(err, clients) {
+  clients.findItems({name: name}, function(err, clients) {
     if (err) return callback(err);
-    clients.toArray(callback);
+    callback(null, clients.map(function(item) {
+      return new Client(item);
+    }));
   });
 }
 Client.getById = function(id, callback) {

@@ -23,7 +23,7 @@ exports.init_client_id = function(callback) {
     if (err) throw err;
     if (clients.length != 1)
       throw new Error('There must be one and only one ' + name);
-    config.oauth2_client.servers['auth_server'].client_id = clients[0]._id.toString();
+    config.oauth2_client.servers['auth_server'].client_id = clients[0].get('id');
     callback();
   });
 };
