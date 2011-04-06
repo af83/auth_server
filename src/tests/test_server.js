@@ -1,38 +1,35 @@
 
 var DATA = require('./init').init(exports)
   , assert = DATA.assert
-  , R = DATA.R
-  ;
+;
 
 var http = require('http')
   , querystring = require('querystring')
   , URL = require('url')
-
+  , util = require('util')
+  , oauth2_server = require('oauth2-server')
   , base64 = require('base64')
   , extend = require('nodetk/utils').extend
   , web = require('nodetk/web')
-  , util = require('util')
-
   , config = require('../lib/config_loader').get_config()
-  , oauth2_server = require('oauth2-server')
-  ;
-
+  , model = require('../model')
+;
 
 var base_url = DATA.base_url
   , authorize_url = base_url + config.oauth2_server.authorize_url
   , login_url = base_url + config.oauth2_server.process_login_url
   , token_url = base_url + config.oauth2_server.token_url
-  ;
+;
 
-
+/**
+ * Returns a function checking the reply is an error.
+ * Use assert two times.
+ *
+ * Arguments:
+ *  - type: 'eua' or 'oat'
+ *  - error_code: 'invalid_request', 'invalid_client'...
+ */
 var get_error_checker = function(type, error_code) {
-  /* Returns a function checking the reply is an error.
-   * Use assert two times.
-   *
-   * Arguments:
-   *  - type: 'eua' or 'oat'
-   *  - error_code: 'invalid_request', 'invalid_client'...
-   */
   return function(statusCode, headers, data) {
     assert.equal(statusCode, 400);
     var error = JSON.parse(data);
@@ -42,7 +39,6 @@ var get_error_checker = function(type, error_code) {
     }});
   };
 };
-
 
 exports.tests = [
 
@@ -66,14 +62,14 @@ exports.tests = [
 }],
 
 
-['/oauth/authorize: bad client_id', 2, function() {
+/*['/oauth/authorize: bad client_id', 2, function() {
   // if the given client id is not in DB, error.
   web.GET(authorize_url, {
     client_id: "toto",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('eua', 'invalid_client'));
-}],
+}],*/
 
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
   // if the redirect_uri is not the same as registered: error.
@@ -130,7 +126,7 @@ exports.tests = [
 }],
 
 
-['authentication ok', 7, function() {
+['authentication ok', 8, function() {
   web.POST(login_url, {
     email: 'pruyssen@af83.com',
     password: '1234',
@@ -149,9 +145,10 @@ exports.tests = [
     assert.ok(qs.code);
     var id_code = qs.code.split('.');
     assert.equal(id_code.length, 2);
-    R.Grant.get({ids: id_code[0]}, function(grant) {
+    model.Grant.getById(id_code[0], function(err, grant) {
+      assert.equal(err, null);
       assert.ok(grant);
-      assert.equal(grant.code, id_code[1]);
+      assert.equal(grant.get('code'), id_code[1]);
     });
   });
 }],
@@ -317,21 +314,22 @@ exports.tests = [
 }],
 
 
-['/oauth/token: outdated grant', 3, function() {
-  var grant = new R.Grant({
+['/oauth/token: outdated grant', 5, function() {
+  var grant = new model.Grant({
     client_id: DATA.client_id,
     time: parseInt(Date.now() - 60100)
   });
-  grant.save(function() {
-    R.clear_caches();
+  grant.save(function(err) {
+    assert.equal(err, null);
     setTimeout(function() { // To be sure the other connexion is aware of this.
-      R.Grant.get({ids: grant.id}, function(grant) {
+      model.Grant.getById(grant.get('id'), function(err, grant) {
+        assert.equal(err, null);
         assert.ok(grant != null, "The grand has not been saved yet...");
         // We need to check the grant was actually
         web.POST(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
-          code: grant.id,
+          code: grant.get('id'),
           client_secret: "some secret string",
           redirect_uri: "http://127.0.0.1:8888/login"
         }, get_error_checker('oat', 'invalid_grant'));
@@ -340,24 +338,24 @@ exports.tests = [
   });
 }],
 
-
-['/oauth/token: ok with secret in params', 3, function() {
-  var grant = new R.Grant({
+['/oauth/token: ok with secret in params', 5, function() {
+  var grant = new model.Grant({
     client_id: DATA.client_id,
     user_id: 'some_user_id',
     time: parseInt(Date.now() - 15000),
     code: "somecode",
     redirect_uri: "http://127.0.0.1:8888/login"
   });
-  grant.save(function() {
-    R.clear_caches();
+  grant.save(function(err) {
+    assert.equal(err, null);
     setTimeout(function() { // To be sure the other connexion is aware of this.
-      R.Grant.get({ids: grant.id}, function(grant) {
+      model.Grant.getById(grant.get('id'), function(err, grant) {
+        assert.equal(err, null);
         assert.ok(grant != null, "The grant has not been saved yet...");
         web.POST(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
-          code: grant.id+'.somecode',
+          code: grant.get('id')+'.somecode',
           client_secret: "some secret string",
           redirect_uri: "http://127.0.0.1:8888/login"
         }, function(statusCode, headers, data) {
@@ -438,13 +436,14 @@ exports.tests = [
 ['FilterOp startwith is not implemented', 3, test_filter_op_not_implemented('startwith')],
 ['FilterOp present is not implemented', 3, test_filter_op_not_implemented('present')],
 
-['GET /portable_contacts/@me/@all/:id', 3, function() {
+['GET /portable_contacts/@me/@all/:id', 4, function() {
   create_access_token(function(err, oauth_token) {
     assert.equal(null, err);
     var params = {oauth_token: oauth_token};
     var check_answer = function(statusCode, headers, body) {
       var users = JSON.parse(body);
       web.GET(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id, params, function(statusCode, headers, body) {
+        assert.equal(statusCode, 200);
         var user = JSON.parse(body);
         assert.equal(1, user.totalResults);
         assert.equal(users.entry[0].displayName, user.entry.displayName);
@@ -476,10 +475,9 @@ exports.tests = [
 ]
 
 function create_access_token(callback) {
-  R.User.index({query: {email: 'pruyssen@af83.com'}}, function(users) {
-    callback(null, oauth2_server.create_access_token(users[0].id, DATA.client_id));
-  }, function(err) {
-    callback(err, null);
+  model.User.getByEmail('pruyssen@af83.com', function(err, user) {
+    if (err) return callback(err);
+    callback(null, oauth2_server.create_access_token(user.get('id'), DATA.client_id));
   });
 }
 

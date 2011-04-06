@@ -52,5 +52,4 @@ exports.tests = [
     web.POST(PASSWORD_URL, data, assert_json(200));
   }));
 }],
-
 ];

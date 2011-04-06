@@ -66,7 +66,11 @@ function User(data) {
 }
 inherits(User, Model);
 User.prototype.toPortableContact = function() {
-  return this.data;
+  return {
+    id: this.data._id.toString(), // TODO: should be an hash of clientid + mongodb id
+    displayName: this.data.displayName,
+    emails: [{value: this.data.email}]
+  };
 }
 /**
  * Check user password
@@ -193,7 +197,12 @@ function Contact(data) {
 }
 inherits(Contact, Model);
 Contact.prototype.toPortableContact = function() {
-  return this.data;
+  var id = this.data._id.toString();
+  var data = _.extend({}, this.data);
+  data.id = id;
+  delete data._id;
+  delete data.user;
+  return data;
 }
 Contact.getById = function(id, callback) {
   new MongoProvider(db, 'Contact').findOne({_id: new ObjectID(id)}, function(err, result) {
@@ -212,7 +221,6 @@ inherits(Contacts, MongoProvider);
 Contacts.prototype.search = function(query, callback) {
   this.findItems(query, function(err, items) {
     if (err) return callback(err);
-    console.log(items);
     callback(null, items.map(function(item) {
       return new Contact(item);
     }));

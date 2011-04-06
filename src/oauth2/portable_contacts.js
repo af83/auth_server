@@ -26,7 +26,7 @@ function get_one_portable_contact(req, res) {
       res.writeHead(500);
       res.end();
     }
-    if (contact.get('user') == req.user.id) {
+    if (contact.get('user') == req.user.get('id')) {
       res.writeHead(200, {'Content-Type': 'application/json'});
       res.end(formatPortableContact(contact));
     } else {
@@ -51,7 +51,7 @@ function get_filter_portable_contacts(req, res) {
       return;
     }
   }
-  mongoquery['user'] = req.session.user.id;
+  mongoquery['user'] = req.user.get('id');
   model.Contacts.search(mongoquery, function(err, contacts) {
     if (err) {
       console.error(err);
@@ -88,7 +88,7 @@ function formatPortableContacts(contacts) {
  */
 function create_contact(req, res) {
   var body = req.body;
-  body.user = req.user;
+  body.user = req.user.get('id');
   var contact = new model.Contact(body);
   contact.save(function() {
     res.writeHead(200, {'Content-Type': 'application/json'});
