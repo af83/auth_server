@@ -59,19 +59,20 @@ This command will load some testing data in the DB:
 
 ### Running the server
 
-Tweak the config.js file to fit your needs, then:
+Tweak the `config.js` file to fit your needs, then:
 
     node src/server.js
 
 ## Dependencies
 
-oauth2_server_node uses many other projects, including:
+auth_server Uses many other projects, including:
 
  - [connect](https://github.com/senchalabs/connect)
  - [cookie-sessions](https://github.com/caolan/cookie-sessions)
  - [connect-form](https://github.com/visionmedia/connect-form) using [node-formidable](https://github.com/felixge/node-formidable)
- - [nodetk](https://github.com/AF83/nodetk), also using [Yabble](https://github.com/jbrantly/yabble)
+ - [nodetk](https://github.com/AF83/nodetk)
  - [mustache.js](https://github.com/janl/mustache.js/)
+ - [futures](https://github.com/coolaj86/futures)
  - [jQuery](http://jquery.com/)
  - [Backbone](http://documentcloud.github.com/backbone/)
  - [underscore](http://documentcloud.github.com/underscore/)
