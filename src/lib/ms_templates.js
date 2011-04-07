@@ -11,17 +11,16 @@ var fs = require('fs')
 var MS_TEMPLATES_DIR = path.normalize(__dirname + '/../ms_templates');
 var TEMPLATES = null;
 
-
+/**
+ * Calls callback with a string containing a declaration of mustache templates.
+ *
+ * Example:
+ * '{template1: "...", template2: "...", ...}'.
+ *
+ */
 var generate_templates = function(fpaths, callback, fallback) {
-  /* Calls callback with a string containing a declaration of mustache templates.
-   *
-   * Example:
-   * '{template1: "...", template2: "...", ...}'.
-   *
-   */
   var templates = {};
   var waiter = CLB.get_waiter(fpaths.length, function() {
-    //var res = JSON.stringify(templates);
     callback(templates);
   }, fallback);
   fpaths.forEach(function(fpath) {
@@ -36,10 +35,10 @@ var generate_templates = function(fpaths, callback, fallback) {
   });
 };
 
-
+/**
+ * Generate templates
+ */
 exports.generate_templates = function(callback, fallback) {
-  /* Generate templates
-   */
   tkfs.getFilesDirs(MS_TEMPLATES_DIR, function(fpaths) {
     fpaths = fpaths.filter(function(fpath) {return fpath.match(/\.ms$/)});
     var set_data = function(templates_str) {
@@ -52,12 +51,11 @@ exports.generate_templates = function(callback, fallback) {
   });
 };
 
-
+/**
+ * Renders the template with given data and returns result.
+ */
 exports.render = function(template_name, data) {
-  /* Renders the template with given data and returns result.
-   */
   var template = TEMPLATES[template_name];
   if(!template) throw new Error('Unknown template name: ' + template_name);
   return mustache.to_html(template, data || {}, TEMPLATES);
 }
-
