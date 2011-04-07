@@ -137,7 +137,7 @@ exports.process_login = function(req, res) {
       if (err) return tools.server_error(res, err);
       if (!user) return fail_login(req, res, client_data);
 
-      user.check_password(fields.password, function(err, good) {
+      user.checkPassword(fields.password, function(err, good) {
         if (err) return tools.server_error(res, err);
         if(!good) return fail_login(req, res, client_data);
         // The user is logged in, let's remember:

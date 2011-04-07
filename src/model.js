@@ -75,7 +75,7 @@ User.prototype.toPortableContact = function() {
 /**
  * Check user password
  */
-User.prototype.check_password = function(password, callback) {
+User.prototype.checkPassword = function(password, callback) {
   var good = function(r) {
     callback(null, r);
   };
@@ -87,7 +87,7 @@ User.prototype.check_password = function(password, callback) {
 /**
  * Set user password with the current hashing methid
  */
-User.prototype.set_password = function(password, callback) {
+User.prototype.setPassword = function(password, callback) {
   var self = this;
   var good = function(r) {
     self.set('password', r);

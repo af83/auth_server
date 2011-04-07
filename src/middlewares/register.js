@@ -100,7 +100,7 @@ var process_register = function(req, res) {
     }
     // Add the user:
     var user = new model.User({email: fields.email});
-    user.set_password(fields.password, function(err) {
+    user.setPassword(fields.password, function(err) {
       if (err) return tools.server_error(res, err);
       user.save(function(err) {
         if (err) {

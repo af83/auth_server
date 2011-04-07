@@ -25,10 +25,10 @@ var update_password = function(req, res) {
 
       model.User.getById(user.id, function(err, user) {
         if (err || !user) return send_error();
-        user.check_password(fields.current_password, function(err, good) {
+        user.checkPassword(fields.current_password, function(err, good) {
           if (err) return send_error();
           if(!good) return send_answer(400, '{"error": "Bad current password"}');
-          user.set_password(fields.new_password, function(err) {
+          user.setPassword(fields.new_password, function(err) {
             if (err) return send_error();
             user.save(function(err, result) {
               if (err) return send_error();
