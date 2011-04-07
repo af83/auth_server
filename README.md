@@ -136,6 +136,10 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     POST /portable_contacts/@me/@all
 
+#### Update a contact
+
+    PUT /portable_contacts/@me/@all/:id
+
 ## License
 
 This program is free software: you can redistribute it and/or modify

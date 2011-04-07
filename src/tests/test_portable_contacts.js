@@ -143,5 +143,24 @@ exports.tests = [
     };
     web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
   });
+}],
+
+['PUT /portable_contacts/@me/@all/:id update user', 5, function() {
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
+    var params = {oauth_token: oauth_token};
+    var check_answer = function(statusCode, headers, body) {
+      var users = JSON.parse(body);
+      web.PUT(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id +"?oauth_token="+ oauth_token, {'displayName': 'Bruce Lee'}, function(statusCode, headers, body) {
+        assert.equal(statusCode, 200);
+        assert.equal(JSON.parse(body).entry.displayName, "Bruce Lee");
+        web.GET(base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id, params, function(statusCode, headers, body) {
+          assert.equal(statusCode, 200);
+          assert.equal(JSON.parse(body).entry.displayName, "Bruce Lee");
+        });
+      });
+    };
+    web.GET(base_url + '/portable_contacts/@me/@all', params, check_answer);
+  });
 }]
 ]

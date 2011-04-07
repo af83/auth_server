@@ -100,6 +100,34 @@ function create_contact(req, res) {
 }
 
 /**
+ * Update one contact
+ */
+function update_contact(req, res) {
+  var id = req.params.id;
+  model.Contact.getById(id, function(err, contact) {
+    if (err) {
+      console.error(err);
+      res.writeHead(500);
+      return res.end();
+    }
+    if (contact.get('user') == req.user.get('id')) {
+      var body = req.body;
+      body.user = req.user.get('id');
+      contact.set(body);
+      contact.save(function(err) {
+        if (err) {
+          return;
+        }
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(formatPortableContact(contact));
+      });
+    } else {
+      res.writeHead(404, {'Content-Type': 'application/json'});
+      res.end();
+    }
+  });
+}
+/**
  * Check oauth2 token
  * Return 404 if user doesn't exist
  *
@@ -146,5 +174,7 @@ exports.connector = function() {
     var connect = require('connect');
     app.post('/portable_contacts/@me/@all', connect.bodyParser());
     create_route(app, 'post', '/portable_contacts/@me/@all', create_contact);
+    app.put('/portable_contacts/@me/@all/:id', connect.bodyParser());
+    create_route(app, 'put', '/portable_contacts/@me/@all/:id', update_contact);
   });
 };

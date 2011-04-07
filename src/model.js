@@ -37,6 +37,12 @@ Model.prototype.get = function(key) {
   return this.data[key];
 }
 Model.prototype.set = function(key, value) {
+  if (value == undefined) {
+    if (this.data._id)
+      key._id = this.data._id;
+    this.data = key;
+    return;
+  }
   return this.data[key] = value;
 }
 Model.prototype.save = function(callback) {
