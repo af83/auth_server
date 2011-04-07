@@ -1,6 +1,5 @@
 
-var tools = require('nodetk/server_tools')
-  , oauth2_server = require('oauth2-server')
+var oauth2_server = require('oauth2-server')
   , base64 = require('base64')
   , URL = require('url')
 ;
@@ -9,6 +8,25 @@ var model = require('./model')
   , ms_templates = require('./lib/ms_templates')
   , config = require('./lib/config_loader').get_config()
 ;
+
+/* Send HTTP 500 result with details about error in body.
+ * The content-type is set to text/plain.
+ *
+ * Arguments:
+ *  - res: nodejs result object.
+ *  - err: error object or string.
+ *
+ */
+function server_error(res, err) {
+  res.writeHead(500, {'Content-Type': 'text/plain'});
+  if(typeof err == "string") res.end(err);
+  else {
+    res.write('An error has occured: ' + err.message);
+    res.write('\n\n');
+    res.end(err.stack);
+  }
+};
+
 
 /**
  * Lookup in DB and set config.oauth2_client.client_id
@@ -134,11 +152,11 @@ exports.process_login = function(req, res) {
     if (!fields.email || !fields.password)
       return fail_login(req, res, client_data);
     model.User.getByConfirmedEmail(fields.email, function(err, user) {
-      if (err) return tools.server_error(res, err);
+      if (err) return server_error(res, err);
       if (!user) return fail_login(req, res, client_data);
 
       user.checkPassword(fields.password, function(err, good) {
-        if (err) return tools.server_error(res, err);
+        if (err) return server_error(res, err);
         if(!good) return fail_login(req, res, client_data);
         // The user is logged in, let's remember:
         req.session.user = {email: user.get('email'), id: user.get('id')};
