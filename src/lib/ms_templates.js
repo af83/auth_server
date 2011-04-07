@@ -1,7 +1,7 @@
 var fs = require('fs')
   , path = require('path')
 
-  , CLB = require('nodetk/orchestration/callbacks')
+  , Futures = require('futures')
   , tkfs = require('nodetk/fs')
   , mustache = require('mustache')
   ;
@@ -20,18 +20,23 @@ var TEMPLATES = null;
  */
 var generate_templates = function(fpaths, callback, fallback) {
   var templates = {};
-  var waiter = CLB.get_waiter(fpaths.length, function() {
-    callback(templates);
-  }, fallback);
+  var join = Futures.join();
   fpaths.forEach(function(fpath) {
-    fs.readFile(fpath, 'utf8', function(err, data) {
-      if(err) return waiter.fall(err);
-      var pos1 = MS_TEMPLATES_DIR.length + 1;
-      var pos2 = fpath.lastIndexOf('.ms');
-      var template_name = fpath.slice(pos1, pos2);
-      templates[template_name] = data;
-      waiter();
-    });
+    join.add(function() {
+      var f = Futures.future();
+      fs.readFile(fpath, 'utf8', function(err, data) {
+        if(err) return f.deliver(err);
+        var pos1 = MS_TEMPLATES_DIR.length + 1;
+        var pos2 = fpath.lastIndexOf('.ms');
+        var template_name = fpath.slice(pos1, pos2);
+        templates[template_name] = data;
+        f.deliver();
+      });
+      return f;
+    }());
+  });
+  join.when(function() {
+    callback(templates);
   });
 };
 
