@@ -156,7 +156,7 @@ Client.getByName = function(name, callback) {
 Client.getById = function(id, callback) {
   new Client().findOne({_id: new ObjectID(id)}, function(err, result) {
     if (err) return callback(err);
-    callback(null, new Client(result));
+    callback(null, result ? new Client(result) : null);
   });
 }
 /**

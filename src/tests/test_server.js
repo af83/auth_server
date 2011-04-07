@@ -62,14 +62,14 @@ exports.tests = [
 }],
 
 
-/*['/oauth/authorize: bad client_id', 2, function() {
+['/oauth/authorize: bad client_id', 2, function() {
   // if the given client id is not in DB, error.
   web.GET(authorize_url, {
     client_id: "toto",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('eua', 'invalid_client'));
-}],*/
+}],
 
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
   // if the redirect_uri is not the same as registered: error.
