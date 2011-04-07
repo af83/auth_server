@@ -17,7 +17,6 @@ var connect = require('connect')
   , Futures = require('futures')
   , oauth2_client = require('oauth2-client')
   , querystring = require('querystring')
-  , randomString = require('nodetk/random_str').randomString
   , request = require('request')
   , oauth2_server = require('oauth2-server')
   , strictTransportSecurity = require('connect-sts')
@@ -32,7 +31,7 @@ var portable_contacts_server = require('./oauth2/portable_contacts')
   , account = require('./middlewares/account')
   , model = require('./model')
   , ms_templates = require('./lib/ms_templates')
-  ;
+;
 
 var oauth2_client_options = {
   "auth_server": {
@@ -48,8 +47,6 @@ var oauth2_client_options = {
     treat_access_token: function(data, req, res, callback) {
       // Idem, since we are auth_server, directly request get_authorizations
       var info = oauth2_server.token_info(data.token.access_token);
-      req.session.authorizations = {'auth_server': 'admin'};
-      req.session.token = randomString(128); // 22 chars length
       callback();
     }
   },
