@@ -18,7 +18,7 @@ var connect = require('connect')
   , oauth2_client = require('oauth2-client')
   , querystring = require('querystring')
   , randomString = require('nodetk/random_str').randomString
-  , web = require('nodetk/web')
+  , request = require('request')
   , oauth2_server = require('oauth2-server')
   , strictTransportSecurity = require('connect-sts')
 ;
@@ -66,18 +66,20 @@ var oauth2_client_options = {
       // Here callback is not called, since we break the normal flow
       // XXX: for now, we only send grant once we have validated
       // grant sent by the other side.
-      var params = {access_token: data.token.access_token};
-      web.GET('https://graph.facebook.com/me', params,
-              function(status_code, headers, body) {
-        if(status_code != 200)
-          return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
-        console.log('Info given by FB:', body);
-        var info = JSON.parse(body);
-        oauth2_server.send_grant(res, model.Grant, 'FB'+info.id, data.state, {
-          provider: "facebook.com"
-        , name: info.name
-        });
-      }, fallback);
+      request.get({uri:'https://graph.facebook.com/me',
+                   headers: {'Authorization': 'OAuth '+data.token.access_token}},
+                  function (err, response, body) {
+                    if (err) return fallback(err);
+                    // we have a bug here
+                    if (response.statusCode != 200)
+                      return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
+                    console.log('Info given by FB:', body);
+                    var info = JSON.parse(body);
+                    oauth2_server.send_grant(res, model.Grant, 'FB'+info.id, data.state, {
+                      provider: "facebook.com"
+                      , name: info.name
+                    });
+                  });
     }
   }
 };

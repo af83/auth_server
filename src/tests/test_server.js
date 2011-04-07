@@ -9,8 +9,9 @@ var http = require('http')
   , util = require('util')
   , oauth2_server = require('oauth2-server')
   , base64 = require('base64')
-  , extend = require('nodetk/utils').extend
-  , web = require('nodetk/web')
+  , extend = require('../lib/merger').extend
+  , request = require('request')
+  , qs = require('querystring')
   , config = require('../lib/config_loader').get_config()
   , model = require('../model')
 ;
@@ -30,9 +31,9 @@ var base_url = DATA.base_url
  *  - error_code: 'invalid_request', 'invalid_client'...
  */
 var get_error_checker = function(type, error_code) {
-  return function(statusCode, headers, data) {
-    assert.equal(statusCode, 400);
-    var error = JSON.parse(data);
+  return function(err, response, body) {
+    assert.equal(response.statusCode, 400);
+    var error = JSON.parse(body);
     assert.deepEqual(error, {error: {
       type: 'OAuthException',
       message: error_code + ': ' + oauth2_server.ERRORS[type][error_code]
@@ -40,11 +41,22 @@ var get_error_checker = function(type, error_code) {
   };
 };
 
+function get(url, querystring, callback) {
+  request.get({uri: url+ "?"+ qs.stringify(querystring)}, callback);
+}
+
+function post(url, body, callback, headers) {
+  headers = headers || {};
+  request.post({uri: url,
+                headers: extend({'Content-type': 'application/x-www-form-urlencoded'}, headers),
+                body: qs.stringify(body)}, callback);
+}
+
 exports.tests = [
 
 ['/oauth/authorize: no parameter', 2, function() {
   // no params (missing mandatory ones) should give us an error.
-  web.GET(authorize_url, null, get_error_checker('eua', 'invalid_request'));
+  get(authorize_url, null, get_error_checker('eua', 'invalid_request'));
 }],
 
 
@@ -57,14 +69,14 @@ exports.tests = [
   oauth2_server.PARAMS.eua.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
-    web.GET(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
+    get(authorize_url, partial_qs, get_error_checker('eua', 'invalid_request'));
   });
 }],
 
 
 ['/oauth/authorize: bad client_id', 2, function() {
   // if the given client id is not in DB, error.
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: "toto",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
@@ -73,7 +85,7 @@ exports.tests = [
 
 ['/oauth/authorize: redirect_uri mismatch', 2, function() {
   // if the redirect_uri is not the same as registered: error.
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: DATA.client_id,
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login/wrong"
@@ -82,7 +94,7 @@ exports.tests = [
 
 ['/oauth/authorize: unsupported_response_type', 2, function() {
   // if the response_type is not an accepted value: error.
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: DATA.client_id,
     response_type: "wrong",
     redirect_uri: "http://127.0.0.1:8888/login"
@@ -92,22 +104,22 @@ exports.tests = [
 // -------------------------------------------------------------------------
 // XXX : The two following tests are NOT norm compliant, cf ../oauth2.js
 ['/oauth/authorize: token response_type', 1, function() {
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: DATA.client_id,
     response_type: "token",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 501)
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 501)
   });
 }],
 
 ['/oauth/authorize: code_and_token response_type', 1, function() {
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: DATA.client_id,
     response_type: "code_and_token",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 501)
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 501)
   });
 }],
 // -------------------------------------------------------------------------
@@ -115,19 +127,19 @@ exports.tests = [
 
 ['/oauth/authorize: ok', 1, function() {
   // if the response_type is not an accepted value: error.
-  web.GET(authorize_url, {
+  get(authorize_url, {
     client_id: DATA.client_id,
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 200);
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 200);
     // TODO: more checks here? -> check we have a form to log in.
   });
 }],
 
 
 ['authentication ok', 8, function() {
-  web.POST(login_url, {
+  post(login_url, {
     email: 'pruyssen@af83.com',
     password: '1234',
     info: base64.encode(new Buffer(JSON.stringify({
@@ -136,9 +148,9 @@ exports.tests = [
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
     })))
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 303);
-    var location = headers.location.split('?');
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 303);
+    var location = response.headers.location.split('?');
     assert.equal(location[0], 'http://127.0.0.1:8888/login');
     var qs = querystring.parse(location[1]);
     assert.equal(qs.state, 'somestate');
@@ -155,7 +167,7 @@ exports.tests = [
 
 
 ['authentication: wrong password', 1, function() {
-  web.POST(login_url, {
+  post(login_url, {
     state: 'somestate',
     email: 'pruyssen@af83.com',
     password: '123456',
@@ -165,14 +177,14 @@ exports.tests = [
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
     })))
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 401);
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 401);
   });
 }],
 
 
 ['authentication: unknown user', 1, function() {
-  web.POST(login_url, {
+  post(login_url, {
     email: 'toto@af83.com',
     password: '123456',
     info: base64.encode(new Buffer(JSON.stringify({
@@ -181,8 +193,8 @@ exports.tests = [
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
     })))
-  }, function(statusCode, headers, data) {
-    assert.equal(statusCode, 401);
+  }, function(err, response, body) {
+    assert.equal(response.statusCode, 401);
   });
 }],
 
@@ -191,7 +203,7 @@ exports.tests = [
 
 
 ['/oauth/token: no parameters', 2, function() {
-  web.POST(token_url, {}, get_error_checker('oat', 'invalid_request'));
+  post(token_url, {}, get_error_checker('oat', 'invalid_request'));
 }],
 
 
@@ -206,14 +218,14 @@ exports.tests = [
   oauth2_server.PARAMS.oat.mandatory.forEach(function(param) {
     var partial_qs = extend({}, qs);
     delete partial_qs[param];
-    web.POST(token_url, partial_qs, get_error_checker('oat', 'invalid_request'));
+    post(token_url, partial_qs, get_error_checker('oat', 'invalid_request'));
   });
 }],
 
 
 ['/oauth/token: bad grant_type', 8, function() {
   ["password", "assertion", "refresh_token", "none"].forEach(function(type) {
-    web.POST(token_url, {
+    post(token_url, {
       grant_type: type,
       client_id: DATA.client_id,
       code: "some code",
@@ -224,7 +236,7 @@ exports.tests = [
 
 
 ['/oauth/token: no client secret', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
@@ -234,20 +246,18 @@ exports.tests = [
 
 
 ['/oauth/token: Two client secrets', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login",
     client_secret: "somesecret"
-  }, get_error_checker('oat', 'invalid_request'), {
-    additional_headers: {"Authorization": "Basic somesecret"}
-  });
+  }, get_error_checker('oat', 'invalid_request'), {"Authorization": "Basic somesecret"});
 }],
 
 
 ['/oauth/token: unknown client_id', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: "toto",
     code: "some code",
@@ -258,7 +268,7 @@ exports.tests = [
 
 
 ['/oauth/token: bad secret in param', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
@@ -269,19 +279,17 @@ exports.tests = [
 
 
 ['/oauth/token: bad secret in header', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login",
-  }, get_error_checker('oat', 'invalid_client'), {
-    additional_headers: {"Authorization": "Basic some secret"}
-  });
+  }, get_error_checker('oat', 'invalid_client'), {"Authorization": "Basic some secret"});
 }],
 
 
 ['/oauth/token: no grant (secrets in param)', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
@@ -292,19 +300,17 @@ exports.tests = [
 
 
 ['/oauth/token: no grant (secrets in headers)', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     code: "some code",
     redirect_uri: "http://127.0.0.1:8888/login"
-  }, get_error_checker('oat', 'invalid_grant'), {
-    additional_headers: {"Authorization": "Basic some secret string"}
-  });
+  }, get_error_checker('oat', 'invalid_grant'), {"Authorization": "Basic some secret string"});
 }],
 
 
 ['/oauth/token: bad request_uri', 2, function() {
-  web.POST(token_url, {
+  post(token_url, {
     grant_type: "authorization_code",
     client_id: DATA.client_id,
     client_secret: "some secret string",
@@ -326,7 +332,7 @@ exports.tests = [
         assert.equal(err, null);
         assert.ok(grant != null, "The grand has not been saved yet...");
         // We need to check the grant was actually
-        web.POST(token_url, {
+        post(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
           code: grant.get('id'),
@@ -352,16 +358,16 @@ exports.tests = [
       model.Grant.getById(grant.get('id'), function(err, grant) {
         assert.equal(err, null);
         assert.ok(grant != null, "The grant has not been saved yet...");
-        web.POST(token_url, {
+        post(token_url, {
           grant_type: "authorization_code",
           client_id: DATA.client_id,
           code: grant.get('id')+'.somecode',
           client_secret: "some secret string",
           redirect_uri: "http://127.0.0.1:8888/login"
-        }, function(statusCode, headers, data) {
-          assert.equal(statusCode, 200);
-          assert.equal(headers['cache-control'], 'no-store');
-          var token = JSON.parse(data);
+        }, function(err, response, body) {
+          assert.equal(response.statusCode, 200);
+          assert.equal(response.headers['cache-control'], 'no-store');
+          var token = JSON.parse(body);
           assert.ok(token.access_token);
         });
       });
