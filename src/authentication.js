@@ -80,7 +80,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
   user = req.session.user;
   if(user) { // The user is already logged in
     // TODO: for a client first time, ask the user
-    //oauth2_server.send_grant(res, R, user.id, client_data);
+      oauth2_server.send_grant(res, model.Grant, user.id, client_data);
   }
   else { // The user is not logged in
     data.action = config.oauth2_server.process_login_url;
