@@ -59,14 +59,14 @@ var oauth2_client_options = {
       return data;
     },
     // To get info from access_token and send grant on the other side
-    treat_access_token: function(data, req, res, callback, fallback) {
+    treat_access_token: function(data, req, res, callback) {
       // Here callback is not called, since we break the normal flow
       // XXX: for now, we only send grant once we have validated
       // grant sent by the other side.
       request.get({uri:'https://graph.facebook.com/me',
                    headers: {'Authorization': 'OAuth '+data.token.access_token}},
                   function (err, response, body) {
-                    if (err) return fallback(err);
+                    if (err) return callback(err);
                     // we have a bug here
                     if (response.statusCode != 200)
                       return oauth2_server.oauth_error(res, 'oat', 'invalid_grant');
