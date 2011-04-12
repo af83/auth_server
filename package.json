@@ -14,7 +14,7 @@
 , "futures" : ""
 , "request": ""
 , "oauth2-client": "https://github.com/AF83/oauth2_client_node/tarball/master"
-, "oauth2-server": "https://github.com/AF83/oauth2_server_node/tarball/pure_mongo"
+, "oauth2-server": "https://github.com/AF83/oauth2_server_node/tarball/master"
 , "mongodb-provider": "https://github.com/francois2metz/node-mongodb-provider/tarball/master"
 }
 , "engines" : {"node" : "~0.4.0"}
