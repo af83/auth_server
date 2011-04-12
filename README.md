@@ -142,6 +142,8 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
 ## License
 
+(c) 2011 af83
+
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
