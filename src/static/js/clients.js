@@ -9,6 +9,7 @@ var Clients = Backbone.Collection.extend({
 var AuthServerClientsIndexView = Backbone.View.extend({
   initialize: function() {
     this.collection.bind('refresh', _.bind(this.render, this));
+    this.collection.bind('remove', _.bind(this.render, this));
     this.collection.bind('add', _.bind(this.render, this));
   },
   render: function() {
@@ -85,11 +86,9 @@ var AuthServerClientShowView = Backbone.View.extend({
   save: function(e) {
     e.preventDefault();
     var self = this;
-    this.model.save(function() {
-      self.trigger("saved");
-    }, function(err) {
-      self.trigger("error");
-    });
+    this.model.save({}, {success: function() {
+      self.model.trigger('updated', self.model);
+    }});
   },
 
   del: function(e) {
@@ -144,7 +143,6 @@ var AuthServerClientsController = Backbone.Controller.extend({
   new: function() {
     var client = new Client();
     this.clients.add(client);
-    console.log(client.collection);
     client.bind('change:id', function(e) {
       document.location.hash = '#/c';
     });
@@ -157,6 +155,9 @@ var AuthServerClientsController = Backbone.Controller.extend({
       if (!client) return document.location.hash = "#/c";
       this.render(new AuthServerClientShowView({model: client}));
       client.bind('destroy', function(e) {
+        document.location.hash = "#/c";
+      });
+      client.bind('updated', function(e) {
         document.location.hash = "#/c";
       });
     }, this);
