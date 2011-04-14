@@ -110,6 +110,10 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     GET /clients
 
+### Update client
+
+    POST /client
+
 ### List users
 
     GET /users

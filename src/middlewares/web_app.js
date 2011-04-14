@@ -1,13 +1,11 @@
 var ms_templates = require('../lib/ms_templates')
-  , router = require('connect').router
+  , connect = require('connect')
   , model = require('../model')
 ;
 /**
- * Serves the web application html if user logged in.
- * If user not logged in, redirects him for logging.
- *
+ * Serves the web application html
  */
-var serve_web_app = function(req, res) {
+function index(req, res) {
   res.writeHead(200, {'Content-Type': 'text/html'});
   var body = ms_templates.render('app', {
     email : req.session.user.email
@@ -18,7 +16,7 @@ var serve_web_app = function(req, res) {
 /**
  * List oauth2 clients
  */
-function list_clients(req, res) {
+function listClients(req, res) {
   model.Clients.get(function(err, clients) {
     if (err) {
       res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -31,9 +29,36 @@ function list_clients(req, res) {
   });
 }
 /**
+ * Update Client
+ */
+function updateClient(req, res) {
+  var body = req.body;
+  model.Client.getById(body.id, function(err, client) {
+    if (err) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      return res.end(err.toString());
+    }
+    if (!client) {
+      res.writeHead(404);
+      return res.end('');
+    }
+    client.set('name', body.name);
+    client.set('redirect_uri', body.redirect_uri);
+    client.set('secret', body.secret);
+    client.save(function(err) {
+      if (err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        return res.end(err.toString());
+      }
+      res.writeHead(200);
+      res.end();
+    });
+  });
+}
+/**
  * List users
  */
-function list_users(req, res) {
+function listUsers(req, res) {
   model.Users.get(function(err, users) {
     if (err) {
       res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -46,7 +71,7 @@ function list_users(req, res) {
   });
 }
 
-function check_user(oauth2_client) {
+function checkUserConnected(oauth2_client) {
   return function(req, res, next) {
     if(!req.session.user)
       return oauth2_client.redirects_for_login('auth_server', res, '/');
@@ -62,13 +87,16 @@ function check_user(oauth2_client) {
  *
  */
 exports.connector = function(oauth2_client) {
-  return router(function(app) {
-    function addRoute(path, fun) {
-      app.get(path, check_user(oauth2_client));
-      app.get(path, fun);
+  return connect.router(function(app) {
+    function addRoute(verb, path, fun) {
+      app[verb](path, checkUserConnected(oauth2_client));
+      if (verb != 'get')
+        app[verb](path, connect.bodyParser());
+      app[verb](path, fun);
     }
-    addRoute('/', serve_web_app);
-    addRoute('/clients', list_clients);
-    addRoute('/users', list_users);
+    addRoute('get', '/', index);
+    addRoute('get', '/clients', listClients);
+    addRoute('put', '/client', updateClient);
+    addRoute('get', '/users', listUsers);
   });
 };

@@ -32,7 +32,10 @@ var AuthServerClientsNewView = Backbone.View.extend({
 
   update_model: function(e) {
     var input = $(e.originalTarget);
-    this.model[input.attr('name')] = input.val();
+    var key = input.attr('name');
+    var obj = {};
+    obj[key] = input.val();
+    this.model.set(obj);
   },
 
   save: function(e) {
@@ -64,7 +67,10 @@ var AuthServerClientShowView = Backbone.View.extend({
 
   update_model: function(e) {
     var input = $(e.originalTarget);
-    this.model[input.attr('name')] = input.val();
+    var key = input.attr('name');
+    var obj = {};
+    obj[key] = input.val();
+    this.model.set(obj);
   },
 
   save: function(e) {
