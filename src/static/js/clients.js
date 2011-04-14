@@ -1,4 +1,5 @@
 var Client = Backbone.Model.extend({
+  urlRoot: '/clients'
 });
 var Clients = Backbone.Collection.extend({
   url: '/clients',
@@ -56,8 +57,16 @@ var AuthServerClientShowView = Backbone.View.extend({
     "click .delete": "del"
   },
 
-  render: function() {
+  initialize: function() {
+    this.model.bind('change:name', _.bind(this.renderTitle, this));
+  },
+
+  renderTitle: function() {
     $('#overview').html('<h1>' + this.model.get('name') + '</h1>');
+  },
+
+  render: function() {
+    this.renderTitle();
     var data = {
       client: this.model.toJSON(),
     };
@@ -90,9 +99,7 @@ var AuthServerClientShowView = Backbone.View.extend({
     var client_label = '"'+name+'" ['+redirect_uri+']';
     var msg = "Are you sure you want to delete the client " + client_label + "?";
     if(confirm(msg)) {
-      this.model.destroy({success: function() {
-
-      }})
+      this.model.destroy();
     }
   }
 });
@@ -117,6 +124,13 @@ var AuthServerClientsController = Backbone.Controller.extend({
       });
     }, this));
     this.clients.fetch();
+    // clean all new models
+    this.bind('all', _.bind(function(e) {
+      if (e == 'route:new') return;
+      this.clients.remove(this.clients.filter(function(client) {
+        return client.isNew();
+      }));
+    }, this));
   },
 
   index: function() {
@@ -124,33 +138,36 @@ var AuthServerClientsController = Backbone.Controller.extend({
   },
 
   clients: function() {
-    new AuthServerClientsIndexView({collection: this.clients,
-                                    el: $("#content")}).render();
+    this.render(new AuthServerClientsIndexView({collection: this.clients}));
   },
 
   new: function() {
     var client = new Client();
     this.clients.add(client);
-    new AuthServerClientsNewView({el: $("#content"),
-                                  model: client}).render()
-      .bind("success", function() {
-        console.log("on success");
-      }).bind("error", function() {
-        console.log("on error");
-      });
+    console.log(client.collection);
+    client.bind('change:id', function(e) {
+      document.location.hash = '#/c';
+    });
+    this.render(new AuthServerClientsNewView({model: client}));
   },
 
   show: function(id) {
     var onReady = _.bind(function() {
       var client = this.clients.get(id);
-      new AuthServerClientShowView({el: $("#content"),
-                                    model: client}).render();
+      if (!client) return document.location.hash = "#/c";
+      this.render(new AuthServerClientShowView({model: client}));
+      client.bind('destroy', function(e) {
+        document.location.hash = "#/c";
+      });
     }, this);
     if (this.initialized) {
       onReady();
     } else {
       this.callbacks.push(onReady);
     }
+  },
+
+  render: function(view) {
+    $('#main').empty().append(view.render().el);
   }
 });
-

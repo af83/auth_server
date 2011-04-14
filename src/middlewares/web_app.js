@@ -39,7 +39,7 @@ function createClient(req, res) {
       return res.end(err.toString());
     }
     res.writeHead(200);
-    res.end();
+    res.end(client.toJSON());
   });
 }
 /**
