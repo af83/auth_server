@@ -29,6 +29,20 @@ function listClients(req, res) {
   });
 }
 /**
+ * Create Client
+ */
+function createClient(req, res) {
+  var client = new model.Client(req.body);
+  client.save(function(err) {
+    if (err) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      return res.end(err.toString());
+    }
+    res.writeHead(200);
+    res.end();
+  });
+}
+/**
  * Update Client
  */
 function updateClient(req, res) {
@@ -96,6 +110,7 @@ exports.connector = function(oauth2_client) {
     }
     addRoute('get', '/', index);
     addRoute('get', '/clients', listClients);
+    addRoute('post', '/client', createClient);
     addRoute('put', '/client', updateClient);
     addRoute('get', '/users', listUsers);
   });
