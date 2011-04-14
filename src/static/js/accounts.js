@@ -9,6 +9,7 @@ var AuthServerAccountView = Backbone.View.extend({
   render: function() {
     $('#overview').html('<h1>Your account</h1>');
     $(this.el).renders('account');
+    return this;
   },
   /**
    * Process password update
@@ -45,7 +46,7 @@ var AuthServerAccountController = Backbone.Controller.extend({
   },
 
   account: function() {
-    new AuthServerAccountView({el: $("#content")}).render();
+    $("#main").empty().append(new AuthServerAccountView().render().el);
   }
 });
 

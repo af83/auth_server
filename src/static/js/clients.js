@@ -43,11 +43,7 @@ var AuthServerClientsNewView = Backbone.View.extend({
   save: function(e) {
     e.preventDefault();
     var self = this;
-    this.model.save(function() {
-      self.trigger("success");
-    }, function(err) {
-      self.trigger("error");
-    });
+    this.model.save();
   }
 });
 

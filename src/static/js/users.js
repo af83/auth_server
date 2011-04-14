@@ -1,6 +1,4 @@
-var User = Backbone.Model.extend({
-  url: '/client'
-});
+var User = Backbone.Model.extend({});
 var Users = Backbone.Collection.extend({
   url: '/users',
   model: User
@@ -32,8 +30,7 @@ var AuthServerUsersController = Backbone.Controller.extend({
    * TODO: handle permissions, no everyone should be able to see list of all users.
    */
   users: function() {
-    new AuthServerUsersView({el: $('#content'),
-                             collection: this.users}).render();
+    $('#main').empty().append(new AuthServerUsersView({collection: this.users}).render().el);
     this.users.fetch();
   }
 });
