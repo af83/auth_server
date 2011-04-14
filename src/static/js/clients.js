@@ -104,7 +104,7 @@ var AuthServerClientsController = Backbone.Controller.extend({
   routes: {
     "": "index",
     "/c": "clients",
-    "/c/new": "new",
+    "/c/new": "create",
     "/c/:id": "show"
   },
 
@@ -121,7 +121,7 @@ var AuthServerClientsController = Backbone.Controller.extend({
     this.clients.fetch();
     // clean all new models
     this.bind('all', _.bind(function(e) {
-      if (e == 'route:new') return;
+      if (e == 'route:create') return;
       this.clients.remove(this.clients.filter(function(client) {
         return client.isNew();
       }));
@@ -136,7 +136,7 @@ var AuthServerClientsController = Backbone.Controller.extend({
     this.render(new AuthServerClientsIndexView({collection: this.clients}));
   },
 
-  new: function() {
+  create: function() {
     var client = new Client();
     this.clients.add(client);
     client.bind('change:id', function(e) {
