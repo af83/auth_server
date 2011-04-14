@@ -112,11 +112,15 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
 ### Create client
 
-    POST /client
+    POST /clients
 
 ### Update client
 
-    POST /client
+    PUT /clients/:id
+
+### Delete client
+
+    DELETE /clients/:id
 
 ### List users
 

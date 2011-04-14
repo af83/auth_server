@@ -47,7 +47,7 @@ function createClient(req, res) {
  */
 function updateClient(req, res) {
   var body = req.body;
-  model.Client.getById(body.id, function(err, client) {
+  model.Client.getById(req.params.id, function(err, client) {
     if (err) {
       res.writeHead(500, {'Content-Type': 'text/plain'});
       return res.end(err.toString());
@@ -57,14 +57,37 @@ function updateClient(req, res) {
       return res.end('');
     }
     client.set('name', body.name);
-    client.set('redirect_uri', body.redirect_uri);
+    client.set('redirect_uri', body.redirect_uri || '');
     client.set('secret', body.secret);
     client.save(function(err) {
       if (err) {
         res.writeHead(500, {'Content-Type': 'text/plain'});
         return res.end(err.toString());
       }
-      res.writeHead(200);
+      res.writeHead(200, {'Content-Type': 'application/json'});
+      res.end(client.toJSON());
+    });
+  });
+}
+/**
+ * Delete Client
+ */
+function deleteClient(req, res) {
+  model.Client.getById(req.params.id, function(err, client) {
+    if (err) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      return res.end(err.toString());
+    }
+    if (!client) {
+      res.writeHead(404);
+      return res.end('');
+    }
+    client.remove(function(err) {
+      if (err) {
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        return res.end(err.toString());
+      }
+      res.writeHead(204);
       res.end();
     });
   });
@@ -110,8 +133,9 @@ exports.connector = function(oauth2_client) {
     }
     addRoute('get', '/', index);
     addRoute('get', '/clients', listClients);
-    addRoute('post', '/client', createClient);
-    addRoute('put', '/client', updateClient);
+    addRoute('post', '/clients', createClient);
+    addRoute('put', '/clients/:id', updateClient);
+    addRoute('del', '/clients/:id', deleteClient);
     addRoute('get', '/users', listUsers);
   });
 };

@@ -1,5 +1,4 @@
 var Client = Backbone.Model.extend({
-  url: '/client'
 });
 var Clients = Backbone.Collection.extend({
   url: '/clients',
@@ -9,6 +8,7 @@ var Clients = Backbone.Collection.extend({
 var AuthServerClientsIndexView = Backbone.View.extend({
   initialize: function() {
     this.collection.bind('refresh', _.bind(this.render, this));
+    this.collection.bind('add', _.bind(this.render, this));
   },
   render: function() {
     // Display a list of clients for the user to choose.
@@ -85,19 +85,14 @@ var AuthServerClientShowView = Backbone.View.extend({
 
   del: function(e) {
     e.preventDefault();
-    var self = this;
-    var name = this.model.name;
-    var redirect_uri = this.model.redirect_uri;
+    var name = this.model.get('name');
+    var redirect_uri = this.model.get('redirect_uri') || '';
     var client_label = '"'+name+'" ['+redirect_uri+']';
-    var msg = "Are you sure you want to delete the client " +
-      client_label + "?" +
-      "\nAll corresponding authorizations will also be deleted!";
+    var msg = "Are you sure you want to delete the client " + client_label + "?";
     if(confirm(msg)) {
-      this.model.delete_(function() {
-        self.trigger("deleted");
-      }, function() {
-        self.trigger("error");
-      });
+      this.model.destroy({success: function() {
+
+      }})
     }
   }
 });
@@ -134,8 +129,10 @@ var AuthServerClientsController = Backbone.Controller.extend({
   },
 
   new: function() {
+    var client = new Client();
+    this.clients.add(client);
     new AuthServerClientsNewView({el: $("#content"),
-                                  model: new Client()}).render()
+                                  model: client}).render()
       .bind("success", function() {
         console.log("on success");
       }).bind("error", function() {
