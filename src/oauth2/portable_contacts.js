@@ -90,12 +90,14 @@ function create_contact(req, res) {
   var body = req.body;
   body.user = req.user.get('id');
   var contact = new model.Contact(body);
-  contact.save(function() {
+  contact.save(function(err) {
+    if (err) {
+      res.writeHead(500);
+      res.end();
+      return console.error(err);
+    }
     res.writeHead(200, {'Content-Type': 'application/json'});
     res.end(formatPortableContact(contact));
-  }, function() {
-    res.writeHead(500);
-    res.end();
   });
 }
 
@@ -120,6 +122,33 @@ function update_contact(req, res) {
         }
         res.writeHead(200, {'Content-Type': 'application/json'});
         res.end(formatPortableContact(contact));
+      });
+    } else {
+      res.writeHead(404, {'Content-Type': 'application/json'});
+      res.end();
+    }
+  });
+}
+/**
+ * Delete on contact
+ */
+function delete_contact(req, res) {
+  var id = req.params.id;
+  model.Contact.getById(id, function(err, contact) {
+    if (err) {
+      console.error(err);
+      res.writeHead(500);
+      return res.end();
+    }
+    if (contact.get('user') == req.user.get('id')) {
+      contact.remove(function(err) {
+        if (err) {
+          res.writeHead(500);
+          res.end();
+          return console.error(err);
+        }
+        res.writeHead(204);
+        res.end();
       });
     } else {
       res.writeHead(404, {'Content-Type': 'application/json'});
@@ -176,5 +205,6 @@ exports.connector = function() {
     create_route(app, 'post', '/portable_contacts/@me/@all', create_contact);
     app.put('/portable_contacts/@me/@all/:id', connect.bodyParser());
     create_route(app, 'put', '/portable_contacts/@me/@all/:id', update_contact);
+    create_route(app, 'del', '/portable_contacts/@me/@all/:id', delete_contact);
   });
 };

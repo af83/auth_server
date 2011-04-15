@@ -148,9 +148,19 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     POST /portable_contacts/@me/@all
 
+    $ curl -X POST --header "Content-Type: application/json" --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all --data-binary @portable_contact.json
+
 #### Update a contact
 
     PUT /portable_contacts/@me/@all/:id
+
+    $ curl -X PUT --header "Content-Type: application/json" --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id --data-binary @portable_contact.json
+
+#### Delete a contact
+
+    DELETE /portable_contacts/@me/@all/:id
+
+    $ curl -X DELETE --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id
 
 ## License
 

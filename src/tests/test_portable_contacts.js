@@ -161,5 +161,23 @@ exports.tests = [
     };
     request.get({uri: base_url + '/portable_contacts/@me/@all?'+ qs.stringify(params)}, check_answer);
   });
+}],
+
+['DELETE /portable_contacts/@me/@all/:id delete user', 3, function() {
+  create_access_token(function(err, oauth_token) {
+    assert.equal(null, err);
+    var params = {oauth_token: oauth_token};
+    var check_answer = function(statusCode, headers, body) {
+      var users = JSON.parse(body);
+      request.del({uri: base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id +"?"+ qs.stringify(params)}, function(err, response, body) {
+        assert.equal(response.statusCode, 204);
+        request.get({uri: base_url + '/portable_contacts/@me/@all/'+ users.entry[0].id+"?"+ qs.stringify(params)}, function(err, response, body) {
+          assert.equal(response.statusCode, 404);
+        });
+      });
+    };
+    request.get({uri: base_url + '/portable_contacts/@me/@all?'+ qs.stringify(params)}, check_answer);
+  });
 }]
+
 ]
