@@ -10,7 +10,7 @@ var model = require('../model')
  * Returns basic information about a user
  * for the client (user_id and client_id in given oauth_token).
  */
-function get_current_user_portable_contact(req, res) {
+function getCurrentUserPortableContact(req, res) {
   res.writeHead(200, {'Content-Type': 'application/json'});
   res.end(formatPortableContact(req.user));
 };
@@ -18,7 +18,7 @@ function get_current_user_portable_contact(req, res) {
 /**
  * Return one contact formatted with portablecontacts
  */
-function get_one_portable_contact(req, res) {
+function getOnePortableContact(req, res) {
   var id = req.params.id;
   model.Contact.getById(id, function(err, contact) {
     if (err) {
@@ -39,7 +39,7 @@ function get_one_portable_contact(req, res) {
 /**
  * Return a list of all or filtered portable contacts for the client
  */
-function get_filter_portable_contacts(req, res) {
+function getFilteredPortableContacts(req, res) {
   var query = url.parse(req.url, true).query;
   var mongoquery = {};
   if (query.filterBy && query.filterValue) {
@@ -86,7 +86,7 @@ function formatPortableContacts(contacts) {
 /**
  * Create a contact for the client
  */
-function create_contact(req, res) {
+function createContact(req, res) {
   var body = req.body;
   body.user = req.user.get('id');
   var contact = new model.Contact(body);
@@ -104,7 +104,7 @@ function create_contact(req, res) {
 /**
  * Update one contact
  */
-function update_contact(req, res) {
+function updateContact(req, res) {
   var id = req.params.id;
   model.Contact.getById(id, function(err, contact) {
     if (err) {
@@ -132,7 +132,7 @@ function update_contact(req, res) {
 /**
  * Delete on contact
  */
-function delete_contact(req, res) {
+function deleteContact(req, res) {
   var id = req.params.id;
   model.Contact.getById(id, function(err, contact) {
     if (err) {
@@ -164,7 +164,7 @@ function delete_contact(req, res) {
  * (have to include token in reply headers?)
  * cf. http://tools.ietf.org/html/draft-ietf-oauth-v2-10#section-5.2
  */
-function check_token(req, res, next) {
+function checkToken(req, res, next) {
   oauth2.check_token(req, res, function(token_info) {
     var user_id = token_info.user_id
     , client_id = token_info.client_id
@@ -192,19 +192,19 @@ function check_token(req, res, next) {
  * Returns OAuth2 resources server connect middleware.
  */
 exports.connector = function() {
-  function create_route(app, verb, path, callback) {
-    app[verb](path, check_token);
+  function createRoute(app, verb, path, callback) {
+    app[verb](path, checkToken);
     app[verb](path, callback);
   }
   return router(function(app) {
-    create_route(app, 'get','/portable_contacts/@me/@self', get_current_user_portable_contact);
-    create_route(app, 'get', '/portable_contacts/@me/@all/:id', get_one_portable_contact);
-    create_route(app, 'get', '/portable_contacts/@me/@all', get_filter_portable_contacts);
+    createRoute(app, 'get','/portable_contacts/@me/@self', getCurrentUserPortableContact);
+    createRoute(app, 'get', '/portable_contacts/@me/@all/:id', getOnePortableContact);
+    createRoute(app, 'get', '/portable_contacts/@me/@all', getFilteredPortableContacts);
     var connect = require('connect');
     app.post('/portable_contacts/@me/@all', connect.bodyParser());
-    create_route(app, 'post', '/portable_contacts/@me/@all', create_contact);
+    createRoute(app, 'post', '/portable_contacts/@me/@all', createContact);
     app.put('/portable_contacts/@me/@all/:id', connect.bodyParser());
-    create_route(app, 'put', '/portable_contacts/@me/@all/:id', update_contact);
-    create_route(app, 'del', '/portable_contacts/@me/@all/:id', delete_contact);
+    createRoute(app, 'put', '/portable_contacts/@me/@all/:id', updateContact);
+    createRoute(app, 'del', '/portable_contacts/@me/@all/:id', deleteContact);
   });
 };
