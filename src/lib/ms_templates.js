@@ -43,7 +43,7 @@ var generate_templates = function(templateFiles, callback, fallback) {
 /**
  * Generate templates
  */
-exports.generate_templates = funCtion(callback, fallback) {
+exports.generate_templates = function(callback, fallback) {
   var templateFiles = glob.globSync(path.join(MS_TEMPLATES_DIR, "*.ms"));
   var set_data = function(templates_str) {
     TEMPLATES = templates_str;
