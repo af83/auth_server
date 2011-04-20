@@ -77,6 +77,7 @@ auth_server uses many other projects, including:
  - [Backbone](http://documentcloud.github.com/backbone/)
  - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
+ - [node-glob](https://github.com/isaacs/node-glob)
  - node (v0.4)
  - mongodb (>=v1.4)
  - xgettext and msgfmt (Debian package gettext)

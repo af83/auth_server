@@ -2,7 +2,7 @@ var fs = require('fs')
   , path = require('path')
 
   , Futures = require('futures')
-  , tkfs = require('nodetk/fs')
+  , glob = require("glob")
   , mustache = require('mustache')
   ;
 
@@ -18,10 +18,10 @@ var TEMPLATES = null;
  * '{template1: "...", template2: "...", ...}'.
  *
  */
-var generate_templates = function(fpaths, callback, fallback) {
+var generate_templates = function(templateFiles, callback, fallback) {
   var templates = {};
   var join = Futures.join();
-  fpaths.forEach(function(fpath) {
+  templateFiles.forEach(function(fpath) {
     join.add(function() {
       var f = Futures.future();
       fs.readFile(fpath, 'utf8', function(err, data) {
@@ -43,17 +43,15 @@ var generate_templates = function(fpaths, callback, fallback) {
 /**
  * Generate templates
  */
-exports.generate_templates = function(callback, fallback) {
-  tkfs.getFilesDirs(MS_TEMPLATES_DIR, function(fpaths) {
-    fpaths = fpaths.filter(function(fpath) {return fpath.match(/\.ms$/)});
-    var set_data = function(templates_str) {
-      TEMPLATES = templates_str;
-    };
-    generate_templates(fpaths, function(templates_str) {
-      set_data(templates_str);
-      callback();
-    }, fallback);
-  });
+exports.generate_templates = funCtion(callback, fallback) {
+  var templateFiles = glob.globSync(path.join(MS_TEMPLATES_DIR, "*.ms"));
+  var set_data = function(templates_str) {
+    TEMPLATES = templates_str;
+  };
+  generate_templates(templateFiles, function(templates_str) {
+    set_data(templates_str);
+    callback();
+  }, fallback);
 };
 
 /**
