@@ -1,9 +1,6 @@
 [submodule "vendors/jquery.mustache"]
 	path = vendors/jquery.mustache
 	url = git://github.com/AF83/jquery.mustache.git
-[submodule "vendors/bcrypt_hash"]
-	path = vendors/bcrypt_hash
-	url = git://github.com/virtuo/bcrypt_hash.git
 [submodule "vendors/nodetk"]
 	path = vendors/nodetk
 	url = https://github.com/AF83/nodetk.git

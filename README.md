@@ -77,12 +77,8 @@ auth_server Uses many other projects, including:
  - [Backbone](http://documentcloud.github.com/backbone/)
  - [underscore](http://documentcloud.github.com/underscore/)
  - [node-mail](https://github.com/weaver/node-mail)
- - [bcrypt_hash](https://github.com/virtuo/bcrypt_hash)
  - node (v0.4)
  - mongodb (>=v1.4)
- - libbsd-dev
- - make
- - gcc
  - xgettext and msgfmt (Debian package gettext)
 
     $> git submodule update --init

@@ -25,9 +25,6 @@ var config = require('../lib/config_loader').get_config();
 config.server.base_url = data.base_url;
 config.db = 'db://localhost/auth_server_test';
 
-var bcrypt = require('../lib/bcrypt');
-bcrypt.conf.nb_rounds = 4; // So that tests run faster
-
 var eyes = require('eyes')
 ;
 
