@@ -132,17 +132,38 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
 ### Portables contacts
 
+We follow the the current specification of [portables contacts](http://portablecontacts.net/draft-spec.html).
+
+All filtering/sorting are not available.
+
+Example of a portable contact record:
+
+    {
+      "displayName": "Foo Bar",
+      "name": {
+       "familyName": "Foo",
+       "givenName": Bar"
+      },
+      "id": "XXXX"
+    }
+
 #### Get current user
 
     GET /portable_contacts/@me/@self
+
+    $ curl --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@self
 
 #### Get all contacts from current user
 
     GET /portable_contacts/@me/@all
 
+    $ curl --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all
+
 #### Get one contact from current user
 
     GET /portable_contacts/@me/@all/:id
+
+    $ curl --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id
 
 #### Create a contact
 
