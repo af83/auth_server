@@ -179,6 +179,16 @@ Example of a portable contact record:
 
     $ curl -X DELETE --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id
 
+## Changelog
+
+* **0.1.0**
+
+  Remove authorizations.
+
+  Add portable contacts api.
+
+  Updated many dependencies.
+
 ## License
 
 (c) 2011 af83
