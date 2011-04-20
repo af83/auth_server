@@ -1,5 +1,4 @@
 var URL = require('url')
-  , tools = require('nodetk/server_tools')
   , router = require('connect').router
 ;
 
@@ -9,6 +8,38 @@ var ms_templates = require('../lib/ms_templates')
 ;
 
 var BASE_URL;
+
+/* Send redirection HTTP reply to result.
+ *
+ * Arguments:
+ *  - res: nodejs result object.
+ *  - url: where to redirect.
+ *
+ */
+function redirect(res, url) {
+  res.writeHead(303, {'Location': url});
+  res.end();
+};
+
+/* Send HTTP 500 result with details about error in body.
+ * The content-type is set to text/plain.
+ *
+ * Arguments:
+ *  - res: nodejs result object.
+ *  - err: error object or string.
+ *
+ */
+function server_error(res, err) {
+  res.writeHead(500, {'Content-Type': 'text/plain'});
+  if(typeof err == "string") res.end(err);
+  else {
+    res.write('An error has occured: ' + err.message);
+    res.write('\n\n');
+    res.end(err.stack);
+  }
+};
+
+
 
 /**
  * Serve page with form to register to auth_server.
@@ -41,7 +72,7 @@ var register_success_page = function(req, res) {
  * Redirects the user after process_register when user created with success.
  */
 var process_register_success = function(res) {
-  tools.redirect(res, BASE_URL+'/register/success');
+  redirect(res, BASE_URL+'/register/success');
 };
 
 /**
@@ -76,8 +107,8 @@ var confirm_registration = function(req, res) {
     // Mark the user as confirmed:
     user.set('confirmed', 1);
     user.save(function(err) {
-      if (err) tools.server_error(res, err);
-      tools.redirect(res, BASE_URL+'/');
+      if (err) server_error(res, err);
+      redirect(res, BASE_URL+'/');
     });
   });
 };
@@ -88,7 +119,7 @@ var confirm_registration = function(req, res) {
 var process_register = function(req, res) {
   if(!req.form) return register_page(req, res, {status_code: 400});
   req.form.complete(function(err, fields, files) {
-    if(err) return tools.server_error(res, err);
+    if(err) return server_error(res, err);
     var error = false;
     ['email', 'password', 'password_confirm'].forEach(function(attr) {
       if(!fields[attr]) error = true;
@@ -101,14 +132,14 @@ var process_register = function(req, res) {
     // Add the user:
     var user = new model.User({email: fields.email});
     user.setPassword(fields.password, function(err) {
-      if (err) return tools.server_error(res, err);
+      if (err) return server_error(res, err);
       user.save(function(err) {
         if (err) {
           // If error is caused by duplicate email, say nothing to user:
           if (err.message.indexOf("E11000 ") == 0) { // duplicate insert
             return process_register_success(res);
           }
-          return tools.server_error(res, err);
+          return server_error(res, err);
         }
         send_confirmation_email(user);
         process_register_success(res);
