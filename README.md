@@ -28,7 +28,7 @@ auth_server is developed together with:
 
 ### Installation
 
-Make sure libbsd-dev and gettext (xgettext and msgfmt) are installed on your system, then:
+Make sure gettext (xgettext and msgfmt) are installed on your system, then:
 
     make install
     make update_js_templates
@@ -65,7 +65,7 @@ Tweak the `config.js` file to fit your needs, then:
 
 ## Dependencies
 
-auth_server Uses many other projects, including:
+auth_server uses many other projects, including:
 
  - [connect](https://github.com/senchalabs/connect)
  - [cookie-sessions](https://github.com/caolan/cookie-sessions)
