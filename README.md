@@ -82,7 +82,8 @@ auth_server uses many other projects, including:
  - xgettext and msgfmt (Debian package gettext)
 
     $> git submodule update --init
-    $> npm bundle
+
+    $> npm install
 
 ## Projects and organizations using auth_server
 
