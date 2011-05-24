@@ -20,7 +20,6 @@ var config = require('./lib/config_loader').get_config()
 ;
 
 var db = exports.db = provider.connect(config.db);
-db.createIndex('User', 'email', true, function(){}); // email is unique
 
 var ObjectID = db.bson_serializer.ObjectID;
 /**
@@ -69,6 +68,9 @@ Model.prototype.toJSON = function() {
  */
 function User(data) {
   Model.call(this, 'User', data);
+  this.ensureIndex('email', true, function(err, name){
+      if (err) throw err;
+  }); // email is unique
 }
 inherits(User, Model);
 User.prototype.toPortableContact = function() {
