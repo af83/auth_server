@@ -51,7 +51,7 @@ server.get_session_middleware = function() {
 var get_client_id = function(client_name, callback) {
   model.Client.getByName(client_name, function(err, clients) {
     if (err) throw new Error(err);
-    if (clients.length != 1) throw new Errror("There should only be one client!");
+    if (clients.length != 1) throw new Error("There should only be one client!");
     callback(clients[0].get('id'));
   });
 };
