@@ -182,6 +182,12 @@ Example of a portable contact record:
 
 ## Changelog
 
+* **0.1.2**
+
+  Update doc and Makefile with latest change of npm.
+
+  Fix index creation on mongodb.
+
 * **0.1.1**
 
   Fix typo.
