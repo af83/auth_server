@@ -3,7 +3,7 @@
  */
 
 var Futures = require('futures')
-  , MongoProvider = require('mongodb-provider').MongoProvider
+  , mongoskin = require('mongoskin')
   , fs = require('fs')
 ;
 
@@ -19,7 +19,7 @@ var server = require('../server')
 var clear_collections = function(next) {
   var clear_collection_job = function(collection) {
     var future = Futures.future();
-    var c = new MongoProvider(model.db, collection);
+    var c = model.db.collection(collection);
     c.remove(future.deliver);
     return future;
   };

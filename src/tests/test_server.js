@@ -77,7 +77,7 @@ exports.tests = [
 ['/oauth/authorize: bad client_id', 2, function() {
   // if the given client id is not in DB, error.
   get(authorize_url, {
-    client_id: "toto",
+    client_id: "c291de4ddd672c4c5b000000",
     response_type: "code",
     redirect_uri: "http://127.0.0.1:8888/login"
   }, get_error_checker('eua', 'invalid_client'));
@@ -259,7 +259,7 @@ exports.tests = [
 ['/oauth/token: unknown client_id', 2, function() {
   post(token_url, {
     grant_type: "authorization_code",
-    client_id: "toto",
+    client_id: "c291de4ddd672c4c5b000000",
     code: "some code",
     client_secret: "some secret",
     redirect_uri: "http://127.0.0.1:8888/login"

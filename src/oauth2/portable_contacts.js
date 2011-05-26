@@ -141,7 +141,7 @@ function deleteContact(req, res) {
       return res.end();
     }
     if (contact.get('user') == req.user.get('id')) {
-      contact.remove(function(err) {
+      contact.removeEntry(function(err) {
         if (err) {
           res.writeHead(500);
           res.end();

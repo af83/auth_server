@@ -9,8 +9,7 @@
  */
 
 var events = require('events')
-  , provider = require('mongodb-provider')
-  , MongoProvider = provider.MongoProvider
+  , mongoskin = require('mongoskin')
   , inherits = require('util').inherits
 ;
 
@@ -19,18 +18,19 @@ var config = require('./lib/config_loader').get_config()
   , _ = require('./lib/merger')
 ;
 
-var db = exports.db = provider.connect(config.db);
+var db = exports.db = mongoskin.db(config.db);
 
-var ObjectID = db.bson_serializer.ObjectID;
+var Collection = mongoskin.SkinCollection;
+
 /**
  * Base object for models
  */
 function Model(collection, data) {
-  MongoProvider.call(this, db, collection);
+  Collection.call(this, db, collection);
   data = data || {};
   this.data = data;
 }
-inherits(Model, MongoProvider);
+inherits(Model, Collection);
 Model.prototype.get = function(key) {
   if (key == 'id') return this.data['_id'] ? this.data['_id'].toString() : null;
   return this.data[key];
@@ -46,15 +46,15 @@ Model.prototype.set = function(key, value) {
 }
 Model.prototype.save = function(callback) {
   var that = this;
-  MongoProvider.prototype.save.call(this, this.data, {safe: true}, function(err, result) {
+  Collection.prototype.save.call(this, this.data, {safe: true}, function(err, result) {
     if (err) return callback(err);
     result = result[0];
     this.data = result;
     callback(null, that);
   });
 }
-Model.prototype.remove = function(callback) {
-  MongoProvider.prototype.remove.call(this, {_id: new ObjectID(this.get('id'))}, callback);
+Model.prototype.removeEntry = function(callback) {
+  Collection.prototype.removeById.call(this, this.get('id'), callback);
 }
 Model.prototype.toJSON = function() {
   var id = this.data._id;
@@ -108,7 +108,7 @@ User.prototype.setPassword = function(password, callback) {
 }
 
 User.getById = function(id, callback) {
-  new User().findOne({_id: new ObjectID(id)}, function(err, result) {
+  new User().findById(id, function(err, result) {
     if (err || !result) return callback(err, null);
     callback(null, result ? new User(result): null);
   });
@@ -133,9 +133,9 @@ User.getByConfirmedEmail = function(email, callback) {
 }
 
 function Users() {
-  MongoProvider.call(this, db, 'User');
+  Collection.call(this, db, 'User');
 }
-inherits(Users, MongoProvider);
+inherits(Users, Collection);
 Users.prototype.get = function(callback) {
   this.findItems({}, function(err, result) {
     if (err) return callback(err);
@@ -149,11 +149,11 @@ Users.prototype.get = function(callback) {
  * Client Model
  */
 function Client(data) {
-  Model.call(this,'Client', data);
+  Model.call(this, 'Client', data);
 }
 inherits(Client, Model);
 Client.getByName = function(name, callback) {
-  var clients = new MongoProvider(db, 'Client');
+  var clients = db.collection('Client');
   clients.findItems({name: name}, function(err, clients) {
     if (err) return callback(err);
     callback(null, clients.map(function(item) {
@@ -162,7 +162,7 @@ Client.getByName = function(name, callback) {
   });
 }
 Client.getById = function(id, callback) {
-  new Client().findOne({_id: new ObjectID(id)}, function(err, result) {
+  new Client().findById(id, function(err, result) {
     if (err) return callback(err);
     callback(null, result ? new Client(result) : null);
   });
@@ -172,9 +172,9 @@ Client.getById = function(id, callback) {
  * TODO: provide a real collection
  */
 function Clients() {
-  MongoProvider.call(this, db, 'Client');
+  Collection.call(this, db, 'Client');
 }
-inherits(Clients, MongoProvider);
+inherits(Clients, Collection);
 Clients.prototype.get = function(callback) {
   this.findItems({}, function(err, result) {
     if (err) return callback(err);
@@ -191,7 +191,7 @@ function Grant(data) {
 }
 inherits(Grant, Model);
 Grant.getById = function(id, callback) {
-  new MongoProvider(db, 'Grant').findOne({_id: new ObjectID(id)}, function(err, result) {
+  db.collection('Grant').findById(id, function(err, result) {
     if (err) return callback(err);
     callback(null, new Grant(result));
   });
@@ -213,7 +213,7 @@ Contact.prototype.toPortableContact = function() {
   return data;
 }
 Contact.getById = function(id, callback) {
-  new MongoProvider(db, 'Contact').findOne({_id: new ObjectID(id)}, function(err, result) {
+  db.collection('Contact').findById(id, function(err, result) {
     if (err) return callback(err);
     callback(null, new Contact(result));
   });
@@ -223,9 +223,9 @@ Contact.getById = function(id, callback) {
  * Contacts
  */
 function Contacts() {
-  MongoProvider.call(this, db, 'Contact');
+  Collection.call(this, db, 'Contact');
 }
-inherits(Contacts, MongoProvider);
+inherits(Contacts, Collection);
 Contacts.prototype.search = function(query, callback) {
   this.findItems(query, function(err, items) {
     if (err) return callback(err);
