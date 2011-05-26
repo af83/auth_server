@@ -182,6 +182,10 @@ Example of a portable contact record:
 
 ## Changelog
 
+* **0.1.3**
+
+  Upgrade to mongoskin for the model layer.
+
 * **0.1.2**
 
   Update doc and Makefile with latest change of npm.
