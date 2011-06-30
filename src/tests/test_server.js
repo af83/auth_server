@@ -8,7 +8,6 @@ var http = require('http')
   , URL = require('url')
   , util = require('util')
   , oauth2_server = require('oauth2-server')
-  , base64 = require('base64')
   , extend = require('../lib/merger').extend
   , request = require('request')
   , qs = require('querystring')
@@ -142,12 +141,12 @@ exports.tests = [
   post(login_url, {
     email: 'pruyssen@af83.com',
     password: '1234',
-    info: base64.encode(new Buffer(JSON.stringify({
+    info: new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    })))
+    })).toString('base64')
   }, function(err, response, body) {
     assert.equal(response.statusCode, 303);
     var location = response.headers.location.split('?');
@@ -171,12 +170,12 @@ exports.tests = [
     state: 'somestate',
     email: 'pruyssen@af83.com',
     password: '123456',
-    info: base64.encode(new Buffer(JSON.stringify({
+    info: new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    })))
+    })).toString('base64')
   }, function(err, response, body) {
     assert.equal(response.statusCode, 401);
   });
@@ -187,12 +186,12 @@ exports.tests = [
   post(login_url, {
     email: 'toto@af83.com',
     password: '123456',
-    info: base64.encode(new Buffer(JSON.stringify({
+    info: new Buffer(JSON.stringify({
       client_id: 'errornot',
       response_type: 'code',
       state:'somestate',
       redirect_uri: 'http://127.0.0.1:8888/login'
-    })))
+    })).toString('base64')
   }, function(err, response, body) {
     assert.equal(response.statusCode, 401);
   });

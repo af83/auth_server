@@ -1,6 +1,5 @@
 
 var oauth2_server = require('oauth2-server')
-  , base64 = require('base64')
   , URL = require('url')
 ;
 
@@ -96,7 +95,7 @@ var login = exports.login = function(req, res, client_data, code_status) {
  * TODO: sign data
  */
 var pack_data = exports.pack_data = function(data) {
-  return base64.encode(new Buffer(JSON.stringify(data)));
+  return new Buffer(JSON.stringify(data)).toString('base64');
 };
 
 /**
@@ -110,7 +109,7 @@ var pack_data = exports.pack_data = function(data) {
 var extract_client_data = exports.extract_client_data = function(info) {
   if(!info) return null;
   try {
-    var data = base64.decode(info);
+    var data = new Buffer(info, 'base64').toString('utf8');
     data = JSON.parse(data);
     return data;
   } catch(err) {
