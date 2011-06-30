@@ -33,22 +33,14 @@ Make sure gettext (xgettext and msgfmt) are installed on your system, then:
     make install
     make update_js_templates
 
-### Run the tests
+### Configuration
 
-Make sure nodetk/bins is in your PATH environment variable and NODE_PATH environment variable includes node/lib directory. For more info on this, please have a look at the [nodetk README file](https://github.com/AF83/nodetk/blob/master/README.md). (looks like 'npm install .' in vendor/nodetk should do the trick)
-     	Then:
+The config file is located in the root folder, *config.js*.
 
-    nodetests src/tests
-
-### Updating templates
-
-When updating the templates, they need to be "repackaged" for the web application. This can be done doing:
-
-    make update_js_templates
-
-or, to skip the i18n process:
-
-    make skip
+* exports.email: Edit to add you own smtp server
+* exports.db: db host and name
+* exports.server.base_url: Url of the server
+* exports.server.port: the port to listen connections
 
 ### Load some testing data in DB
 
@@ -61,6 +53,24 @@ This command will load some testing data in the DB:
 Tweak the `config.js` file to fit your needs, then:
 
     node src/server.js
+
+## Development
+
+### Run the tests
+
+Make sure nodetk/bins is in your PATH environment variable and NODE_PATH environment variable includes node/lib directory. For more info on this, please have a look at the [nodetk README file](https://github.com/AF83/nodetk/blob/master/README.md). (looks like 'npm install .' in vendor/nodetk should do the trick), then:
+
+    nodetests src/tests
+
+### Updating templates
+
+When updating the templates, they need to be "repackaged" for the web application. This can be done doing:
+
+    make update_js_templates
+
+or, to skip the i18n process:
+
+    make skip
 
 ## Dependencies
 
