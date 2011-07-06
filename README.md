@@ -50,7 +50,7 @@ The config file is located in the root folder, *config.js*.
             password: '**password**'
         }
     }
-```javascript
+```
 
 * exports.db: db host and name
 * exports.server.base_url: Url of the server
