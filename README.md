@@ -37,7 +37,21 @@ Make sure gettext (xgettext and msgfmt) are installed on your system, then:
 
 The config file is located in the root folder, *config.js*.
 
-* exports.email: Edit to add you own smtp server
+* exports.email: Edit to add you own smtp server. Two methods are available, *smtp* and *dev*. *smtp* will use the configuration to send an email. *dev* will pring the email in *stdout*.
+
+  Below is the configuration to send an email using a gmail account. You can find all options in [node-mail README](https://github.com/weaver/node-mail).<br />
+
+```javascript
+    export.email = {
+        method: "smtp",
+        conf: {
+            host: 'smtp.gmail.com',
+            username: 'me@gmail.com',
+            password: '**password**'
+        }
+    }
+```javascript
+
 * exports.db: db host and name
 * exports.server.base_url: Url of the server
 * exports.server.port: the port to listen connections
