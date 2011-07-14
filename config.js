@@ -1,7 +1,8 @@
 exports.email = {
-  method: "dev", // smtp in prod
+  method: "postmark",
   conf: {
-    host: "smtp-out.bearstech.lan"
+    token: "Insert-Your-Postmark-App-Token",
+    sender: "your sender mail"
   }
 };
 
