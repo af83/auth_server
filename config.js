@@ -2,7 +2,7 @@ exports.email = {
   method: "postmark",
   conf: {
     token: "Insert-Your-Postmark-App-Token",
-    sender: "your sender mail"
+    sender: "mail@example.com"
   }
 };
 
