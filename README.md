@@ -126,32 +126,6 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
     /oauth2/login
 
-## Internal
-
-### List clients
-
-    GET /clients
-
-### Create client
-
-    POST /clients
-
-### Update client
-
-    PUT /clients/:id
-
-### Delete client
-
-    DELETE /clients/:id
-
-### List users
-
-    GET /users
-
-### Update user password
-
-    POST /me/password
-
 ### Portables contacts
 
 We follow the the current specification of [portables contacts](http://portablecontacts.net/draft-spec.html).
@@ -204,6 +178,33 @@ Example of a portable contact record:
     DELETE /portable_contacts/@me/@all/:id
 
     $ curl -X DELETE --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id
+
+
+## Internal
+
+### List clients
+
+    GET /clients
+
+### Create client
+
+    POST /clients
+
+### Update client
+
+    PUT /clients/:id
+
+### Delete client
+
+    DELETE /clients/:id
+
+### List users
+
+    GET /users
+
+### Update user password
+
+    POST /me/password
 
 ## Changelog
 
