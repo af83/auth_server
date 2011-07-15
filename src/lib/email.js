@@ -14,7 +14,7 @@ if(config.email.method == "smtp") {
      *   - body: what's in the email.
      *
      */
-    mail.message({ from: "auth_server@af83.com"
+    mail.message({ from: config.email.conf.sender
                  , to: [destination]
                  , subject: subject
     }).body(body).send(function(err) {

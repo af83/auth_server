@@ -1,7 +1,8 @@
 exports.email = {
   method: "dev", // smtp in prod
   conf: {
-    host: ""
+    host: "",
+    sender: "mail@example.com"
   }
 };
 

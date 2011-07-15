@@ -46,6 +46,7 @@ The config file is located in the root folder, *config.js*.
         method: "smtp",
         conf: {
             host: 'smtp.gmail.com',
+            sender: "me@gmail.com",
             username: 'me@gmail.com',
             password: '**password**'
         }
@@ -205,6 +206,10 @@ Example of a portable contact record:
     $ curl -X DELETE --header "Authorization: OAuth TOKEN" /portable_contacts/@me/@all/:id
 
 ## Changelog
+
+* **0.1.4** (not yet released)
+
+  Remove harcoded sender email and put it in the config file.
 
 * **0.1.3**
 
