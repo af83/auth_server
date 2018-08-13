@@ -13,7 +13,7 @@ The benefits are multiple:
  - there is only one application where Alice has to be registered (and so one set of credentials per user);
  - when developing a new application, there is no need to recreate all user registration process stuff, but only to plug the application to auth_server;
 
-auth_server is functionnal (ie: users can sign in/out the the application and others applications using the service), but the administration interface lacks many features, including adding/editing user's contacts.
+auth_server is functional (ie: users can sign in/out of the application and other applications using the service), but the administration interface lacks many features, including adding/editing user's contacts.
 
 This project is alpha software, it might not be ready for production use yet.
 
@@ -129,7 +129,7 @@ A [wiki page](https://github.com/AF83/auth_server/wiki/Uses) lists the projects 
 
 ### Portables contacts
 
-We follow the the current specification of [portables contacts](http://portablecontacts.net/draft-spec.html).
+We follow the current specification of [portables contacts](http://portablecontacts.net/draft-spec.html).
 
 All filtering/sorting are not available.
 
